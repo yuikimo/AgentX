@@ -1,12 +1,17 @@
 package com.example.agentx.application.agent.service;
 
+import com.example.agentx.application.agent.assembler.AgentAssembler;
 import com.example.agentx.application.agent.dto.AgentDTO;
+import com.example.agentx.domain.agent.model.AgentEntity;
+import com.example.agentx.domain.agent.model.AgentWorkspaceEntity;
 import com.example.agentx.domain.agent.service.AgentDomainService;
 import com.example.agentx.domain.agent.service.AgentWorkspaceDomainService;
+import com.example.agentx.domain.conversation.model.SessionEntity;
 import com.example.agentx.domain.conversation.service.ConversationDomainService;
 import com.example.agentx.domain.conversation.service.SessionDomainService;
+import com.example.agentx.domain.llm.model.ModelEntity;
+import com.example.agentx.domain.llm.service.LlmDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import com.example.agentx.interfaces.dto.agent.SearchAgentsRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,56 +36,87 @@ public class AgentWorkspaceAppService {
     private final SessionDomainService sessionDomainService;
 
     private final ConversationDomainService conversationDomainService;
+    private final LlmDomainService llmDomainService;
 
     public AgentWorkspaceAppService(AgentWorkspaceDomainService agentWorkspaceDomainService,
                                     AgentDomainService agentServiceDomainService,
                                     SessionDomainService sessionDomainService,
-                                    ConversationDomainService conversationDomainService) {
+                                    ConversationDomainService conversationDomainService,
+                                    LlmDomainService llmDomainService) {
         this.agentWorkspaceDomainService = agentWorkspaceDomainService;
         this.agentServiceDomainService = agentServiceDomainService;
         this.sessionDomainService = sessionDomainService;
         this.conversationDomainService = conversationDomainService;
+        this.llmDomainService = llmDomainService;
     }
 
     /**
      * 获取工作区下的助理
      *
      * @param userId 用户id
-     * @return
+     * @return AgentDTO
      */
     public List<AgentDTO> getAgents(String userId) {
-        // 1.获取当前用户的所有助理
-        List<AgentDTO> userAgents = agentServiceDomainService.getUserAgents(userId, new SearchAgentsRequest());
-
-        // 2.获取已添加到工作区的助理
-        List<AgentDTO> workspaceAgents = agentWorkspaceDomainService.getWorksapceAgents(userId);
-
-        // 合并两个列表
-        userAgents.addAll(workspaceAgents);
-        return userAgents;
+        List<AgentEntity> workspaceAgents = agentWorkspaceDomainService.getWorkspaceAgents(userId);
+        return AgentAssembler.toDTOs(workspaceAgents);
     }
 
+    /**
+     * 删除工作区中的助理
+     *
+     * @param agentId 助理id
+     * @param userId  用户id
+     */
     @Transactional
     public void deleteAgent(String agentId, String userId) {
+
+        // agent如果是自己的则不允许删除
+        AgentEntity agent = agentServiceDomainService.getAgentById(agentId);
+        if (agent.getUserId().equals(userId)) {
+            throw new BusinessException("该助理属于自己，不允许删除");
+        }
+
         boolean deleteAgent = agentWorkspaceDomainService.deleteAgent(agentId, userId);
         if (!deleteAgent) {
             throw new BusinessException("删除助理失败");
         }
-
-        // 查出会话列表，收集SessionIds
         List<String> sessionIds = sessionDomainService.getSessionsByAgentId(agentId)
                 .stream()
-                .map(SessionDTO::getId)
+                .map(SessionEntity::getId)
                 .collect(Collectors.toList());
-
         if (sessionIds.isEmpty()) {
             return;
         }
-
-        // 删除Agent下的会话
         sessionDomainService.deleteSessions(sessionIds);
-        // 删除会话下的所有消息
         conversationDomainService.deleteConversationMessages(sessionIds);
     }
 
+    /**
+     * 保存模型
+     *
+     * @param agentId agentId
+     * @param userId  用户id
+     * @param modelId 模型id
+     */
+    public void saveModel(String agentId, String userId, String modelId) {
+
+        // 模型是否是自己的 or 官方的
+        ModelEntity model = llmDomainService.getModelById(modelId);
+        if (!model.getOfficial() && !model.getUserId().equals(userId)) {
+            throw new BusinessException("模型不存在");
+        }
+
+        AgentWorkspaceEntity workspace = agentWorkspaceDomainService.findWorkspace(agentId, userId);
+        if (workspace == null) {
+            workspace = new AgentWorkspaceEntity();
+            workspace.setAgentId(agentId);
+            workspace.setUserId(userId);
+        }
+        workspace.setModelId(modelId);
+        agentWorkspaceDomainService.save(workspace);
+    }
+
+    public String getConfiguredModelId(String agentId, String userId) {
+        return agentWorkspaceDomainService.getWorkspace(agentId, userId).getModelId();
+    }
 }

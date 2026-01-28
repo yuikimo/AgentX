@@ -1,15 +1,15 @@
 package com.example.agentx.interfaces.api.admin;
 
-import com.example.agentx.application.agent.service.AgentAppService;
-import com.example.agentx.domain.agent.constant.PublishStatus;
-import com.example.agentx.domain.agent.dto.AgentVersionDTO;
-import com.example.agentx.interfaces.api.common.Result;
-import com.example.agentx.interfaces.dto.agent.ReviewAgentVersionRequest;
 import org.springframework.web.bind.annotation.*;
+import org.xhy.application.agent.service.AgentAppService;
+import org.xhy.application.agent.dto.AgentVersionDTO;
+import org.xhy.domain.agent.constant.PublishStatus;
+import org.xhy.interfaces.api.common.Result;
+import org.xhy.interfaces.dto.agent.ReviewAgentVersionRequest;
 
 import java.util.List;
 /**
- * 管理员Agent管理API控制器
+ * 管理员Agent管理
  * 负责处理管理员对Agent的管理操作，如审核、查看待审核列表等
  */
 @RestController
@@ -64,7 +64,6 @@ public class AdminAgentController {
         if (publishStatus == PublishStatus.REJECTED) {
             request.setRejectReason(reason);
         }
-
 
         return Result.success(agentAppService.reviewAgentVersion(versionId, request));
     }

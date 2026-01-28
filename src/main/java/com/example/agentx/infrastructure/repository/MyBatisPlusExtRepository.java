@@ -30,7 +30,6 @@ public interface MyBatisPlusExtRepository<T> extends BaseMapper<T> {
         }
     }
 
-
     /**
      * 带检查的删除
      */

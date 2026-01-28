@@ -19,6 +19,7 @@
         <hutool.version>5.8.26</hutool.version>
         <langchain4j.version>1.0.0-beta2</langchain4j.version>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>

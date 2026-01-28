@@ -1,16 +1,45 @@
 package com.example.agentx.interfaces.dto.llm;
 
-import com.example.agentx.domain.llm.model.config.ProviderConfig;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import org.xhy.domain.llm.model.config.ProviderConfig;
+import org.xhy.infrastructure.llm.protocol.enums.ProviderProtocol;
 
 /**
  * 服务提供商更新请求
  */
 public class ProviderUpdateRequest {
-
+    
+    /**
+     * 服务商ID
+     */
     private String id;
-    private String name;
+
+    /**
+     * 服务商描述
+     */
     private String description;
+
+    /**
+     * 服务商协议
+     */
+    @NotNull(message = "协议不可为空")
+    private ProviderProtocol protocol;
+
+    /**
+     * 服务商名称
+     */
+    @NotBlank(message = "名称不可为空")
+    private String name;
+
+    /**
+     * 服务商描述
+     */
     private ProviderConfig config;
+
+    /**
+     * 服务商状态
+     */
     private Boolean status;
 
     public String getId() {
@@ -19,6 +48,14 @@ public class ProviderUpdateRequest {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public ProviderProtocol getProtocol() {
+        return protocol;
+    }
+
+    public void setProtocol(ProviderProtocol protocol) {
+        this.protocol = protocol;
     }
 
     public String getName() {

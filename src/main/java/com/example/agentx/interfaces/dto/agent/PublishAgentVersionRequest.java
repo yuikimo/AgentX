@@ -1,13 +1,15 @@
 package com.example.agentx.interfaces.dto.agent;
 
-import com.example.agentx.infrastructure.exception.ParamValidationException;
-
 import java.util.regex.Pattern;
+
+import jakarta.validation.constraints.NotBlank;
+import org.xhy.infrastructure.exception.ParamValidationException;
 
 /**
  * 发布Agent版本请求
  */
 public class PublishAgentVersionRequest {
+    @NotBlank(message = "版本号不能为空")
     private String versionNumber;
     private String changeLog;
 
@@ -27,10 +29,6 @@ public class PublishAgentVersionRequest {
      * 校验请求参数
      */
     public void validate() {
-        if (versionNumber == null || versionNumber.trim().isEmpty()) {
-            throw new ParamValidationException("versionNumber", "版本号不能为空");
-        }
-
         // 验证版本号格式
         if (!VERSION_PATTERN.matcher(versionNumber).matches()) {
             throw new ParamValidationException("versionNumber", "版本号必须遵循 x.y.z 格式");
@@ -60,7 +58,7 @@ public class PublishAgentVersionRequest {
 
     /**
      * 比较版本号是否大于给定的版本号
-     *
+     * 
      * @param lastVersion 上一个版本号
      * @return 如果当前版本号大于lastVersion则返回true，否则返回false
      */

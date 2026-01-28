@@ -1,20 +1,18 @@
 package com.example.agentx.interfaces.api.portal.agent;
 
-import com.example.agentx.application.agent.dto.AgentDTO;
-import com.example.agentx.application.agent.dto.AgentVersionDTO;
-import com.example.agentx.application.agent.service.AgentAppService;
-import com.example.agentx.interfaces.api.common.Result;
-import com.example.agentx.interfaces.auth.UserContext;
-import com.example.agentx.interfaces.dto.agent.CreateAgentRequest;
-import com.example.agentx.interfaces.dto.agent.PublishAgentVersionRequest;
-import com.example.agentx.interfaces.dto.agent.SearchAgentsRequest;
-import com.example.agentx.interfaces.dto.agent.UpdateAgentRequest;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.xhy.application.agent.service.AgentAppService;
+import org.xhy.application.agent.dto.AgentDTO;
+import org.xhy.application.agent.dto.AgentVersionDTO;
+import org.xhy.infrastructure.auth.UserContext;
+import org.xhy.interfaces.api.common.Result;
+import org.xhy.interfaces.dto.agent.*;
 
 import java.util.List;
 
 /**
- * 前台用户Agent管理API控制器
+ * 用户Agent管理
  */
 @RestController
 @RequestMapping("/agent")
@@ -30,7 +28,7 @@ public class PortalAgentController {
      * 创建新Agent
      */
     @PostMapping
-    public Result<AgentDTO> createAgent(@RequestBody CreateAgentRequest request) {
+    public Result<AgentDTO> createAgent(@RequestBody @Validated CreateAgentRequest request) {
         String userId = UserContext.getCurrentUserId();
         AgentDTO agent = agentAppService.createAgent(request, userId);
         return Result.success(agent);
@@ -68,9 +66,10 @@ public class PortalAgentController {
      */
     @PutMapping("/{agentId}")
     public Result<AgentDTO> updateAgent(@PathVariable String agentId,
-            @RequestBody UpdateAgentRequest request) {
+            @RequestBody @Validated UpdateAgentRequest request) {
         String userId = UserContext.getCurrentUserId();
-        return Result.success(agentAppService.updateAgent(agentId, request, userId));
+        request.setAgentId(agentId);
+        return Result.success(agentAppService.updateAgent(request, userId));
     }
 
     /**
