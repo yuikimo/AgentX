@@ -1,0 +1,84 @@
+package com.example.agentx.domain.agent.service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.example.agentx.domain.agent.model.AgentEntity;
+import com.example.agentx.domain.agent.model.AgentWorkspaceEntity;
+import com.example.agentx.domain.agent.repository.AgentRepository;
+import com.example.agentx.domain.agent.repository.AgentWorkspaceRepository;
+import com.example.agentx.infrastructure.exception.BusinessException;
+import org.springframework.stereotype.Service;
+
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+
+@Service
+public class AgentWorkspaceDomainService {
+
+    private final AgentWorkspaceRepository agentWorkspaceRepository;
+
+    private final AgentRepository agentRepository;
+
+    public AgentWorkspaceDomainService(AgentWorkspaceRepository agentWorkspaceRepository,
+                                       AgentDomainService agentServiceDomainService, AgentRepository agentRepository) {
+        this.agentWorkspaceRepository = agentWorkspaceRepository;
+        this.agentRepository = agentRepository;
+    }
+
+    public List<AgentEntity> getWorkspaceAgents(String userId) {
+
+        LambdaQueryWrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaQuery()
+                .eq(AgentWorkspaceEntity::getUserId, userId).select(AgentWorkspaceEntity::getAgentId);
+
+        List<String> agentIds = agentWorkspaceRepository.selectList(wrapper).stream()
+                .map(AgentWorkspaceEntity::getAgentId).collect(Collectors.toList());
+
+        if (agentIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return agentRepository.selectByIds(agentIds);
+
+    }
+
+    public boolean exist(String agentId, String userId) {
+        Wrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaQuery()
+                .eq(AgentWorkspaceEntity::getAgentId, agentId)
+                .eq(AgentWorkspaceEntity::getUserId, userId);
+
+        Long l = agentWorkspaceRepository.selectCount(wrapper);
+        return l > 0;
+    }
+
+    public boolean deleteAgent(String agentId, String userId) {
+        return agentWorkspaceRepository.delete(Wrappers.<AgentWorkspaceEntity>lambdaQuery()
+                .eq(AgentWorkspaceEntity::getAgentId, agentId).eq(AgentWorkspaceEntity::getUserId, userId)) > 0;
+    }
+
+    public AgentWorkspaceEntity getWorkspace(String agentId, String userId) {
+        Wrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaQuery()
+                .eq(AgentWorkspaceEntity::getAgentId, agentId)
+                .eq(AgentWorkspaceEntity::getUserId, userId);
+        AgentWorkspaceEntity agentWorkspaceEntity = agentWorkspaceRepository.selectOne(wrapper);
+        if (agentWorkspaceEntity == null) {
+            throw new BusinessException("助理不存在");
+        }
+        return agentWorkspaceEntity;
+    }
+
+    public AgentWorkspaceEntity findWorkspace(String agentId, String userId) {
+        Wrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaQuery()
+                .eq(AgentWorkspaceEntity::getAgentId, agentId)
+                .eq(AgentWorkspaceEntity::getUserId, userId);
+        return agentWorkspaceRepository.selectOne(wrapper);
+    }
+
+    public void save(AgentWorkspaceEntity workspace) {
+        boolean b = agentWorkspaceRepository.insertOrUpdate(workspace);
+        if (!b) {
+            throw new BusinessException("保存失败");
+        }
+    }
+}
