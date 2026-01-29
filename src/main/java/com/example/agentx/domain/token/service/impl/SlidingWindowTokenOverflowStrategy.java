@@ -1,9 +1,9 @@
 package com.example.agentx.domain.token.service.impl;
 
+import com.example.agentx.domain.shared.enums.TokenOverflowStrategyEnum;
 import com.example.agentx.domain.token.model.TokenMessage;
 import com.example.agentx.domain.token.model.TokenProcessResult;
 import com.example.agentx.domain.token.model.config.TokenOverflowConfig;
-import com.example.agentx.domain.token.model.enums.TokenOverflowStrategyEnum;
 import com.example.agentx.domain.token.service.TokenOverflowStrategy;
 import org.springframework.stereotype.Service;
 
@@ -50,7 +50,7 @@ public class SlidingWindowTokenOverflowStrategy implements TokenOverflowStrategy
      * @return 处理后保留的消息列表
      */
     @Override
-    public TokenProcessResult process(List<TokenMessage> messages) {
+    public TokenProcessResult process(List<TokenMessage> messages, TokenOverflowConfig tokenOverflowConfig) {
         if (!needsProcessing(messages)) {
             TokenProcessResult result = new TokenProcessResult();
             result.setRetainedMessages(messages);
@@ -66,8 +66,6 @@ public class SlidingWindowTokenOverflowStrategy implements TokenOverflowStrategy
 
         // 计算可用token数（考虑预留空间）
         int maxTokens = config.getMaxTokens();
-        int reserveTokens = (int) (maxTokens * config.getReserveRatio());
-        int availableTokens = maxTokens - reserveTokens;
 
         // 保留最新的消息，直到达到token限制
         List<TokenMessage> retainedMessages = new ArrayList<>();
@@ -75,7 +73,7 @@ public class SlidingWindowTokenOverflowStrategy implements TokenOverflowStrategy
 
         for (TokenMessage message : sortedMessages) {
             int messageTokens = message.getTokenCount() != null ? message.getTokenCount() : 0;
-            if (totalTokens + messageTokens <= availableTokens) {
+            if (totalTokens + messageTokens <= maxTokens) {
                 retainedMessages.add(message);
                 totalTokens += messageTokens;
             } else {

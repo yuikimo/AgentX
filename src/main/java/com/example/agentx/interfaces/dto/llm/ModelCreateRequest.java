@@ -1,14 +1,13 @@
 package com.example.agentx.interfaces.dto.llm;
 
 import jakarta.validation.constraints.NotBlank;
-import org.xhy.domain.llm.model.config.LLMModelConfig;
 import org.xhy.domain.llm.model.enums.ModelType;
 
 /**
  * 模型创建请求
  */
 public class ModelCreateRequest {
-    
+
     /**
      * 服务商ID
      */
@@ -36,57 +35,45 @@ public class ModelCreateRequest {
      */
     private ModelType type;
 
-    /**
-     * 模型配置
-     */
-    private LLMModelConfig config;
-    
     public String getProviderId() {
         return providerId;
     }
-    
+
     public void setProviderId(String providerId) {
         this.providerId = providerId;
     }
-    
+
     public String getModelId() {
         return modelId;
     }
-    
+
     public void setModelId(String modelId) {
         this.modelId = modelId;
     }
-    
+
     public String getName() {
         return name;
     }
-    
+
     public void setName(String name) {
         this.name = name;
     }
-    
+
     public String getDescription() {
         return description;
     }
-    
+
     public void setDescription(String description) {
         this.description = description;
     }
-    
+
     public ModelType getType() {
         return type;
     }
-    
+
     public void setType(ModelType type) {
         this.type = type;
     }
-    
-    public LLMModelConfig getConfig() {
-        return config;
-    }
-    
-    public void setConfig(LLMModelConfig config) {
-        this.config = config;
-    }
+
 
 }

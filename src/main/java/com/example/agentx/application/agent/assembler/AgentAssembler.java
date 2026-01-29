@@ -3,7 +3,6 @@ package com.example.agentx.application.agent.assembler;
 import com.example.agentx.application.agent.dto.AgentDTO;
 import com.example.agentx.domain.agent.constant.AgentType;
 import com.example.agentx.domain.agent.model.AgentEntity;
-import com.example.agentx.domain.agent.model.AgentModelConfig;
 import com.example.agentx.interfaces.dto.agent.CreateAgentRequest;
 import com.example.agentx.interfaces.dto.agent.SearchAgentsRequest;
 import com.example.agentx.interfaces.dto.agent.UpdateAgentRequest;
@@ -58,8 +57,6 @@ public class AgentAssembler {
         return entity;
     }
 
-
-
     /**
      * 将UpdateAgentRequest转换为AgentEntity
      */
@@ -78,7 +75,6 @@ public class AgentAssembler {
 
         return entity;
     }
-
 
     /**
      * 将AgentEntity转换为AgentDTO

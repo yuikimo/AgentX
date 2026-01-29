@@ -1,6 +1,7 @@
 package com.example.agentx.domain.llm.model;
 
 import com.example.agentx.domain.llm.model.config.ProviderConfig;
+import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

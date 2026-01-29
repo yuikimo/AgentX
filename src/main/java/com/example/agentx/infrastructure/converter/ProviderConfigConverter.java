@@ -1,7 +1,7 @@
 package com.example.agentx.infrastructure.converter;
 
-import com.baomidou.mybatisplus.core.toolkit.EncryptUtils;
 import com.example.agentx.domain.llm.model.config.ProviderConfig;
+import com.example.agentx.infrastructure.util.EncryptUtils;
 import com.example.agentx.infrastructure.util.JsonUtils;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
@@ -20,7 +20,6 @@ import java.sql.SQLException;
 @MappedTypes(ProviderConfig.class)
 @MappedJdbcTypes({JdbcType.VARCHAR, JdbcType.LONGVARCHAR, JdbcType.OTHER})
 public class ProviderConfigConverter extends BaseTypeHandler<ProviderConfig> {
-
 
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, ProviderConfig parameter, JdbcType jdbcType)

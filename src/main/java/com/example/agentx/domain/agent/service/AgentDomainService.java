@@ -32,7 +32,8 @@ public class AgentDomainService {
     private final AgentVersionRepository agentVersionRepository;
     private final AgentWorkspaceRepository agentWorkspaceRepository;
 
-    public AgentDomainService(AgentRepository agentRepository, AgentVersionRepository agentVersionRepository, AgentWorkspaceRepository agentWorkspaceRepository) {
+    public AgentDomainService(AgentRepository agentRepository, AgentVersionRepository agentVersionRepository,
+                              AgentWorkspaceRepository agentWorkspaceRepository) {
         this.agentRepository = agentRepository;
         this.agentVersionRepository = agentVersionRepository;
         this.agentWorkspaceRepository = agentWorkspaceRepository;
@@ -305,7 +306,7 @@ public class AgentDomainService {
                 .eq(AgentEntity::getId, agentId)
                 .eq(AgentEntity::getUserId, userId);
         AgentEntity agent = agentRepository.selectOne(wrapper);
-        return agent !=null;
+        return agent != null;
     }
 
     /**
@@ -318,7 +319,7 @@ public class AgentDomainService {
     }
 
     public AgentEntity getAgentById(String agentId) {
-       return this.getAgentsByIds(Collections.singletonList(agentId)).get(0);
+        return this.getAgentsByIds(Collections.singletonList(agentId)).get(0);
     }
 
     public AgentEntity getAgentWithPermissionCheck(String agentId, String userId) {
@@ -327,7 +328,7 @@ public class AgentDomainService {
         boolean b1 = agentWorkspaceRepository.exist(agentId, userId);
 
         boolean b2 = exist(agentId, userId);
-        if (!b1 && !b2){
+        if (!b1 && !b2) {
             throw new BusinessException("助理不存在");
         }
         AgentEntity agentEntity = getAgentById(agentId);
@@ -336,13 +337,13 @@ public class AgentDomainService {
         String publishedVersion = agentEntity.getPublishedVersion();
         if (!StringUtils.isEmpty(publishedVersion)) {
             AgentVersionEntity agentVersionEntity = getAgentVersionById(publishedVersion);
-            BeanUtils.copyProperties(agentVersionEntity,agentEntity);
+            BeanUtils.copyProperties(agentVersionEntity, agentEntity);
         }
 
         return agentEntity;
     }
 
-    public AgentVersionEntity getAgentVersionById(String versionId){
+    public AgentVersionEntity getAgentVersionById(String versionId) {
         return agentVersionRepository.selectById(versionId);
     }
 

@@ -1,7 +1,7 @@
 package com.example.agentx.interfaces.dto.agent;
 
 import jakarta.validation.constraints.NotBlank;
-import org.xhy.domain.agent.model.AgentModelConfig;
+import org.xhy.domain.agent.model.LLMModelConfig;
 import org.xhy.domain.agent.model.AgentTool;
 
 import java.util.List;
@@ -11,6 +11,7 @@ import java.util.List;
  * 整合了基本信息和配置信息
  */
 public class UpdateAgentRequest {
+
 
     private String agentId;
     @NotBlank(message = "助理名称不可为空")
@@ -22,7 +23,7 @@ public class UpdateAgentRequest {
     // 配置信息字段
     private String systemPrompt;
     private String welcomeMessage;
-    private AgentModelConfig modelConfig;
+    private LLMModelConfig modelConfig;
     private List<AgentTool> tools;
     private List<String> knowledgeBaseIds;
 
@@ -46,64 +47,57 @@ public class UpdateAgentRequest {
     public String getName() {
         return name;
     }
-    
+
     public void setName(String name) {
         this.name = name;
     }
-    
+
     public String getAvatar() {
         return avatar;
     }
-    
+
     public void setAvatar(String avatar) {
         this.avatar = avatar;
     }
-    
+
     public String getDescription() {
         return description;
     }
-    
+
     public void setDescription(String description) {
         this.description = description;
     }
-    
+
     public String getSystemPrompt() {
         return systemPrompt;
     }
-    
+
     public void setSystemPrompt(String systemPrompt) {
         this.systemPrompt = systemPrompt;
     }
-    
+
     public String getWelcomeMessage() {
         return welcomeMessage;
     }
-    
+
     public void setWelcomeMessage(String welcomeMessage) {
         this.welcomeMessage = welcomeMessage;
     }
-    
-    public AgentModelConfig getModelConfig() {
-        return modelConfig;
-    }
-    
-    public void setModelConfig(AgentModelConfig modelConfig) {
-        this.modelConfig = modelConfig;
-    }
-    
+
+
     public List<AgentTool> getTools() {
         return tools;
     }
-    
+
     public void setTools(List<AgentTool> tools) {
         this.tools = tools;
     }
-    
+
     public List<String> getKnowledgeBaseIds() {
         return knowledgeBaseIds;
     }
-    
+
     public void setKnowledgeBaseIds(List<String> knowledgeBaseIds) {
         this.knowledgeBaseIds = knowledgeBaseIds;
     }
-} 
+}

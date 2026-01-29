@@ -1,4 +1,4 @@
-package com.example.agentx.domain.token.model.enums;
+package com.example.agentx.domain.shared.enums;
 
 /**
  * Token超限处理策略枚举

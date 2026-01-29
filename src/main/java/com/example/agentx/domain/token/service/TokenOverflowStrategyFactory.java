@@ -1,7 +1,7 @@
 package com.example.agentx.domain.token.service;
 
+import com.example.agentx.domain.shared.enums.TokenOverflowStrategyEnum;
 import com.example.agentx.domain.token.model.config.TokenOverflowConfig;
-import com.example.agentx.domain.token.model.enums.TokenOverflowStrategyEnum;
 import com.example.agentx.domain.token.service.impl.NoTokenOverflowStrategy;
 import com.example.agentx.domain.token.service.impl.SlidingWindowTokenOverflowStrategy;
 import com.example.agentx.domain.token.service.impl.SummarizeTokenOverflowStrategy;
@@ -18,10 +18,11 @@ public class TokenOverflowStrategyFactory {
      * 根据策略类型创建对应的策略实例
      *
      * @param strategyType 策略类型
-     * @param config 策略配置
+     * @param config       策略配置
      * @return 策略实例
      */
-    public static TokenOverflowStrategy createStrategy(TokenOverflowStrategyEnum strategyType, TokenOverflowConfig config) {
+    public static TokenOverflowStrategy createStrategy(TokenOverflowStrategyEnum strategyType,
+                                                       TokenOverflowConfig config) {
         if (strategyType == null) {
             return new NoTokenOverflowStrategy();
         }
@@ -41,7 +42,7 @@ public class TokenOverflowStrategyFactory {
      * 根据策略名称字符串创建对应的策略实例
      *
      * @param strategyName 策略名称字符串
-     * @param config 策略配置
+     * @param config       策略配置
      * @return 策略实例
      */
     public static TokenOverflowStrategy createStrategy(String strategyName, TokenOverflowConfig config) {

@@ -20,6 +20,7 @@ public class BaseEntity {
     @TableField(exist = false)
     private Operator operatedBy = Operator.USER;
 
+
     public void setAdmin(){
         this.operatedBy = Operator.ADMIN;
     }

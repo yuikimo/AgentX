@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 public class AgentVersionAssembler {
 
-
     /**
      * 将AgentVersionEntity列表转换为AgentVersionDTO列表
      */

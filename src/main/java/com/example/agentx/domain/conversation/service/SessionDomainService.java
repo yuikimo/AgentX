@@ -58,7 +58,6 @@ public class SessionDomainService {
         session.setId(sessionId);
         session.setUserId(userId);
         session.setTitle(title);
-
         LambdaUpdateWrapper<SessionEntity> updateWrapper =
                 Wrappers.<SessionEntity>lambdaUpdate()
                         .eq(SessionEntity::getId, sessionId)
@@ -81,23 +80,6 @@ public class SessionDomainService {
         return session;
     }
 
-    /**
-     * 检查会话是否存在
-     *
-     * @param sessionId 会话id
-     * @param userId    用户id
-     */
-    public void checkSessionExist(String sessionId, String userId) {
-        LambdaQueryWrapper<SessionEntity> queryWrapper =
-                Wrappers.<SessionEntity>lambdaQuery()
-                        .eq(SessionEntity::getId, sessionId)
-                        .eq(SessionEntity::getUserId, userId);
-        SessionEntity session = sessionRepository.selectOne(queryWrapper);
-        if (session == null) {
-            throw new BusinessException("会话不存在");
-        }
-    }
-
     public SessionEntity find(String sessionId, String userId) {
         LambdaQueryWrapper<SessionEntity> queryWrapper =
                 Wrappers.<SessionEntity>lambdaQuery()
@@ -106,18 +88,28 @@ public class SessionDomainService {
         return sessionRepository.selectOne(queryWrapper);
     }
 
+    /**
+     * 检查会话是否存在
+     *
+     * @param sessionId 会话id
+     * @param userId    用户id
+     */
+    public void checkSessionExist(String sessionId, String userId) {
+        SessionEntity session = this.find(sessionId, userId);
+        if (session == null) {
+            throw new BusinessException("会话不存在");
+        }
+    }
+
     public void deleteSessions(List<String> sessionIds) {
         LambdaQueryWrapper<SessionEntity> queryWrapper =
-                Wrappers.<SessionEntity>lambdaQuery().in(SessionEntity::getId, sessionIds);
+                Wrappers.<SessionEntity>lambdaQuery()
+                        .in(SessionEntity::getId, sessionIds);
         sessionRepository.delete(queryWrapper);
     }
 
     public SessionEntity getSession(String sessionId, String userId) {
-        LambdaQueryWrapper<SessionEntity> queryWrapper =
-                Wrappers.<SessionEntity>lambdaQuery()
-                        .eq(SessionEntity::getId, sessionId)
-                        .eq(SessionEntity::getUserId, userId);
-        SessionEntity session = sessionRepository.selectOne(queryWrapper);
+        SessionEntity session = this.find(sessionId, userId);
         if (session == null) {
             throw new BusinessException("会话不存在");
         }

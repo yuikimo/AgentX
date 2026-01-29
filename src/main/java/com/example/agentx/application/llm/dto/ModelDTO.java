@@ -1,6 +1,6 @@
 package com.example.agentx.application.llm.dto;
 
-import com.example.agentx.domain.llm.model.config.LLMModelConfig;
+import com.example.agentx.domain.llm.model.enums.ModelType;
 
 import java.time.LocalDateTime;
 
@@ -41,10 +41,6 @@ public class ModelDTO {
      * 模型类型
      */
     private ModelType type;
-    /**
-     * 模型配置
-     */
-    private LLMModelConfig config;
     /**
      * 是否官方
      */
@@ -124,14 +120,6 @@ public class ModelDTO {
 
     public void setType(ModelType type) {
         this.type = type;
-    }
-
-    public LLMModelConfig getConfig() {
-        return config;
-    }
-
-    public void setConfig(LLMModelConfig config) {
-        this.config = config;
     }
 
     public Boolean getIsOfficial() {

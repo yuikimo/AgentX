@@ -18,7 +18,7 @@ import java.sql.SQLException;
  * @param <T> 要处理的Java类型
  */
 @MappedJdbcTypes({JdbcType.VARCHAR, JdbcType.OTHER})
-@MappedTypes({ Object.class})
+@MappedTypes({Object.class})
 public class JsonTypeHandler<T> extends BaseTypeHandler<T> {
 
     private final Class<T> type;
@@ -55,6 +55,6 @@ public class JsonTypeHandler<T> extends BaseTypeHandler<T> {
         if (json == null || json.isEmpty()) {
             return null;
         }
-        return JsonUtils.parseObject(json,type);
+        return JsonUtils.parseObject(json, type);
     }
 }

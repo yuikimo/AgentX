@@ -1,10 +1,9 @@
 package com.example.agentx.domain.llm.model;
 
 import com.baomidou.mybatisplus.annotation.*;
-import com.example.agentx.domain.llm.model.config.LLMModelConfig;
 import com.example.agentx.domain.llm.model.enums.ModelType;
-import com.example.agentx.infrastructure.converter.ModelConfigConverter;
 import com.example.agentx.infrastructure.converter.ModelTypeConverter;
+import com.example.agentx.infrastructure.entity.BaseEntity;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import org.apache.ibatis.type.JdbcType;
 
@@ -27,9 +26,6 @@ public class ModelEntity extends BaseEntity {
 
     @TableField(typeHandler = ModelTypeConverter.class, jdbcType = JdbcType.VARCHAR)
     private ModelType type;
-
-    @TableField(typeHandler = ModelConfigConverter.class)
-    private LLMModelConfig config;
 
     private Boolean status;
 
@@ -87,14 +83,6 @@ public class ModelEntity extends BaseEntity {
 
     public void setType(ModelType type) {
         this.type = type;
-    }
-
-    public LLMModelConfig getConfig() {
-        return config;
-    }
-
-    public void setConfig(LLMModelConfig config) {
-        this.config = config;
     }
 
     public Boolean getStatus() {

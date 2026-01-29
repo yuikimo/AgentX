@@ -3,7 +3,10 @@ package com.example.agentx.domain.llm.model;
 import com.baomidou.mybatisplus.annotation.*;
 import com.example.agentx.domain.llm.model.config.ProviderConfig;
 import com.example.agentx.infrastructure.converter.ProviderConfigConverter;
+import com.example.agentx.infrastructure.converter.ProviderProtocolConverter;
+import com.example.agentx.infrastructure.entity.BaseEntity;
 import com.example.agentx.infrastructure.exception.BusinessException;
+import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 
 /**
  * 服务提供商领域模型

@@ -2,6 +2,7 @@ package com.example.agentx.domain.token.service;
 
 import com.example.agentx.domain.token.model.TokenMessage;
 import com.example.agentx.domain.token.model.TokenProcessResult;
+import com.example.agentx.domain.token.model.config.TokenOverflowConfig;
 
 import java.util.List;
 
@@ -15,7 +16,7 @@ public interface TokenOverflowStrategy {
      * @param messages 待处理的消息列表
      * @return 处理结果，包含处理后的消息列表、摘要等信息
      */
-    TokenProcessResult process(List<TokenMessage> messages);
+    TokenProcessResult process(List<TokenMessage> messages, TokenOverflowConfig tokenOverflowConfig);
 
     /**
      * 获取策略名称
@@ -37,10 +38,7 @@ public interface TokenOverflowStrategy {
      */
     default int calculateTotalTokens(List<TokenMessage> messages) {
         return messages.stream()
-                .mapToInt(message -> {
-                    Integer tokenCount = message.getTokenCount();
-                    return tokenCount != null ? tokenCount : 0;
-                })
+                .mapToInt(m -> m.getTokenCount() != null ? m.getTokenCount() : 0)
                 .sum();
     }
 }

@@ -120,8 +120,8 @@ public class TokenMessage {
 
     public void setCreatedAtMillis(long createdAtMillis) {
         this.createdAt = LocalDateTime.ofInstant(
-                java.time.Instant.ofEpochMilli(createdAtMillis),
-                ZoneOffset.UTC
+            java.time.Instant.ofEpochMilli(createdAtMillis),
+            ZoneOffset.UTC
         );
     }
 }

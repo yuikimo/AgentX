@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
  */
 public class ModelAssembler {
 
+
     /**
      * 将领域对象转换为DTO
      */
@@ -31,7 +32,6 @@ public class ModelAssembler {
         dto.setName(model.getName());
         dto.setDescription(model.getDescription());
         dto.setType(model.getType());
-        dto.setConfig(model.getConfig());
         dto.setStatus(model.getStatus());
         dto.setCreatedAt(model.getCreatedAt());
         dto.setUpdatedAt(model.getUpdatedAt());
@@ -62,7 +62,6 @@ public class ModelAssembler {
         model.setName(request.getName());
         model.setDescription(request.getDescription());
         model.setType(request.getType());
-        model.setConfig(request.getConfig());
         model.setCreatedAt(LocalDateTime.now());
         model.setUpdatedAt(LocalDateTime.now());
 
@@ -76,7 +75,6 @@ public class ModelAssembler {
         model.setName(request.getName());
         model.setDescription(request.getDescription());
         model.setModelId(request.getModelId());
-        model.setConfig(request.getConfig());
         model.setCreatedAt(LocalDateTime.now());
         model.setUpdatedAt(LocalDateTime.now());
         model.setId(request.getId());

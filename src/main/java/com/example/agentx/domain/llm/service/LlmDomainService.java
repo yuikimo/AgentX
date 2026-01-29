@@ -10,8 +10,9 @@ import com.example.agentx.domain.llm.model.ProviderEntity;
 import com.example.agentx.domain.llm.model.enums.ProviderType;
 import com.example.agentx.domain.llm.repository.ModelRepository;
 import com.example.agentx.domain.llm.repository.ProviderRepository;
+import com.example.agentx.infrastructure.entity.Operator;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import org.springframework.expression.spel.ast.Operator;
+import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -163,10 +164,8 @@ public class LlmDomainService {
      */
     public ProviderEntity getProvider(String providerId, String userId) {
 
-        Wrapper<ProviderEntity> wrapper =
-                Wrappers.<ProviderEntity>lambdaQuery()
-                        .eq(ProviderEntity::getId, providerId)
-                        .eq(ProviderEntity::getUserId, userId);
+        Wrapper<ProviderEntity> wrapper = Wrappers.<ProviderEntity>lambdaQuery().eq(ProviderEntity::getId,
+                providerId).eq(ProviderEntity::getUserId, userId);
         ProviderEntity provider = providerRepository.selectOne(wrapper);
         if (provider == null) {
             throw new BusinessException("服务商不存在");
@@ -174,15 +173,24 @@ public class LlmDomainService {
         return provider;
     }
 
+    public ProviderEntity getProvider(String providerId) {
+
+        Wrapper<ProviderEntity> wrapper = Wrappers.<ProviderEntity>lambdaQuery().eq(ProviderEntity::getId, providerId);
+        ProviderEntity provider = providerRepository.selectOne(wrapper);
+        if (provider == null) {
+            throw new BusinessException("服务商不存在");
+        }
+        return provider;
+    }
+
+
     /**
      * 查找服务商
      *
      * @param providerId 服务商id
      */
     public ProviderEntity findProviderById(String providerId) {
-        Wrapper<ProviderEntity> wrapper =
-                Wrappers.<ProviderEntity>lambdaQuery()
-                        .eq(ProviderEntity::getId, providerId);
+        Wrapper<ProviderEntity> wrapper = Wrappers.<ProviderEntity>lambdaQuery().eq(ProviderEntity::getId, providerId);
         ProviderEntity provider = providerRepository.selectById(wrapper);
         if (provider == null) {
             return null;
@@ -192,10 +200,8 @@ public class LlmDomainService {
 
     // 检查服务商是否存在
     public void checkProviderExists(String providerId, String userId) {
-        Wrapper<ProviderEntity> wrapper =
-                Wrappers.<ProviderEntity>lambdaQuery()
-                        .eq(ProviderEntity::getId, providerId)
-                        .eq(ProviderEntity::getUserId, userId);
+        Wrapper<ProviderEntity> wrapper = Wrappers.<ProviderEntity>lambdaQuery().eq(ProviderEntity::getId,
+                providerId).eq(ProviderEntity::getUserId, userId);
         ProviderEntity provider = providerRepository.selectOne(wrapper);
         if (provider == null) {
             throw new BusinessException("服务商不存在");
@@ -243,10 +249,9 @@ public class LlmDomainService {
      */
     @Transactional
     public void deleteProvider(String providerId, String userId, Operator operator) {
-        Wrapper<ProviderEntity> wrapper =
-                Wrappers.<ProviderEntity>lambdaQuery()
-                        .eq(ProviderEntity::getId, providerId)
-                        .eq(operator.needCheckUserId(), ProviderEntity::getUserId, userId);
+        Wrapper<ProviderEntity> wrapper = Wrappers.<ProviderEntity>lambdaQuery()
+                .eq(ProviderEntity::getId, providerId).eq(operator.needCheckUserId(), ProviderEntity::getUserId,
+                        userId);
         providerRepository.checkedDelete(wrapper);
         // 删除模型
         Wrapper<ModelEntity> modelWrapper = Wrappers.<ModelEntity>lambdaQuery().eq(ModelEntity::getProviderId,
@@ -302,9 +307,8 @@ public class LlmDomainService {
      */
     public void updateModel(ModelEntity model) {
         Wrapper<ModelEntity> wrapper =
-                Wrappers.<ModelEntity>lambdaQuery()
-                        .eq(ModelEntity::getId, model.getId())
-                        .eq(ModelEntity::getUserId, model.getUserId());
+                Wrappers.<ModelEntity>lambdaQuery().eq(ModelEntity::getId, model.getId()).eq(ModelEntity::getUserId,
+                        model.getUserId());
         modelRepository.checkedUpdate(model, wrapper);
     }
 
@@ -315,9 +319,8 @@ public class LlmDomainService {
      */
     public void deleteModel(String modelId, String userId, Operator operator) {
         Wrapper<ModelEntity> wrapper =
-                Wrappers.<ModelEntity>lambdaQuery()
-                        .eq(ModelEntity::getId, modelId)
-                        .eq(operator.needCheckUserId(), ModelEntity::getUserId, userId);
+                Wrappers.<ModelEntity>lambdaQuery().eq(ModelEntity::getId, modelId).eq(operator.needCheckUserId(),
+                        ModelEntity::getUserId, userId);
         modelRepository.checkedDelete(wrapper);
     }
 
@@ -371,11 +374,10 @@ public class LlmDomainService {
      * @param userId     用户id
      */
     public void updateProviderStatus(String providerId, String userId) {
-        LambdaUpdateWrapper<ProviderEntity> updateWrapper =
-                Wrappers.lambdaUpdate(ProviderEntity.class)
-                        .eq(ProviderEntity::getId, providerId)
-                        .eq(ProviderEntity::getUserId, userId)
-                        .setSql("status = NOT status");
+        LambdaUpdateWrapper<ProviderEntity> updateWrapper = Wrappers.lambdaUpdate(ProviderEntity.class)
+                .eq(ProviderEntity::getId, providerId)
+                .eq(ProviderEntity::getUserId, userId)
+                .setSql("status = NOT status");
         providerRepository.checkedUpdate(updateWrapper);
     }
 

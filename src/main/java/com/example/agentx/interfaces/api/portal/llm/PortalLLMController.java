@@ -3,6 +3,18 @@ package com.example.agentx.interfaces.api.portal.llm;
 import java.util.Arrays;
 import java.util.List;
 
+import com.example.agentx.application.llm.dto.ModelDTO;
+import com.example.agentx.application.llm.dto.ProviderDTO;
+import com.example.agentx.application.llm.service.LLMAppService;
+import com.example.agentx.domain.llm.model.enums.ModelType;
+import com.example.agentx.domain.llm.model.enums.ProviderType;
+import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
+import com.example.agentx.interfaces.api.common.Result;
+import com.example.agentx.interfaces.auth.UserContext;
+import com.example.agentx.interfaces.dto.llm.ModelCreateRequest;
+import com.example.agentx.interfaces.dto.llm.ModelUpdateRequest;
+import com.example.agentx.interfaces.dto.llm.ProviderCreateRequest;
+import com.example.agentx.interfaces.dto.llm.ProviderUpdateRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,18 +25,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.xhy.application.llm.dto.ModelDTO;
-import org.xhy.application.llm.dto.ProviderDTO;
-import org.xhy.application.llm.service.LLMAppService;
-import org.xhy.domain.llm.model.enums.ModelType;
-import org.xhy.infrastructure.llm.protocol.enums.ProviderProtocol;
-import org.xhy.domain.llm.model.enums.ProviderType;
-import org.xhy.infrastructure.auth.UserContext;
-import org.xhy.interfaces.api.common.Result;
-import org.xhy.interfaces.dto.llm.ModelCreateRequest;
-import org.xhy.interfaces.dto.llm.ModelUpdateRequest;
-import org.xhy.interfaces.dto.llm.ProviderCreateRequest;
-import org.xhy.interfaces.dto.llm.ProviderUpdateRequest;
 
 /**
  * 大模型服务商
@@ -94,7 +94,7 @@ public class PortalLLMController {
         llmAppService.updateProviderStatus(providerId,userId);
         return Result.success();
     }
-    
+
 
     /**
      * 删除服务提供商
@@ -106,7 +106,7 @@ public class PortalLLMController {
         llmAppService.deleteProvider(providerId, userId);
         return Result.success();
     }
-    
+
     /**
      * 获取服务提供商列表
      */

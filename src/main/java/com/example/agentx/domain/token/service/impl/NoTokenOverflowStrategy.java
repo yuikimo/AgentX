@@ -1,9 +1,9 @@
 package com.example.agentx.domain.token.service.impl;
 
+import com.example.agentx.domain.shared.enums.TokenOverflowStrategyEnum;
 import com.example.agentx.domain.token.model.TokenMessage;
 import com.example.agentx.domain.token.model.TokenProcessResult;
 import com.example.agentx.domain.token.model.config.TokenOverflowConfig;
-import com.example.agentx.domain.token.model.enums.TokenOverflowStrategyEnum;
 import com.example.agentx.domain.token.service.TokenOverflowStrategy;
 import org.springframework.stereotype.Service;
 
@@ -44,7 +44,7 @@ public class NoTokenOverflowStrategy implements TokenOverflowStrategy {
      * @return 原消息列表，不做修改
      */
     @Override
-    public TokenProcessResult process(List<TokenMessage> messages) {
+    public TokenProcessResult process(List<TokenMessage> messages, TokenOverflowConfig tokenOverflowConfig) {
         TokenProcessResult result = new TokenProcessResult();
         result.setRetainedMessages(messages);
         result.setStrategyName(getName());

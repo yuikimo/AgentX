@@ -1,6 +1,7 @@
 package com.example.agentx.domain.token.model.config;
 
-import com.example.agentx.domain.token.model.enums.TokenOverflowStrategyEnum;
+import com.example.agentx.domain.llm.model.config.ProviderConfig;
+import com.example.agentx.domain.shared.enums.TokenOverflowStrategyEnum;
 import org.springframework.stereotype.Service;
 
 /**
@@ -23,12 +24,14 @@ public class TokenOverflowConfig {
      * 预留缓冲比例，适用于滑动窗口策略
      * 范围0-1之间的小数，表示预留的空间比例
      */
-    private Double reserveRatio;
+    private Double reserveRatio = 0.3;
 
     /**
      * 摘要触发阈值（消息数量），适用于摘要策略
      */
     private Integer summaryThreshold;
+
+    private ProviderConfig providerConfig;
 
     /**
      * 默认构造函数
@@ -123,5 +126,13 @@ public class TokenOverflowConfig {
         config.setMaxTokens(maxTokens);
         config.setSummaryThreshold(summaryThreshold != null ? summaryThreshold : 20);
         return config;
+    }
+
+    public ProviderConfig getProviderConfig() {
+        return providerConfig;
+    }
+
+    public void setProviderConfig(ProviderConfig providerConfig) {
+        this.providerConfig = providerConfig;
     }
 }

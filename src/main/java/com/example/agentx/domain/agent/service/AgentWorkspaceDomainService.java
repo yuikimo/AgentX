@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.example.agentx.domain.agent.model.AgentEntity;
 import com.example.agentx.domain.agent.model.AgentWorkspaceEntity;
 import com.example.agentx.domain.agent.repository.AgentRepository;
@@ -76,9 +77,14 @@ public class AgentWorkspaceDomainService {
     }
 
     public void save(AgentWorkspaceEntity workspace) {
-        boolean b = agentWorkspaceRepository.insertOrUpdate(workspace);
-        if (!b) {
-            throw new BusinessException("保存失败");
-        }
+
+        agentWorkspaceRepository.checkInsert(workspace);
+    }
+
+    public void update(AgentWorkspaceEntity workspace) {
+        LambdaUpdateWrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaUpdate()
+                .eq(AgentWorkspaceEntity::getAgentId, workspace.getAgentId())
+                .eq(AgentWorkspaceEntity::getAgentId, workspace.getAgentId());
+        agentWorkspaceRepository.checkedUpdate(workspace, wrapper);
     }
 }

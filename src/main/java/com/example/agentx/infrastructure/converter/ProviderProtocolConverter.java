@@ -1,5 +1,6 @@
 package com.example.agentx.infrastructure.converter;
 
+import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;

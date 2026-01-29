@@ -1,0 +1,46 @@
+package com.example.agentx.domain.conversation.service;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.example.agentx.domain.conversation.model.ContextEntity;
+import com.example.agentx.domain.conversation.repository.ContextRepository;
+import com.example.agentx.infrastructure.exception.BusinessException;
+import org.springframework.stereotype.Service;
+
+@Service
+public class ContextDomainService {
+
+    private final ContextRepository contextRepository;
+
+    public ContextDomainService(ContextRepository contextRepository) {
+        this.contextRepository = contextRepository;
+    }
+
+    // 获取历史消息id
+    public ContextEntity getBySessionId(String sessionId) {
+        LambdaQueryWrapper<ContextEntity> queryWrapper =
+                Wrappers.<ContextEntity>lambdaQuery()
+                        .eq(ContextEntity::getSessionId, sessionId);
+        ContextEntity contextEntity = contextRepository.selectOne(queryWrapper);
+        if (contextEntity == null) {
+            throw new BusinessException("消息上下文不存在");
+        }
+        return contextEntity;
+    }
+
+    public ContextEntity findBySessionId(String sessionId) {
+        LambdaQueryWrapper<ContextEntity> queryWrapper =
+                Wrappers.<ContextEntity>lambdaQuery()
+                        .eq(ContextEntity::getSessionId, sessionId);
+        return contextRepository.selectOne(queryWrapper);
+    }
+
+    public ContextEntity insertOrUpdate(ContextEntity contextEntity) {
+        try {
+            contextRepository.insertOrUpdate(contextEntity);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        return contextEntity;
+    }
+}

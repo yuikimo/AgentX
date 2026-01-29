@@ -3,7 +3,6 @@ package com.example.agentx.application.agent.dto;
 import com.example.agentx.domain.agent.constant.AgentStatus;
 import com.example.agentx.domain.agent.constant.AgentType;
 import com.example.agentx.domain.agent.model.AgentEntity;
-import com.example.agentx.domain.agent.model.AgentModelConfig;
 import com.example.agentx.domain.agent.model.AgentTool;
 
 import java.time.LocalDateTime;
@@ -44,11 +43,6 @@ public class AgentDTO {
      * 欢迎消息
      */
     private String welcomeMessage;
-
-    /**
-     * 模型配置，包含模型类型、温度等参数
-     */
-    private AgentModelConfig modelConfig;
 
     /**
      * Agent可使用的工具列表
@@ -94,7 +88,6 @@ public class AgentDTO {
      * 无参构造函数
      */
     public AgentDTO() {
-        this.modelConfig = AgentModelConfig.createDefault();
         this.tools = new ArrayList<>();
         this.knowledgeBaseIds = new ArrayList<>();
     }
@@ -146,14 +139,6 @@ public class AgentDTO {
 
     public void setWelcomeMessage(String welcomeMessage) {
         this.welcomeMessage = welcomeMessage;
-    }
-
-    public AgentModelConfig getModelConfig() {
-        return modelConfig;
-    }
-
-    public void setModelConfig(AgentModelConfig modelConfig) {
-        this.modelConfig = modelConfig;
     }
 
     public List<AgentTool> getTools() {
@@ -246,7 +231,6 @@ public class AgentDTO {
         entity.setDescription(this.description);
         entity.setSystemPrompt(this.systemPrompt);
         entity.setWelcomeMessage(this.welcomeMessage);
-        entity.setModelConfig(this.modelConfig);
         entity.setTools(this.tools);
         entity.setKnowledgeBaseIds(this.knowledgeBaseIds);
         entity.setPublishedVersion(this.publishedVersion);

@@ -1,5 +1,14 @@
 package com.example.agentx.interfaces.api.admin;
 
+import com.example.agentx.application.admin.llm.service.AdminLLMAppService;
+import com.example.agentx.application.llm.dto.ModelDTO;
+import com.example.agentx.application.llm.dto.ProviderDTO;
+import com.example.agentx.interfaces.api.common.Result;
+import com.example.agentx.interfaces.auth.UserContext;
+import com.example.agentx.interfaces.dto.llm.ModelCreateRequest;
+import com.example.agentx.interfaces.dto.llm.ModelUpdateRequest;
+import com.example.agentx.interfaces.dto.llm.ProviderCreateRequest;
+import com.example.agentx.interfaces.dto.llm.ProviderUpdateRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -8,15 +17,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.xhy.application.admin.llm.service.AdminLLMAppService;
-import org.xhy.application.llm.dto.ModelDTO;
-import org.xhy.application.llm.dto.ProviderDTO;
-import org.xhy.infrastructure.auth.UserContext;
-import org.xhy.interfaces.api.common.Result;
-import org.xhy.interfaces.dto.llm.ModelCreateRequest;
-import org.xhy.interfaces.dto.llm.ModelUpdateRequest;
-import org.xhy.interfaces.dto.llm.ProviderCreateRequest;
-import org.xhy.interfaces.dto.llm.ProviderUpdateRequest;
 
 /**
  * 管理员LLM管理
@@ -36,7 +36,7 @@ public class AdminLLMController {
      * @param request 请求对象
      */
     @PostMapping("")
-    public Result<ProviderDTO> createProvider(@RequestBody @Validated ProviderCreateRequest  request){
+    public Result<ProviderDTO> createProvider(@RequestBody @Validated ProviderCreateRequest request){
         String userId = UserContext.getCurrentUserId();
         return Result.success(adminLLMAppService.createProvider(request, userId));
     }

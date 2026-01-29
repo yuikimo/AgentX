@@ -7,11 +7,11 @@ import com.example.agentx.application.llm.dto.ProviderDTO;
 import com.example.agentx.domain.llm.model.ModelEntity;
 import com.example.agentx.domain.llm.model.ProviderEntity;
 import com.example.agentx.domain.llm.service.LlmDomainService;
+import com.example.agentx.infrastructure.entity.Operator;
 import com.example.agentx.interfaces.dto.llm.ModelCreateRequest;
 import com.example.agentx.interfaces.dto.llm.ModelUpdateRequest;
 import com.example.agentx.interfaces.dto.llm.ProviderCreateRequest;
 import com.example.agentx.interfaces.dto.llm.ProviderUpdateRequest;
-import org.springframework.expression.spel.ast.Operator;
 import org.springframework.stereotype.Service;
 
 @Service

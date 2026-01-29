@@ -1,5 +1,6 @@
 package com.example.agentx.application.conversation.dto;
 
+import com.example.agentx.domain.conversation.constant.Role;
 import com.example.agentx.domain.conversation.model.MessageEntity;
 
 import java.time.LocalDateTime;
@@ -38,7 +39,6 @@ public class MessageDTO {
      */
     public MessageDTO() {
     }
-
 
     // Getter和Setter方法
     public String getId() {

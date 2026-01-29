@@ -1,0 +1,50 @@
+package com.example.agentx.domain.agent.service;
+
+import com.example.agentx.domain.agent.model.AgentEntity;
+import com.example.agentx.domain.conversation.model.SessionEntity;
+import com.example.agentx.domain.conversation.service.SessionDomainService;
+import com.example.agentx.infrastructure.exception.BusinessException;
+import org.springframework.stereotype.Component;
+
+/**
+ * Agent验证器
+ * 负责验证Agent的可用性
+ */
+@Component
+public class AgentValidator {
+
+    private final SessionDomainService sessionDomainService;
+    private final AgentDomainService agentDomainService;
+
+    public AgentValidator(SessionDomainService sessionDomainService, AgentDomainService agentDomainService) {
+        this.sessionDomainService = sessionDomainService;
+        this.agentDomainService = agentDomainService;
+    }
+
+    /**
+     * 验证会话和Agent
+     *
+     * @param sessionId 会话ID
+     * @param userId    用户ID
+     * @return 验证结果
+     */
+    public ValidationResult validateSessionAndAgent(String sessionId, String userId) {
+        // 获取会话
+        SessionEntity session = sessionDomainService.getSession(sessionId, userId);
+        String agentId = session.getAgentId();
+
+        // 获取对应 Agent 是否可以使用：如果 UserId 不同并且是禁用，则不可对话
+        AgentEntity agent = agentDomainService.getAgentById(agentId);
+        if (!agent.getUserId().equals(userId) && !agent.getEnabled()) {
+            throw new BusinessException("agent已被禁用");
+        }
+
+        return new ValidationResult(session, agent);
+    }
+
+    /**
+     * 验证结果
+     */
+    public record ValidationResult(SessionEntity sessionEntity, AgentEntity agentEntity) {
+    }
+}

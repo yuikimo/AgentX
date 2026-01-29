@@ -1,5 +1,7 @@
 package com.example.agentx.infrastructure.llm.config;
 
+import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,8 +17,25 @@ public class ProviderConfig {
      */
     private final String baseUrl;
 
+    /**
+     * 模型
+     */
     private String model;
 
+    private ProviderProtocol protocol;
+
+
+    public ProviderProtocol getProtocol() {
+        return protocol;
+    }
+
+    public void setProtocol(ProviderProtocol protocol) {
+        this.protocol = protocol;
+    }
+
+    public void setCustomHeaders(Map<String, String> customHeaders) {
+        this.customHeaders = customHeaders;
+    }
 
     public String getModel() {
         return model;
@@ -36,10 +55,11 @@ public class ProviderConfig {
         return baseUrl;
     }
 
-    public ProviderConfig(String apiKey, String baseUrl, String model) {
+    public ProviderConfig(String apiKey, String baseUrl, String model,ProviderProtocol protocol) {
         this.apiKey = apiKey;
         this.baseUrl = baseUrl;
         this.model = model;
+        this.protocol = protocol;
     }
 
     public Map<String, String> getCustomHeaders() {

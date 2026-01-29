@@ -1,19 +1,24 @@
 package com.example.agentx.application.agent.service;
 
+import com.example.agentx.application.agent.assembler.AgentAssembler;
+import com.example.agentx.application.agent.assembler.AgentVersionAssembler;
+import com.example.agentx.application.agent.dto.AgentDTO;
+import com.example.agentx.application.agent.dto.AgentVersionDTO;
+import com.example.agentx.domain.agent.constant.PublishStatus;
+import com.example.agentx.domain.agent.model.AgentEntity;
+import com.example.agentx.domain.agent.model.AgentVersionEntity;
+import com.example.agentx.domain.agent.model.AgentWorkspaceEntity;
+import com.example.agentx.domain.agent.model.LLMModelConfig;
+import com.example.agentx.domain.agent.service.AgentDomainService;
+import com.example.agentx.domain.agent.service.AgentWorkspaceDomainService;
+import com.example.agentx.infrastructure.exception.ParamValidationException;
+import com.example.agentx.interfaces.dto.agent.CreateAgentRequest;
+import com.example.agentx.interfaces.dto.agent.PublishAgentVersionRequest;
+import com.example.agentx.interfaces.dto.agent.ReviewAgentVersionRequest;
+import com.example.agentx.interfaces.dto.agent.SearchAgentsRequest;
+import com.example.agentx.interfaces.dto.agent.UpdateAgentRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.xhy.application.agent.assembler.AgentAssembler;
-import org.xhy.application.agent.assembler.AgentVersionAssembler;
-import org.xhy.application.agent.dto.AgentDTO;
-import org.xhy.domain.agent.model.AgentEntity;
-import org.xhy.application.agent.dto.AgentVersionDTO;
-import org.xhy.domain.agent.model.AgentVersionEntity;
-import org.xhy.domain.agent.model.AgentWorkspaceEntity;
-import org.xhy.domain.agent.service.AgentDomainService;
-import org.xhy.domain.agent.service.AgentWorkspaceDomainService;
-import org.xhy.infrastructure.exception.ParamValidationException;
-import org.xhy.interfaces.dto.agent.*;
-import org.xhy.domain.agent.constant.PublishStatus;
 
 import java.util.List;
 
@@ -31,7 +36,8 @@ public class AgentAppService {
     private final AgentDomainService agentServiceDomainService;
     private final AgentWorkspaceDomainService agentWorkspaceDomainService;
 
-    public AgentAppService(AgentDomainService agentServiceDomainService, AgentWorkspaceDomainService agentWorkspaceDomainService) {
+    public AgentAppService(AgentDomainService agentServiceDomainService,
+                           AgentWorkspaceDomainService agentWorkspaceDomainService) {
         this.agentServiceDomainService = agentServiceDomainService;
         this.agentWorkspaceDomainService = agentWorkspaceDomainService;
     }
@@ -45,12 +51,11 @@ public class AgentAppService {
         // todo xhy 判断用户是否存在
 
         // 使用组装器创建领域实体
-        AgentEntity entity = AgentAssembler.toEntity(request,userId);
+        AgentEntity entity = AgentAssembler.toEntity(request, userId);
         entity.setUserId(userId);
         AgentEntity agent = agentServiceDomainService.createAgent(entity);
-        AgentWorkspaceEntity agentWorkspaceEntity = new AgentWorkspaceEntity();
-        agentWorkspaceEntity.setAgentId(agent.getId());
-        agentWorkspaceEntity.setUserId(userId);
+        AgentWorkspaceEntity agentWorkspaceEntity = new AgentWorkspaceEntity(agent.getId(), userId,
+                new LLMModelConfig());
         agentWorkspaceDomainService.save(agentWorkspaceEntity);
         return AgentAssembler.toDTO(agent);
     }
@@ -88,7 +93,7 @@ public class AgentAppService {
     public AgentDTO updateAgent(UpdateAgentRequest request, String userId) {
 
         // 使用组装器创建更新实体
-        AgentEntity updateEntity = AgentAssembler.toEntity(request,userId);
+        AgentEntity updateEntity = AgentAssembler.toEntity(request, userId);
 
         updateEntity.setUserId(userId);
         // 调用领域服务更新Agent
@@ -172,7 +177,7 @@ public class AgentAppService {
         // 在应用层验证请求
         request.validate();
 
-        AgentVersionEntity agentVersionEntity = null;
+        AgentVersionEntity agentVersionEntity;
         // 根据状态执行相应操作
         if (PublishStatus.REJECTED.equals(request.getStatus())) {
             // 拒绝发布，需使用拒绝原因
@@ -186,7 +191,7 @@ public class AgentAppService {
 
     /**
      * 根据发布状态获取版本列表
-     * 
+     *
      * @param status 发布状态
      * @return 版本列表（每个助理只返回最新版本）
      */

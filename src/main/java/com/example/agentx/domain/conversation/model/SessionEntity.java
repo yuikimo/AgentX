@@ -1,6 +1,7 @@
 package com.example.agentx.domain.conversation.model;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.example.agentx.infrastructure.entity.BaseEntity;
 
 import java.time.LocalDateTime;
 

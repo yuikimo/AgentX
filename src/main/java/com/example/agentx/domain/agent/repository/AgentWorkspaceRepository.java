@@ -1,5 +1,7 @@
 package com.example.agentx.domain.agent.repository;
 
+import com.example.agentx.domain.agent.model.AgentWorkspaceEntity;
+import com.example.agentx.infrastructure.repository.MyBatisPlusExtRepository;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;

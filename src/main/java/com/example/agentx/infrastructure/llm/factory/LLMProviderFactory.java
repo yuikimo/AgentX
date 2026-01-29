@@ -1,5 +1,6 @@
 package com.example.agentx.infrastructure.llm.factory;
 
+import com.example.agentx.infrastructure.llm.config.ProviderConfig;
 import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
@@ -7,6 +8,7 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 
 public class LLMProviderFactory {
+
 
     /**
      * 获取对应的服务商
@@ -21,6 +23,7 @@ public class LLMProviderFactory {
             openAiChatModelBuilder.apiKey(providerConfig.getApiKey());
             openAiChatModelBuilder.baseUrl(providerConfig.getBaseUrl());
             openAiChatModelBuilder.customHeaders(providerConfig.getCustomHeaders());
+            openAiChatModelBuilder.modelName(providerConfig.getModel());
             model = new OpenAiChatModel(openAiChatModelBuilder);
         }
         return model;

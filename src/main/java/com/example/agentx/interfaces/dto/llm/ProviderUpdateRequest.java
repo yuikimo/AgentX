@@ -9,7 +9,7 @@ import org.xhy.infrastructure.llm.protocol.enums.ProviderProtocol;
  * 服务提供商更新请求
  */
 public class ProviderUpdateRequest {
-    
+
     /**
      * 服务商ID
      */
