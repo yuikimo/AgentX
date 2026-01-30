@@ -18,6 +18,7 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiChatRequestParameters;
 import dev.langchain4j.model.output.TokenUsage;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.View;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 public class AgentMessageHandler extends ChatMessageHandler {
 
     private final TaskDomainService taskDomainService;
+    private final View error;
 
     // 任务拆分提示词 测试过程用的
     String decompositionTestPrompt =
@@ -72,9 +74,10 @@ public class AgentMessageHandler extends ChatMessageHandler {
             ConversationDomainService conversationDomainService,
             ContextDomainService contextDomainService,
             LLMServiceFactory llmServiceFactory,
-            TaskDomainService taskDomainService) {
+            TaskDomainService taskDomainService, View error) {
         super(conversationDomainService, contextDomainService, llmServiceFactory);
         this.taskDomainService = taskDomainService;
+        this.error = error;
     }
 
     private List<String> getTools() {
@@ -111,7 +114,86 @@ public class AgentMessageHandler extends ChatMessageHandler {
             Map<String, TaskEntity> subTaskMap,
             List<String> tasks,
             CompletableFuture<Boolean> splitTaskFuture) {
+        llmClient.doChat(llmRequest, new StreamingChatResponseHandler() {
+            StringBuilder fullResponse = new StringBuilder();
 
+            @Override
+            public void onPartialResponse(String partialResponse) {
+                fullResponse.append(partialResponse);
+
+                // 发送流式响应给前端
+                AgentChatResponse response = AgentChatResponse.build(partialResponse, false, MessageType.TEXT);
+                transport.sendMessage(connection, response);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                try {
+                    // 设置token使用情况
+                    TokenUsage tokenUsage = completeResponse.metadata().tokenUsage();
+
+                    // 设置用户消息token数
+                    Integer inputTokenCount = tokenUsage.inputTokenCount();
+                    userMessageEntity.setTokenCount(inputTokenCount);
+
+                    // 设置LLM消息内容和token数
+                    Integer outputTokenCount = tokenUsage.outputTokenCount();
+                    llmMessageEntity.setTokenCount(outputTokenCount);
+
+                    // 保存完整响应
+                    String taskDesc = completeResponse.aiMessage().text();
+                    llmMessageEntity.setContent(taskDesc);
+
+                    // 拆分子任务并创建任务实体
+                    List<String> subTasks = splitTask(taskDesc);
+                    tasks.addAll(subTasks); // 保存到外部列表中
+                    List<TaskDTO> taskDTOList = new ArrayList<>();
+
+                    for (String task : subTasks) {
+                        TaskEntity subTask = new TaskEntity();
+                        subTask.setTaskName(task);
+                        subTask.setSessionId(environment.getSessionId());
+                        subTask.setUserId(environment.getUserId());
+                        subTask.setParentTaskId(parentTask.getId());
+                        subTask.updateStatus(TaskStatus.WAITING);
+
+                        // 保存子任务
+                        taskDomainService.addTask(subTask);
+
+                        // 构建任务DTO
+                        TaskDTO taskDTO = new TaskDTO();
+                        taskDTO.setId(subTask.getId());
+                        taskDTO.setTaskName(task);
+                        taskDTO.setStatus(subTask.getStatus().name());
+                        taskDTO.setProgress(subTask.getProgress());
+                        taskDTO.setParentTaskId(parentTask.getId());
+
+                        taskDTOList.add(taskDTO);
+
+                        // 保存到Map中供后续使用
+                        subTaskMap.put(task, subTask);
+                    }
+                    // 发送完成消息
+                    AgentChatResponse finishResponse = AgentChatResponse.build("", true, MessageType.TASK_SPLIT_FINISH);
+                    transport.sendMessage(connection, finishResponse);
+
+                    // 标记任务拆分已完成
+                    splitTaskFuture.complete(true);
+                } catch (Exception e) {
+                    splitTaskFuture.completeExceptionally(e);
+                }
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                try {
+                    transport.handleError(error);
+                } finally {
+                    // 发生错误时标记任务拆分失败
+                    splitTaskFuture.completeExceptionally(error);
+                }
+            }
+        });
     }
 
     /**
