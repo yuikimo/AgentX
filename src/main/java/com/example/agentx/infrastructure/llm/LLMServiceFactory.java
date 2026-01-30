@@ -2,7 +2,7 @@ package com.example.agentx.infrastructure.llm;
 
 import com.example.agentx.domain.llm.model.ModelEntity;
 import com.example.agentx.domain.llm.model.ProviderEntity;
-import com.example.agentx.domain.llm.model.config.ProviderConfig;
+import com.example.agentx.infrastructure.llm.config.ProviderConfig;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +20,7 @@ public class LLMServiceFactory {
      * @return 流式聊天语言模型
      */
     public StreamingChatLanguageModel getStreamingClient(ProviderEntity provider, ModelEntity model) {
-        ProviderConfig config = provider.getConfig();
+        com.example.agentx.domain.llm.model.config.ProviderConfig config = provider.getConfig();
 
         ProviderConfig providerConfig = new ProviderConfig(
                 config.getApiKey(),

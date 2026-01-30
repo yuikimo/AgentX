@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 public class AgentVersionAssembler {
 
+
     /**
      * 将AgentVersionEntity列表转换为AgentVersionDTO列表
      */
@@ -45,7 +46,6 @@ public class AgentVersionAssembler {
         dto.setVersionNumber(entity.getVersionNumber());
         dto.setSystemPrompt(entity.getSystemPrompt());
         dto.setWelcomeMessage(entity.getWelcomeMessage());
-        dto.setModelConfig(entity.getModelConfig());
         dto.setTools(entity.getTools());
         dto.setKnowledgeBaseIds(entity.getKnowledgeBaseIds());
         dto.setChangeLog(entity.getChangeLog());

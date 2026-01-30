@@ -1,6 +1,6 @@
 package com.example.agentx.interfaces.dto.agent;
 
-import org.xhy.infrastructure.utils.ValidationUtils;
+import com.example.agentx.infrastructure.util.ValidationUtils;
 
 /**
  * 更新Agent基本信息的请求对象

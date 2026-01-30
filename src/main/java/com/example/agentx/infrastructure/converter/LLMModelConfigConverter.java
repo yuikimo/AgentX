@@ -1,5 +1,6 @@
 package com.example.agentx.infrastructure.converter;
 
+import com.example.agentx.domain.agent.model.LLMModelConfig;
 import org.apache.ibatis.type.MappedTypes;
 
 /**

@@ -2,8 +2,8 @@ package com.example.agentx.interfaces.dto.agent;
 
 import java.util.regex.Pattern;
 
+import com.example.agentx.infrastructure.exception.ParamValidationException;
 import jakarta.validation.constraints.NotBlank;
-import org.xhy.infrastructure.exception.ParamValidationException;
 
 
 /**

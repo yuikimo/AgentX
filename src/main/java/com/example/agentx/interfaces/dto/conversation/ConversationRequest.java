@@ -2,9 +2,7 @@ package com.example.agentx.interfaces.dto.conversation;
 
 public class ConversationRequest {
 
-
     private String message;
-
 
     public String getMessage() {
         return message;

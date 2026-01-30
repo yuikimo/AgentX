@@ -1,5 +1,6 @@
 package com.example.agentx.domain.conversation.handler;
 
+import com.example.agentx.domain.agent.model.AgentEntity;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Component;
  */
 enum MessageHandlerType {
     STANDARD,
-    REACT
+    AGENT
 }
 
 /**
@@ -33,6 +34,12 @@ public class MessageHandlerFactory {
     public MessageHandler getHandler(AgentEntity agent) {
         // 目前暂时使用标准处理器
         // 后续可根据agent属性判断是否支持React模式
+        if (agent.getAgentType() == 1) {
+            return getHandlerByType(MessageHandlerType.STANDARD);
+
+        } else if (agent.getAgentType() == 2) {
+            return getHandlerByType(MessageHandlerType.AGENT);
+        }
         return getHandlerByType(MessageHandlerType.STANDARD);
     }
 
@@ -44,11 +51,11 @@ public class MessageHandlerFactory {
      */
     private MessageHandler getHandlerByType(MessageHandlerType type) {
         switch (type) {
-            case REACT:
-                return applicationContext.getBean("reactMessageHandler", MessageHandler.class);
+            case AGENT:
+                return applicationContext.getBean("agentMessageHandler", MessageHandler.class);
             case STANDARD:
             default:
-                return applicationContext.getBean("standardMessageHandler", MessageHandler.class);
+                return applicationContext.getBean("chatMessageHandler", MessageHandler.class);
         }
     }
 }

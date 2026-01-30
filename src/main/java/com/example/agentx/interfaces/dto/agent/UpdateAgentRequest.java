@@ -1,8 +1,8 @@
 package com.example.agentx.interfaces.dto.agent;
 
+import com.example.agentx.domain.agent.model.AgentTool;
+import com.example.agentx.domain.agent.model.LLMModelConfig;
 import jakarta.validation.constraints.NotBlank;
-import org.xhy.domain.agent.model.LLMModelConfig;
-import org.xhy.domain.agent.model.AgentTool;
 
 import java.util.List;
 

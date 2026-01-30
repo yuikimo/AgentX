@@ -10,9 +10,12 @@ import org.springframework.beans.BeanUtils;
  */
 public class AgentWorkspaceAssembler {
 
+
     public static LLMModelConfig toLLMModelConfig(UpdateModelConfigRequest request) {
+
         LLMModelConfig llmModelConfig = new LLMModelConfig();
         BeanUtils.copyProperties(request, llmModelConfig);
         return llmModelConfig;
     }
+
 }

@@ -16,10 +16,10 @@ public class ModelEntity extends BaseEntity {
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
-    private String userId;
-    private String providerId;
-    private String modelId;
     private String name;
+    private String userId;
+    private String modelId;
+    private String providerId;
     private String description;
 
     private Boolean isOfficial;

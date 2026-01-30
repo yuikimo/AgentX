@@ -1,5 +1,9 @@
 package com.example.agentx.application.conversation.service;
 
+import com.example.agentx.infrastructure.llm.config.ProviderConfig;
+import dev.langchain4j.data.message.*;
+import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import com.example.agentx.application.conversation.assembler.MessageAssembler;
 import com.example.agentx.application.conversation.dto.ChatRequest;
 import com.example.agentx.application.conversation.dto.MessageDTO;
@@ -20,7 +24,6 @@ import com.example.agentx.domain.conversation.service.MessageDomainService;
 import com.example.agentx.domain.conversation.service.SessionDomainService;
 import com.example.agentx.domain.llm.model.ModelEntity;
 import com.example.agentx.domain.llm.model.ProviderEntity;
-import com.example.agentx.domain.llm.model.config.ProviderConfig;
 import com.example.agentx.domain.llm.service.LlmDomainService;
 import com.example.agentx.domain.shared.enums.TokenOverflowStrategyEnum;
 import com.example.agentx.domain.token.model.TokenMessage;
@@ -31,9 +34,6 @@ import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.infrastructure.llm.LLMServiceFactory;
 import com.example.agentx.infrastructure.transport.MessageTransport;
 import com.example.agentx.infrastructure.transport.MessageTransportFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
 
 import java.util.ArrayList;
 import java.util.List;
@@ -110,7 +110,7 @@ public class ConversationAppService {
      * @return SSE发射器
      */
     public SseEmitter chat(ChatRequest chatRequest, String userId) {
-        // 1.准备对话环境
+        // 1. 准备对话环境
         ChatEnvironment environment = prepareEnvironment(chatRequest, userId);
 
         // 2. 获取传输方式 (当前仅支持SSE，将来支持WebSocket)
@@ -184,7 +184,7 @@ public class ConversationAppService {
 
         if (contextEntity != null) {
             // 获取活跃消息
-            List<String> activeMessageIds = contextEntity.getActiveMessageIds();
+            List<String> activeMessageIds = contextEntity.getActiveMessages();
             messageEntities = messageDomainService.listByIds(activeMessageIds);
 
             // 应用Token溢出策略
@@ -209,6 +209,7 @@ public class ConversationAppService {
             ChatEnvironment environment,
             ContextEntity contextEntity,
             List<MessageEntity> messageEntities) {
+
         LLMModelConfig llmModelConfig = environment.getLlmModelConfig();
         ProviderEntity provider = environment.getProvider();
 
@@ -225,8 +226,8 @@ public class ConversationAppService {
         tokenOverflowConfig.setSummaryThreshold(llmModelConfig.getSummaryThreshold());
 
         // 设置提供商配置
-        ProviderConfig providerConfig = new ProviderConfig();
-        tokenOverflowConfig.setProviderConfig(providerConfig(
+        com.example.agentx.domain.llm.model.config.ProviderConfig providerConfig = provider.getConfig();
+        tokenOverflowConfig.setProviderConfig(new ProviderConfig(
                 providerConfig.getApiKey(),
                 providerConfig.getBaseUrl(),
                 environment.getModel().getModelId(),
@@ -249,7 +250,7 @@ public class ConversationAppService {
                 contextEntity.setSummary(oldSummary + newSummary);
             }
 
-            contextEntity.setActiveMessages(retainedMessages);
+            contextEntity.setActiveMessages(retainedMessageIds);
         }
     }
 
@@ -257,16 +258,14 @@ public class ConversationAppService {
      * 消息实体转换为token消息
      */
     private List<TokenMessage> tokenizeMessage(List<MessageEntity> messageEntities) {
-        return messageEntities.stream()
-                .map(message -> {
-                    TokenMessage tokenMessage = new TokenMessage();
-                    tokenMessage.setId(message.getId());
-                    tokenMessage.setRole(message.getRole().name());
-                    tokenMessage.setContent(message.getContent());
-                    tokenMessage.setTokenCount(message.getTokenCount());
-                    tokenMessage.setCreatedAt(message.getCreatedAt());
-                    return tokenMessage;
-                })
-                .collect(Collectors.toList());
+        return messageEntities.stream().map(message -> {
+            TokenMessage tokenMessage = new TokenMessage();
+            tokenMessage.setId(message.getId());
+            tokenMessage.setRole(message.getRole().name());
+            tokenMessage.setContent(message.getContent());
+            tokenMessage.setTokenCount(message.getTokenCount());
+            tokenMessage.setCreatedAt(message.getCreatedAt());
+            return tokenMessage;
+        }).collect(Collectors.toList());
     }
 }

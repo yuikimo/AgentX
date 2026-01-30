@@ -53,7 +53,8 @@ public class ModelProviderFacade {
                 domainConfig.getApiKey(),
                 domainConfig.getBaseUrl(),
                 model.getModelId(),
-                provider.getProtocol());
+                provider.getProtocol()
+        );
 
         // 获取流式聊天客户端
         StreamingChatLanguageModel chatStreamClient = LLMProviderService.getStream(

@@ -1,5 +1,7 @@
 package com.example.agentx.domain.conversation.handler;
 
+import com.example.agentx.infrastructure.transport.MessageTransport;
+
 /**
  * 消息处理器接口
  */

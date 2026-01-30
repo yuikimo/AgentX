@@ -32,7 +32,7 @@ public class LangChain4jAdapter {
     public ChatRequest toExternalRequest(LLMRequest llmRequest) {
         List<ChatMessage> chatMessages = new ArrayList<>();
 
-        for (LLMRequest.LLMMessage message : llmRequest.getMessages()) {
+        for (LLMRequest.LLMMessage message : llmRequest.messages()) {
             switch (message.type()) {
                 case USER:
                     chatMessages.add(new UserMessage(message.content()));
@@ -46,7 +46,7 @@ public class LangChain4jAdapter {
         }
 
         // 转换参数
-        LLMRequest.LLMRequestParameters params = llmRequest.getParameters();
+        LLMRequest.LLMRequestParameters params = llmRequest.parameters();
         OpenAiChatRequestParameters.Builder parameters = new OpenAiChatRequestParameters.Builder();
         parameters.modelName(params.modelId())
                 .temperature(params.temperature())

@@ -1,9 +1,9 @@
 package com.example.agentx.interfaces.dto.agent.request;
 
+import com.example.agentx.domain.shared.enums.TokenOverflowStrategyEnum;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import org.xhy.domain.shared.enums.TokenOverflowStrategyEnum;
 
 /**
  * 保存模型配置请求对象

@@ -1,6 +1,7 @@
 package com.example.agentx.domain.conversation.model;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.example.agentx.domain.conversation.constant.MessageType;
 import com.example.agentx.domain.conversation.constant.Role;
 import com.example.agentx.infrastructure.converter.RoleConverter;
 import com.example.agentx.infrastructure.entity.BaseEntity;
@@ -28,7 +29,7 @@ public class MessageEntity extends BaseEntity {
     /**
      * 消息角色 (user, assistant, system)
      */
-    @TableField(value = "role",typeHandler = RoleConverter.class)
+    @TableField(value = "role", typeHandler = RoleConverter.class)
     private Role role;
 
     /**
@@ -38,9 +39,15 @@ public class MessageEntity extends BaseEntity {
     private String content;
 
     /**
+     * 消息类型
+     */
+    @TableField(value = "message_type", typeHandler = MessageTypeConverter.class)
+    private MessageType messageType = MessageType.TEXT;
+
+    /**
      * 创建时间
      */
-    @TableField(value = "created_at",fill = FieldFill.INSERT)
+    @TableField(value = "created_at", fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
     /**
@@ -104,6 +111,14 @@ public class MessageEntity extends BaseEntity {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public MessageType getMessageType() {
+        return messageType;
+    }
+
+    public void setMessageType(MessageType messageType) {
+        this.messageType = messageType;
     }
 
     public LocalDateTime getCreatedAt() {

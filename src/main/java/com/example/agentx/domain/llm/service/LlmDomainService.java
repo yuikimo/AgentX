@@ -183,7 +183,6 @@ public class LlmDomainService {
         return provider;
     }
 
-
     /**
      * 查找服务商
      *
@@ -307,8 +306,9 @@ public class LlmDomainService {
      */
     public void updateModel(ModelEntity model) {
         Wrapper<ModelEntity> wrapper =
-                Wrappers.<ModelEntity>lambdaQuery().eq(ModelEntity::getId, model.getId()).eq(ModelEntity::getUserId,
-                        model.getUserId());
+                Wrappers.<ModelEntity>lambdaQuery()
+                        .eq(ModelEntity::getId, model.getId())
+                        .eq(ModelEntity::getUserId, model.getUserId());
         modelRepository.checkedUpdate(model, wrapper);
     }
 
@@ -319,8 +319,9 @@ public class LlmDomainService {
      */
     public void deleteModel(String modelId, String userId, Operator operator) {
         Wrapper<ModelEntity> wrapper =
-                Wrappers.<ModelEntity>lambdaQuery().eq(ModelEntity::getId, modelId).eq(operator.needCheckUserId(),
-                        ModelEntity::getUserId, userId);
+                Wrappers.<ModelEntity>lambdaQuery()
+                        .eq(ModelEntity::getId, modelId)
+                        .eq(operator.needCheckUserId(), ModelEntity::getUserId, userId);
         modelRepository.checkedDelete(wrapper);
     }
 
@@ -331,11 +332,11 @@ public class LlmDomainService {
      * @param userId  用户id
      */
     public void updateModelStatus(String modelId, String userId) {
-        LambdaUpdateWrapper<ModelEntity> updateWrapper = Wrappers.lambdaUpdate(ModelEntity.class)
-                .eq(ModelEntity::getId, modelId)
-                .eq(ModelEntity::getUserId, userId)
-                .setSql("status = NOT status");
-
+        LambdaUpdateWrapper<ModelEntity> updateWrapper =
+                Wrappers.lambdaUpdate(ModelEntity.class)
+                        .eq(ModelEntity::getId, modelId)
+                        .eq(ModelEntity::getUserId, userId)
+                        .setSql("status = NOT status");
         modelRepository.checkedUpdate(updateWrapper);
     }
 
@@ -374,10 +375,11 @@ public class LlmDomainService {
      * @param userId     用户id
      */
     public void updateProviderStatus(String providerId, String userId) {
-        LambdaUpdateWrapper<ProviderEntity> updateWrapper = Wrappers.lambdaUpdate(ProviderEntity.class)
-                .eq(ProviderEntity::getId, providerId)
-                .eq(ProviderEntity::getUserId, userId)
-                .setSql("status = NOT status");
+        LambdaUpdateWrapper<ProviderEntity> updateWrapper =
+                Wrappers.lambdaUpdate(ProviderEntity.class)
+                        .eq(ProviderEntity::getId, providerId)
+                        .eq(ProviderEntity::getUserId, userId)
+                        .setSql("status = NOT status");
         providerRepository.checkedUpdate(updateWrapper);
     }
 

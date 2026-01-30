@@ -24,18 +24,21 @@ public class AgentWorkspaceDomainService {
     private final AgentRepository agentRepository;
 
     public AgentWorkspaceDomainService(AgentWorkspaceRepository agentWorkspaceRepository,
-                                       AgentDomainService agentServiceDomainService, AgentRepository agentRepository) {
+                                       AgentRepository agentRepository) {
         this.agentWorkspaceRepository = agentWorkspaceRepository;
         this.agentRepository = agentRepository;
     }
 
     public List<AgentEntity> getWorkspaceAgents(String userId) {
+        LambdaQueryWrapper<AgentWorkspaceEntity> wrapper =
+                Wrappers.<AgentWorkspaceEntity>lambdaQuery()
+                        .eq(AgentWorkspaceEntity::getUserId, userId)
+                        .select(AgentWorkspaceEntity::getAgentId);
 
-        LambdaQueryWrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaQuery()
-                .eq(AgentWorkspaceEntity::getUserId, userId).select(AgentWorkspaceEntity::getAgentId);
-
-        List<String> agentIds = agentWorkspaceRepository.selectList(wrapper).stream()
-                .map(AgentWorkspaceEntity::getAgentId).collect(Collectors.toList());
+        List<String> agentIds = agentWorkspaceRepository.selectList(wrapper)
+                .stream()
+                .map(AgentWorkspaceEntity::getAgentId)
+                .collect(Collectors.toList());
 
         if (agentIds.isEmpty()) {
             return Collections.emptyList();
@@ -54,15 +57,15 @@ public class AgentWorkspaceDomainService {
     }
 
     public boolean deleteAgent(String agentId, String userId) {
-        return agentWorkspaceRepository.delete(Wrappers.<AgentWorkspaceEntity>lambdaQuery()
-                .eq(AgentWorkspaceEntity::getAgentId, agentId).eq(AgentWorkspaceEntity::getUserId, userId)) > 0;
+        LambdaQueryWrapper<AgentWorkspaceEntity> queryWrapper =
+                Wrappers.<AgentWorkspaceEntity>lambdaQuery()
+                        .eq(AgentWorkspaceEntity::getAgentId, agentId)
+                        .eq(AgentWorkspaceEntity::getUserId, userId);
+        return agentWorkspaceRepository.delete(queryWrapper) > 0;
     }
 
     public AgentWorkspaceEntity getWorkspace(String agentId, String userId) {
-        Wrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaQuery()
-                .eq(AgentWorkspaceEntity::getAgentId, agentId)
-                .eq(AgentWorkspaceEntity::getUserId, userId);
-        AgentWorkspaceEntity agentWorkspaceEntity = agentWorkspaceRepository.selectOne(wrapper);
+        AgentWorkspaceEntity agentWorkspaceEntity = this.findWorkspace(agentId, userId);
         if (agentWorkspaceEntity == null) {
             throw new BusinessException("助理不存在");
         }
@@ -77,7 +80,6 @@ public class AgentWorkspaceDomainService {
     }
 
     public void save(AgentWorkspaceEntity workspace) {
-
         agentWorkspaceRepository.checkInsert(workspace);
     }
 

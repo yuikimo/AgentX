@@ -65,7 +65,6 @@ public class AdminAgentController {
             request.setRejectReason(reason);
         }
 
-
         return Result.success(agentAppService.reviewAgentVersion(versionId, request));
     }
 }

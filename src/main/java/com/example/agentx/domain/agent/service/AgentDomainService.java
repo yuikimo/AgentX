@@ -311,8 +311,6 @@ public class AgentDomainService {
 
     /**
      * 根据 agentIds 获取 agents
-     * /**
-     * 根据 agentIds 获取 agents
      */
     public List<AgentEntity> getAgentsByIds(List<String> agentIds) {
         return agentRepository.selectByIds(agentIds);
@@ -360,10 +358,13 @@ public class AgentDomainService {
         }
 
         // 根据版本中的 agent_id 以及 enable == true 查出对应的 agents
-        List<AgentEntity> agents = agentRepository.selectList(Wrappers.<AgentEntity>lambdaQuery()
+        LambdaQueryWrapper<AgentEntity> queryWrapper = Wrappers.<AgentEntity>lambdaQuery()
                 .in(AgentEntity::getId,
-                        versionEntities.stream().map(AgentVersionEntity::getAgentId).collect(Collectors.toList()))
-                .eq(AgentEntity::getEnabled, true));
+                        versionEntities.stream()
+                                .map(AgentVersionEntity::getAgentId)
+                                .collect(Collectors.toList()))
+                .eq(AgentEntity::getEnabled, true);
+        List<AgentEntity> agents = agentRepository.selectList(queryWrapper);
 
         // 将版本转为 map，key：agent_id，value：本身
         Map<String, AgentVersionEntity> agentVersionMap = versionEntities.stream()

@@ -1,7 +1,7 @@
 package com.example.agentx.domain.token.model.config;
 
-import com.example.agentx.domain.llm.model.config.ProviderConfig;
 import com.example.agentx.domain.shared.enums.TokenOverflowStrategyEnum;
+import com.example.agentx.infrastructure.llm.config.ProviderConfig;
 import org.springframework.stereotype.Service;
 
 /**

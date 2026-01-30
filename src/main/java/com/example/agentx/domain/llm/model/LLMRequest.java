@@ -6,22 +6,7 @@ import java.util.List;
  * LLM请求模型
  * 领域层定义的请求模型，不依赖具体实现
  */
-public class LLMRequest {
-    private final List<LLMMessage> messages;
-    private final LLMRequestParameters parameters;
-
-    public LLMRequest(List<LLMMessage> messages, LLMRequestParameters parameters) {
-        this.messages = messages;
-        this.parameters = parameters;
-    }
-
-    public List<LLMMessage> getMessages() {
-        return messages;
-    }
-
-    public LLMRequestParameters getParameters() {
-        return parameters;
-    }
+public record LLMRequest(List<LLMMessage> messages, LLMRequestParameters parameters) {
 
     /**
      * 消息类型

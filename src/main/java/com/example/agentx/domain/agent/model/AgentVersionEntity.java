@@ -120,6 +120,8 @@ public class AgentVersionEntity extends BaseEntity {
     @TableField("user_id")
     private String userId;
 
+
+
     /**
      * 无参构造函数
      */
@@ -127,6 +129,7 @@ public class AgentVersionEntity extends BaseEntity {
         this.tools = new ArrayList<>();
         this.knowledgeBaseIds = new ArrayList<>();
     }
+
 
     // Getter和Setter方法
     public String getId() {
@@ -264,7 +267,6 @@ public class AgentVersionEntity extends BaseEntity {
     public void setUserId(String userId) {
         this.userId = userId;
     }
-
     /**
      * 获取发布状态枚举
      */

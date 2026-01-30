@@ -53,6 +53,7 @@ public class AgentEntity extends BaseEntity {
     @TableField("welcome_message")
     private String welcomeMessage;
 
+
     /**
      * Agent可使用的工具列表
      */
@@ -146,6 +147,8 @@ public class AgentEntity extends BaseEntity {
     public void setWelcomeMessage(String welcomeMessage) {
         this.welcomeMessage = welcomeMessage;
     }
+
+
 
     public List<AgentTool> getTools() {
         return tools != null ? tools : new ArrayList<>();
