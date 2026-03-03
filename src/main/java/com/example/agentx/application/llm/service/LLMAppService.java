@@ -9,13 +9,13 @@ import com.example.agentx.domain.llm.model.ProviderAggregate;
 import com.example.agentx.domain.llm.model.ProviderEntity;
 import com.example.agentx.domain.llm.model.enums.ModelType;
 import com.example.agentx.domain.llm.model.enums.ProviderType;
-import com.example.agentx.domain.llm.service.LlmDomainService;
+import com.example.agentx.domain.llm.service.LLMDomainService;
 import com.example.agentx.infrastructure.entity.Operator;
 import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
-import com.example.agentx.interfaces.dto.llm.ModelCreateRequest;
-import com.example.agentx.interfaces.dto.llm.ModelUpdateRequest;
-import com.example.agentx.interfaces.dto.llm.ProviderCreateRequest;
-import com.example.agentx.interfaces.dto.llm.ProviderUpdateRequest;
+import com.example.agentx.interfaces.dto.llm.request.ModelCreateRequest;
+import com.example.agentx.interfaces.dto.llm.request.ModelUpdateRequest;
+import com.example.agentx.interfaces.dto.llm.request.ProviderCreateRequest;
+import com.example.agentx.interfaces.dto.llm.request.ProviderUpdateRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,16 +24,17 @@ import java.util.stream.Collectors;
 @Service
 public class LLMAppService {
 
-    private final LlmDomainService llmDomainService;
+    private final LLMDomainService llmDomainService;
 
-    public LLMAppService(LlmDomainService llmDomainService) {
+    public LLMAppService(LLMDomainService llmDomainService) {
         this.llmDomainService = llmDomainService;
     }
 
     /**
      * 获取服务商聚合根
+     *
      * @param providerId 服务商id
-     * @param userId 用户id
+     * @param userId     用户id
      * @return ProviderAggregate
      */
     public ProviderDTO getProviderDetail(String providerId, String userId) {
@@ -43,8 +44,9 @@ public class LLMAppService {
 
     /**
      * 创建服务商
+     *
      * @param providerCreateRequest 请求对象
-     * @param userId 用户id
+     * @param userId                用户id
      * @return ProviderDTO
      */
     public ProviderDTO createProvider(ProviderCreateRequest providerCreateRequest, String userId) {
@@ -56,11 +58,23 @@ public class LLMAppService {
 
     /**
      * 更新服务商
+     *
      * @param providerUpdateRequest 更新对象
-     * @param userId 用户id
+     * @param userId                用户id
      * @return ProviderDTO
      */
     public ProviderDTO updateProvider(ProviderUpdateRequest providerUpdateRequest, String userId) {
+        // 先获取当前服务商数据
+        ProviderEntity existingProvider = llmDomainService.getProvider(providerUpdateRequest.getId(), userId);
+
+        // 判断是否需要保留原有的密钥
+        if (providerUpdateRequest.getConfig() != null &&
+                providerUpdateRequest.getConfig().getApiKey() != null &&
+                providerUpdateRequest.getConfig().getApiKey().matches("\\*+")) {
+            // 如果传入的是掩码，使用原有的密钥
+            providerUpdateRequest.getConfig().setApiKey(existingProvider.getConfig().getApiKey());
+        }
+
         ProviderEntity provider = ProviderAssembler.toEntity(providerUpdateRequest, userId);
         llmDomainService.updateProvider(provider);
         return ProviderAssembler.toDTO(provider);
@@ -69,25 +83,28 @@ public class LLMAppService {
 
     /**
      * 获取服务商
+     *
      * @param providerId 服务商id
      * @return ProviderDTO
      */
     public ProviderDTO getProvider(String providerId, String userId) {
-        ProviderEntity provider = llmDomainService.getProvider(providerId,userId);
+        ProviderEntity provider = llmDomainService.getProvider(providerId, userId);
         return ProviderAssembler.toDTO(provider);
     }
 
     /**
      * 删除服务商
+     *
      * @param providerId 服务商id
-     * @param userId 用户id
+     * @param userId     用户id
      */
     public void deleteProvider(String providerId, String userId) {
-        llmDomainService.deleteProvider(providerId,userId, Operator.USER);
+        llmDomainService.deleteProvider(providerId, userId, Operator.USER);
     }
 
     /**
      * 获取用户自己的服务商
+     *
      * @param userId 用户id
      * @return List<ProviderDTO>
      */
@@ -98,6 +115,7 @@ public class LLMAppService {
 
     /**
      * 获取所有服务商（包含官方和用户自定义）
+     *
      * @param userId 用户ID
      * @return 服务商DTO列表
      */
@@ -108,6 +126,7 @@ public class LLMAppService {
 
     /**
      * 获取官方服务商
+     *
      * @return 官方服务商DTO列表
      */
     public List<ProviderDTO> getOfficialProviders() {
@@ -117,6 +136,7 @@ public class LLMAppService {
 
     /**
      * 获取用户自定义服务商
+     *
      * @param userId 用户ID
      * @return 用户自定义服务商DTO列表
      */
@@ -127,6 +147,7 @@ public class LLMAppService {
 
     /**
      * 获取用户服务商协议
+     *
      * @return List<ProviderProtocol>
      */
     public List<ProviderProtocol> getUserProviderProtocols() {
@@ -135,23 +156,25 @@ public class LLMAppService {
 
     /**
      * 创建模型
+     *
      * @param modelCreateRequest 请求对象
-     * @param userId 用户id
+     * @param userId             用户id
      * @return ModelDTO
      */
     public ModelDTO createModel(ModelCreateRequest modelCreateRequest, String userId) {
         ModelEntity model = ModelAssembler.toEntity(modelCreateRequest, userId);
         // 用户创建默认是非官方
         model.setOfficial(false);
-        llmDomainService.checkProviderExists(modelCreateRequest.getProviderId(),userId);
+        llmDomainService.checkProviderExists(modelCreateRequest.getProviderId(), userId);
         llmDomainService.createModel(model);
         return ModelAssembler.toDTO(model);
     }
 
     /**
      * 修改模型
+     *
      * @param modelUpdateRequest 请求对象
-     * @param userId 用户id
+     * @param userId             用户id
      * @return ModelDTO
      */
     public ModelDTO updateModel(ModelUpdateRequest modelUpdateRequest, String userId) {
@@ -162,17 +185,19 @@ public class LLMAppService {
 
     /**
      * 删除模型
+     *
      * @param modelId 模型id
-     * @param userId 用户id
+     * @param userId  用户id
      */
     public void deleteModel(String modelId, String userId) {
-        llmDomainService.deleteModel(modelId, userId,Operator.ADMIN);
+        llmDomainService.deleteModel(modelId, userId, Operator.ADMIN);
     }
 
     /**
      * 修改模型状态
+     *
      * @param modelId 模型id
-     * @param userId 用户id
+     * @param userId  用户id
      */
     public void updateModelStatus(String modelId, String userId) {
         llmDomainService.updateModelStatus(modelId, userId);
@@ -180,8 +205,9 @@ public class LLMAppService {
 
     /**
      * 根据类型获取服务商
+     *
      * @param providerType 服务商类型编码：all-所有，official-官方，user-用户的
-     * @param userId 用户ID
+     * @param userId       用户ID
      * @return 服务商DTO列表
      */
     public List<ProviderDTO> getProvidersByType(ProviderType providerType, String userId) {
@@ -194,18 +220,20 @@ public class LLMAppService {
 
     /**
      * 修改服务商状态
+     *
      * @param providerId 服务商id
-     * @param userId 用户id
+     * @param userId     用户id
      */
     public void updateProviderStatus(String providerId, String userId) {
-        llmDomainService.updateProviderStatus(providerId,userId);
+        llmDomainService.updateProviderStatus(providerId, userId);
     }
 
     /**
      * 获取所有激活模型
+     *
      * @param providerType 服务商类型
-     * @param userId 用户id
-     * @param modelType 模型类型（可选）
+     * @param userId       用户id
+     * @param modelType    模型类型（可选）
      * @return 模型列表
      */
     public List<ModelDTO> getActiveModelsByType(ProviderType providerType, String userId, ModelType modelType) {

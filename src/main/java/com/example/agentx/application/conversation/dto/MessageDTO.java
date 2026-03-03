@@ -1,7 +1,7 @@
 package com.example.agentx.application.conversation.dto;
 
+import com.example.agentx.domain.conversation.constant.MessageType;
 import com.example.agentx.domain.conversation.constant.Role;
-import com.example.agentx.domain.conversation.model.MessageEntity;
 
 import java.time.LocalDateTime;
 
@@ -35,10 +35,15 @@ public class MessageDTO {
     private String model;
 
     /**
+     * 消息类型
+     */
+    private MessageType messageType;
+    /**
      * 无参构造函数
      */
     public MessageDTO() {
     }
+
 
     // Getter和Setter方法
     public String getId() {
@@ -89,17 +94,11 @@ public class MessageDTO {
         this.model = model;
     }
 
-    /**
-     * 将消息实体转换为DTO
-     */
-    public static MessageDTO fromEntity(MessageEntity message) {
-        MessageDTO dto = new MessageDTO();
-        dto.setId(message.getId());
-        dto.setRole(message.getRole());
-        dto.setContent(message.getContent());
-        dto.setCreatedAt(message.getCreatedAt());
-        dto.setProvider(message.getProvider());
-        dto.setModel(message.getModel());
-        return dto;
+    public MessageType getMessageType() {
+        return messageType;
+    }
+
+    public void setMessageType(MessageType messageType) {
+        this.messageType = messageType;
     }
 }

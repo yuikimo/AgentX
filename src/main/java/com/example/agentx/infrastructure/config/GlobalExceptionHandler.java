@@ -99,7 +99,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     public Object handleAsyncRequestTimeoutException(AsyncRequestTimeoutException e, HttpServletRequest request) {
         logger.error("异步请求超时: {}", request.getRequestURL(), e);
-
+        
         // 处理SSE请求的超时情况
         String contentType = request.getContentType();
         if (contentType != null && contentType.contains(MediaType.TEXT_EVENT_STREAM_VALUE)) {
@@ -114,7 +114,7 @@ public class GlobalExceptionHandler {
             }
             return emitter;
         }
-
+        
         // 非SSE请求返回标准JSON响应
         return Result.error(503, "请求处理超时，请重试");
     }

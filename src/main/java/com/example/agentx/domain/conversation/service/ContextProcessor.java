@@ -2,12 +2,12 @@ package com.example.agentx.domain.conversation.service;
 
 import com.example.agentx.domain.conversation.model.ContextEntity;
 import com.example.agentx.domain.conversation.model.MessageEntity;
-import com.example.agentx.domain.llm.model.config.ProviderConfig;
 import com.example.agentx.domain.shared.enums.TokenOverflowStrategyEnum;
 import com.example.agentx.domain.token.model.TokenMessage;
 import com.example.agentx.domain.token.model.TokenProcessResult;
 import com.example.agentx.domain.token.model.config.TokenOverflowConfig;
 import com.example.agentx.domain.token.service.TokenDomainService;
+import com.example.agentx.infrastructure.llm.config.ProviderConfig;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -37,11 +37,11 @@ public class ContextProcessor {
     /**
      * 处理会话上下文和消息列表
      *
-     * @param sessionId        会话ID
-     * @param maxTokens        最大token数
-     * @param strategyType     策略类型
+     * @param sessionId       会话ID
+     * @param maxTokens       最大token数
+     * @param strategyType    策略类型
      * @param summaryThreshold 摘要阈值
-     * @param providerConfig   提供商配置
+     * @param providerConfig  提供商配置
      * @return 处理后的上下文和消息信息
      */
     public ContextResult processContext(
@@ -50,6 +50,7 @@ public class ContextProcessor {
             TokenOverflowStrategyEnum strategyType,
             int summaryThreshold,
             ProviderConfig providerConfig) {
+
         ContextEntity contextEntity = contextDomainService.findBySessionId(sessionId);
         List<MessageEntity> messageEntities = new ArrayList<>();
 
@@ -58,7 +59,7 @@ public class ContextProcessor {
             List<String> activeMessagesIds = contextEntity.getActiveMessages();
             messageEntities = messageDomainService.listByIds(activeMessagesIds);
 
-            // 尝试触发 Token 策略
+            // 尝试触发 token 策略
             List<TokenMessage> tokenMessages = tokenizeMessage(messageEntities);
 
             TokenOverflowConfig tokenOverflowConfig = new TokenOverflowConfig();
@@ -66,8 +67,7 @@ public class ContextProcessor {
             tokenOverflowConfig.setMaxTokens(maxTokens);
             tokenOverflowConfig.setSummaryThreshold(summaryThreshold);
             tokenOverflowConfig.setProviderConfig(providerConfig);
-            TokenProcessResult tokenProcessResult = tokenDomainService.processMessages(tokenMessages,
-                    tokenOverflowConfig);
+            TokenProcessResult tokenProcessResult = tokenDomainService.processMessages(tokenMessages, tokenOverflowConfig);
 
             if (tokenProcessResult.isProcessed()) {
                 // 保留后的消息列表
@@ -75,7 +75,7 @@ public class ContextProcessor {
                 List<String> retainedMessageIds = retainedMessages.stream()
                         .map(TokenMessage::getId)
                         .collect(Collectors.toList());
-
+                
                 if (strategyType == TokenOverflowStrategyEnum.SUMMARIZE) {
                     String newSummary = tokenProcessResult.getSummary();
                     String oldSummary = contextEntity.getSummary();
@@ -87,6 +87,7 @@ public class ContextProcessor {
             contextEntity = new ContextEntity();
             contextEntity.setSessionId(sessionId);
         }
+
         return new ContextResult(contextEntity, messageEntities);
     }
 
@@ -94,22 +95,35 @@ public class ContextProcessor {
      * 将消息实体转换为Token消息
      */
     private List<TokenMessage> tokenizeMessage(List<MessageEntity> messageEntities) {
-        return messageEntities.stream()
-                .map(message -> {
-                    TokenMessage tokenMessage = new TokenMessage();
-                    tokenMessage.setId(message.getId());
-                    tokenMessage.setRole(message.getRole().name());
-                    tokenMessage.setContent(message.getContent());
-                    tokenMessage.setTokenCount(message.getTokenCount());
-                    tokenMessage.setCreatedAt(message.getCreatedAt());
-                    return tokenMessage;
-                })
-                .collect(Collectors.toList());
+        return messageEntities.stream().map(message -> {
+            TokenMessage tokenMessage = new TokenMessage();
+            tokenMessage.setId(message.getId());
+            tokenMessage.setRole(message.getRole().name());
+            tokenMessage.setContent(message.getContent());
+            tokenMessage.setTokenCount(message.getTokenCount());
+            tokenMessage.setCreatedAt(message.getCreatedAt());
+            return tokenMessage;
+        }).collect(Collectors.toList());
     }
 
     /**
      * 上下文处理结果
      */
-    public record ContextResult(ContextEntity contextEntity, List<MessageEntity> messageEntities) {
+    public static class ContextResult {
+        private final ContextEntity contextEntity;
+        private final List<MessageEntity> messageEntities;
+
+        public ContextResult(ContextEntity contextEntity, List<MessageEntity> messageEntities) {
+            this.contextEntity = contextEntity;
+            this.messageEntities = messageEntities;
+        }
+
+        public ContextEntity getContextEntity() {
+            return contextEntity;
+        }
+
+        public List<MessageEntity> getMessageEntities() {
+            return messageEntities;
+        }
     }
-}
+} 

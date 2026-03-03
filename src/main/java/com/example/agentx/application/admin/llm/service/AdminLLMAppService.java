@@ -6,20 +6,20 @@ import com.example.agentx.application.llm.dto.ModelDTO;
 import com.example.agentx.application.llm.dto.ProviderDTO;
 import com.example.agentx.domain.llm.model.ModelEntity;
 import com.example.agentx.domain.llm.model.ProviderEntity;
-import com.example.agentx.domain.llm.service.LlmDomainService;
+import com.example.agentx.domain.llm.service.LLMDomainService;
 import com.example.agentx.infrastructure.entity.Operator;
-import com.example.agentx.interfaces.dto.llm.ModelCreateRequest;
-import com.example.agentx.interfaces.dto.llm.ModelUpdateRequest;
-import com.example.agentx.interfaces.dto.llm.ProviderCreateRequest;
-import com.example.agentx.interfaces.dto.llm.ProviderUpdateRequest;
+import com.example.agentx.interfaces.dto.llm.request.ModelCreateRequest;
+import com.example.agentx.interfaces.dto.llm.request.ModelUpdateRequest;
+import com.example.agentx.interfaces.dto.llm.request.ProviderCreateRequest;
+import com.example.agentx.interfaces.dto.llm.request.ProviderUpdateRequest;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AdminLLMAppService {
 
-    private final LlmDomainService llmDomainService;
+    private final LLMDomainService llmDomainService;
 
-    public AdminLLMAppService(LlmDomainService llmDomainService) {
+    public AdminLLMAppService(LLMDomainService llmDomainService) {
         this.llmDomainService = llmDomainService;
     }
 
@@ -42,10 +42,21 @@ public class AdminLLMAppService {
      * @param userId                用户id
      */
     public ProviderDTO updateProvider(ProviderUpdateRequest providerUpdateRequest, String userId) {
+        // 先获取当前服务商数据
+        ProviderEntity existingProvider = llmDomainService.getProvider(providerUpdateRequest.getId());
+
+        // 判断是否需要保留原有的密钥
+        if (providerUpdateRequest.getConfig() != null &&
+                providerUpdateRequest.getConfig().getApiKey() != null &&
+                providerUpdateRequest.getConfig().getApiKey().matches("\\*+")) {
+            // 如果传入的是掩码，使用原有的密钥
+            providerUpdateRequest.getConfig().setApiKey(existingProvider.getConfig().getApiKey());
+        }
+
         ProviderEntity provider = ProviderAssembler.toEntity(providerUpdateRequest, userId);
         provider.setAdmin();
         llmDomainService.updateProvider(provider);
-        return null;
+        return ProviderAssembler.toDTO(llmDomainService.getProviderAggregate(provider.getId(), userId));
     }
 
     /**

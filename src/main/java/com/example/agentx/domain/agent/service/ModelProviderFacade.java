@@ -1,14 +1,14 @@
 package com.example.agentx.domain.agent.service;
 
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
-import org.springframework.stereotype.Service;
 import com.example.agentx.domain.agent.model.AgentWorkspaceEntity;
 import com.example.agentx.domain.agent.model.LLMModelConfig;
 import com.example.agentx.domain.llm.model.ModelEntity;
 import com.example.agentx.domain.llm.model.ProviderEntity;
-import com.example.agentx.domain.llm.service.LlmDomainService;
+import com.example.agentx.domain.llm.service.LLMDomainService;
 import com.example.agentx.infrastructure.llm.LLMProviderService;
 import com.example.agentx.infrastructure.llm.config.ProviderConfig;
+import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import org.springframework.stereotype.Service;
 
 /**
  * 模型提供商门面
@@ -18,11 +18,11 @@ import com.example.agentx.infrastructure.llm.config.ProviderConfig;
 public class ModelProviderFacade {
 
     private final AgentWorkspaceDomainService agentWorkspaceDomainService;
-    private final LlmDomainService llmDomainService;
+    private final LLMDomainService llmDomainService;
 
     public ModelProviderFacade(
             AgentWorkspaceDomainService agentWorkspaceDomainService,
-            LlmDomainService llmDomainService) {
+            LLMDomainService llmDomainService) {
         this.agentWorkspaceDomainService = agentWorkspaceDomainService;
         this.llmDomainService = llmDomainService;
     }
@@ -40,6 +40,7 @@ public class ModelProviderFacade {
         LLMModelConfig llmModelConfig = workspace.getLlmModelConfig();
         String modelId = llmModelConfig.getModelId();
         ModelEntity model = llmDomainService.getModelById(modelId);
+
         // 验证模型是否激活
         model.isActive();
 
@@ -53,8 +54,7 @@ public class ModelProviderFacade {
                 domainConfig.getApiKey(),
                 domainConfig.getBaseUrl(),
                 model.getModelId(),
-                provider.getProtocol()
-        );
+                provider.getProtocol());
 
         // 获取流式聊天客户端
         StreamingChatLanguageModel chatStreamClient = LLMProviderService.getStream(
@@ -67,8 +67,44 @@ public class ModelProviderFacade {
     /**
      * 模型提供商结果
      */
-    public record ModelProviderResult(ModelEntity modelEntity, ProviderEntity providerEntity,
-                                      LLMModelConfig llmModelConfig, ProviderConfig providerConfig,
-                                      StreamingChatLanguageModel chatStreamClient) {
+    public static class ModelProviderResult {
+        private final ModelEntity modelEntity;
+        private final ProviderEntity providerEntity;
+        private final LLMModelConfig llmModelConfig;
+        private final ProviderConfig providerConfig;
+        private final StreamingChatLanguageModel chatStreamClient;
+
+        public ModelProviderResult(
+                ModelEntity modelEntity,
+                ProviderEntity providerEntity,
+                LLMModelConfig llmModelConfig,
+                ProviderConfig providerConfig,
+                StreamingChatLanguageModel chatStreamClient) {
+            this.modelEntity = modelEntity;
+            this.providerEntity = providerEntity;
+            this.llmModelConfig = llmModelConfig;
+            this.providerConfig = providerConfig;
+            this.chatStreamClient = chatStreamClient;
+        }
+
+        public ModelEntity getModelEntity() {
+            return modelEntity;
+        }
+
+        public ProviderEntity getProviderEntity() {
+            return providerEntity;
+        }
+
+        public LLMModelConfig getLlmModelConfig() {
+            return llmModelConfig;
+        }
+
+        public ProviderConfig getProviderConfig() {
+            return providerConfig;
+        }
+
+        public StreamingChatLanguageModel getChatStreamClient() {
+            return chatStreamClient;
+        }
     }
-}
+} 

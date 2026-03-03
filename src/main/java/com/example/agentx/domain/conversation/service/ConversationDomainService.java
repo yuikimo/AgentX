@@ -1,6 +1,5 @@
 package com.example.agentx.domain.conversation.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.example.agentx.domain.conversation.model.MessageEntity;
 import com.example.agentx.domain.conversation.repository.MessageRepository;
@@ -31,44 +30,38 @@ public class ConversationDomainService {
      * @return 消息列表
      */
     public List<MessageEntity> getConversationMessages(String sessionId) {
-        LambdaQueryWrapper<MessageEntity> queryWrapper =
+        return messageRepository.selectList(
                 Wrappers.<MessageEntity>lambdaQuery()
                         .eq(MessageEntity::getSessionId, sessionId)
-                        .orderByAsc(MessageEntity::getCreatedAt);
-        return messageRepository.selectList(queryWrapper);
+                        .orderByAsc(MessageEntity::getCreatedAt)
+        );
     }
 
-    public void insertBathMessage(List<MessageEntity> messages) {
-        messageRepository.insert(messages);
-    }
+   public void insertBathMessage(List<MessageEntity> messages){
+       messageRepository.insert(messages);
+   }
 
-    public MessageEntity saveMessage(MessageEntity message) {
-        messageRepository.insert(message);
-        return message;
-    }
+   public MessageEntity saveMessage(MessageEntity message){
+       messageRepository.insert(message);
+       return message;
+   }
 
     /**
      * 删除会话下的消息
-     *
+     * 
      * @param sessionId 会话id
      */
     public void deleteConversationMessages(String sessionId) {
-        LambdaQueryWrapper<MessageEntity> queryWrapper =
-                Wrappers.<MessageEntity>lambdaQuery()
-                        .eq(MessageEntity::getSessionId, sessionId);
-        messageRepository.checkedDelete(queryWrapper);
+        messageRepository.checkedDelete(Wrappers.<MessageEntity>lambdaQuery().eq(MessageEntity::getSessionId, sessionId));
     }
 
     public void deleteConversationMessages(List<String> sessionIds) {
-        LambdaQueryWrapper<MessageEntity> queryWrapper =
-                Wrappers.<MessageEntity>lambdaQuery()
-                        .in(MessageEntity::getSessionId, sessionIds);
-        messageRepository.checkedDelete(queryWrapper);
+        messageRepository.checkedDelete(Wrappers.<MessageEntity>lambdaQuery().in(MessageEntity::getSessionId, sessionIds));
     }
 
     /**
      * 更新消息的token数量
-     *
+     * 
      * @param message 消息实体
      */
     @Transactional

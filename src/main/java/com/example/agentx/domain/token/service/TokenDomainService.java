@@ -15,7 +15,7 @@ import java.util.List;
 public class TokenDomainService {
 
     private final TokenOverflowStrategyFactory strategyFactory;
-
+    
     public TokenDomainService(TokenOverflowStrategyFactory strategyFactory) {
         this.strategyFactory = strategyFactory;
     }
@@ -30,11 +30,11 @@ public class TokenDomainService {
     public TokenProcessResult processMessages(List<TokenMessage> messages, TokenOverflowConfig config) {
         // 创建策略
         TokenOverflowStrategy strategy = strategyFactory.createStrategy(config);
-
+        
         // 执行处理
         return strategy.process(messages,config);
     }
-
+    
     /**
      * 计算消息列表的总Token数
      *
@@ -45,7 +45,7 @@ public class TokenDomainService {
         if (messages == null || messages.isEmpty()) {
             return 0;
         }
-
+        
         return messages.stream()
                 .mapToInt(message -> {
                     Integer tokenCount = message.getTokenCount();
@@ -53,4 +53,4 @@ public class TokenDomainService {
                 })
                 .sum();
     }
-}
+} 

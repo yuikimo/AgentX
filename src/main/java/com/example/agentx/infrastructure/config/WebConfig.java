@@ -35,13 +35,13 @@ public class WebConfig implements WebMvcConfigurer {
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-
+        
         FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
         // 设置过滤器优先级最高
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return bean;
     }
-
+    
     /**
      * 配置异步请求处理
      * 设置默认的异步请求超时时间
@@ -53,4 +53,4 @@ public class WebConfig implements WebMvcConfigurer {
         // 设置任务执行器
         // configurer.setTaskExecutor(...); // 如果需要自定义线程池可以在这里设置
     }
-}
+} 

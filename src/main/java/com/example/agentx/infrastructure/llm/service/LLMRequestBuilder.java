@@ -11,7 +11,6 @@ import dev.langchain4j.data.message.Content;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.TextContent;
 import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.openai.OpenAiChatRequestParameters;
 import org.springframework.stereotype.Component;
 
@@ -43,26 +42,28 @@ public class LLMRequestBuilder {
             String modelId,
             float temperature,
             float topP) {
+
         // 构建聊天消息列表
         List<ChatMessage> chatMessages = new ArrayList<>();
-        ChatRequest.Builder chatRequestBuilder = new ChatRequest.Builder();
+        dev.langchain4j.model.chat.request.ChatRequest.Builder chatRequestBuilder =
+                new dev.langchain4j.model.chat.request.ChatRequest.Builder();
 
         List<Content> userContents = new ArrayList<>();
-        List<Content> systemContent = new ArrayList<>();
+        List<Content> systemContents = new ArrayList<>();
 
         // 处理历史消息
-        for (MessageEntity messageEntity : contextResult.messageEntities()) {
+        for (MessageEntity messageEntity : contextResult.getMessageEntities()) {
             Role role = messageEntity.getRole();
             String content = messageEntity.getContent();
-            if (Role.USER.equals(role)) {
+            if (role == Role.USER) {
                 userContents.add(new TextContent(content));
-            } else if (Role.SYSTEM.equals(role)) {
-                systemContent.add(new TextContent(content));
+            } else if (role == Role.SYSTEM) {
+                systemContents.add(new TextContent(content));
             }
         }
 
-        // 添加摘要信息
-        ContextEntity contextEntity = contextResult.contextEntity();
+        // 添加摘要消息
+        ContextEntity contextEntity = contextResult.getContextEntity();
         if (StringUtils.isNotEmpty(contextEntity.getSummary())) {
             String preStr = "以下消息是用户之前的历史消息精炼成的摘要消息";
             chatMessages.add(new AiMessage(preStr + contextEntity.getSummary()));
@@ -72,7 +73,7 @@ public class LLMRequestBuilder {
         userContents.add(new TextContent(userMessage));
         chatMessages.add(new UserMessage(userContents));
 
-        // 添加系统提示词
+        // 添加系统提示语
         if (StringUtils.isNotEmpty(systemPrompt)) {
             chatMessages.add(new SystemMessage(systemPrompt));
         }
@@ -85,8 +86,7 @@ public class LLMRequestBuilder {
         Double tempDouble = Double.valueOf(temperature);
         Double topPDouble = Double.valueOf(topP);
 
-        parameters.temperature(tempDouble)
-                .topP(topPDouble);
+        parameters.topP(topPDouble).temperature(tempDouble);
 
         chatRequestBuilder.messages(chatMessages);
         chatRequestBuilder.parameters(parameters.build());

@@ -8,17 +8,17 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class LLMModelConfig {
-
+    
     /**
      * 模型id
      */
     private String modelId;
-
+    
     /**
      * 温度参数，范围0-2，值越大创造性越强，越小则越保守
      */
     private Double temperature = 0.7;
-
+    
     /**
      * Top P参数，范围0-1，控制输出的多样性
      */
@@ -63,31 +63,31 @@ public class LLMModelConfig {
     public String getModelId() {
         return modelId;
     }
-
+    
     public void setModelId(String modelId) {
         this.modelId = modelId;
     }
-
+    
     public Double getTemperature() {
         return temperature;
     }
-
+    
     public void setTemperature(Double temperature) {
         this.temperature = temperature;
     }
-
+    
     public Double getTopP() {
         return topP;
     }
-
+    
     public void setTopP(Double topP) {
         this.topP = topP;
     }
-
+    
     public Integer getMaxTokens() {
         return maxTokens;
     }
-
+    
     public void setMaxTokens(Integer maxTokens) {
         this.maxTokens = maxTokens;
     }

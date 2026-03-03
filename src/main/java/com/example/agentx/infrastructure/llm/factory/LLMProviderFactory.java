@@ -9,7 +9,6 @@ import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 
 public class LLMProviderFactory {
 
-
     /**
      * 获取对应的服务商
      * 不使用工厂模式，因为 OpenAiChatModel 没有无参构造器，并且其他类型的模型不能适配

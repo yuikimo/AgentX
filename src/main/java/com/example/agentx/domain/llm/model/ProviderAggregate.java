@@ -1,5 +1,6 @@
 package com.example.agentx.domain.llm.model;
 
+
 import com.example.agentx.domain.llm.model.config.ProviderConfig;
 import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 
@@ -18,7 +19,7 @@ public class ProviderAggregate {
 
     public ProviderAggregate(ProviderEntity entity, List<ModelEntity> models) {
         this.entity = entity;
-        if (models != null){
+        if (models != null) {
             this.models = models;
         }
     }
@@ -128,4 +129,4 @@ public class ProviderAggregate {
     public ProviderEntity getEntity() {
         return entity;
     }
-}
+} 

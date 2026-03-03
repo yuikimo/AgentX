@@ -18,16 +18,16 @@ import java.sql.SQLException;
  */
 @MappedJdbcTypes(JdbcType.OTHER)
 public abstract class JsonToStringConverter<T> extends BaseTypeHandler<T> {
-
+    
     private final Class<T> type;
-
+    
     protected JsonToStringConverter(Class<T> type) {
         if (type == null) {
             throw new IllegalArgumentException("Type argument cannot be null");
         }
         this.type = type;
     }
-
+    
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, T parameter, JdbcType jdbcType)
             throws SQLException {
@@ -36,29 +36,29 @@ public abstract class JsonToStringConverter<T> extends BaseTypeHandler<T> {
         jsonObject.setValue(JsonUtils.toJsonString(parameter));
         ps.setObject(i, jsonObject);
     }
-
+    
     @Override
     public T getNullableResult(ResultSet rs, String columnName) throws SQLException {
         String json = rs.getString(columnName);
         return parseJson(json);
     }
-
+    
     @Override
     public T getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         String json = rs.getString(columnIndex);
         return parseJson(json);
     }
-
+    
     @Override
     public T getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         String json = cs.getString(columnIndex);
         return parseJson(json);
     }
-
+    
     private T parseJson(String json) throws SQLException {
         if (json == null) {
             return null;
         }
         return JsonUtils.parseObject(json,type);
     }
-}
+} 

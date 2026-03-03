@@ -3,9 +3,9 @@ package com.example.agentx.application.agent.assembler;
 import com.example.agentx.application.agent.dto.AgentDTO;
 import com.example.agentx.domain.agent.constant.AgentType;
 import com.example.agentx.domain.agent.model.AgentEntity;
-import com.example.agentx.interfaces.dto.agent.CreateAgentRequest;
-import com.example.agentx.interfaces.dto.agent.SearchAgentsRequest;
-import com.example.agentx.interfaces.dto.agent.UpdateAgentRequest;
+import com.example.agentx.interfaces.dto.agent.request.CreateAgentRequest;
+import com.example.agentx.interfaces.dto.agent.request.SearchAgentsRequest;
+import com.example.agentx.interfaces.dto.agent.request.UpdateAgentRequest;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ public class AgentAssembler {
         entity.setAvatar(request.getAvatar());
         entity.setSystemPrompt(request.getSystemPrompt());
         entity.setWelcomeMessage(request.getWelcomeMessage());
-
+        
         // 设置Agent类型，默认为聊天助手类型
         AgentType agentType = request.getAgentType();
         entity.setAgentType(agentType.getCode());
@@ -38,20 +38,17 @@ public class AgentAssembler {
         // 设置初始状态为启用
         entity.setEnabled(true);
 
-
         // 设置工具和知识库ID
         entity.setTools(request.getTools() != null ? request.getTools() : new ArrayList<>());
         entity.setKnowledgeBaseIds(request.getKnowledgeBaseIds() != null ? request.getKnowledgeBaseIds() : new ArrayList<>());
-
+        
         // 设置创建和更新时间
         LocalDateTime now = LocalDateTime.now();
         entity.setCreatedAt(now);
         entity.setUpdatedAt(now);
-
+        
         return entity;
     }
-
-
 
     /**
      * 将UpdateAgentRequest转换为AgentEntity
@@ -72,7 +69,6 @@ public class AgentAssembler {
         return entity;
     }
 
-
     /**
      * 将AgentEntity转换为AgentDTO
      */
@@ -80,7 +76,7 @@ public class AgentAssembler {
         if (entity == null) {
             return null;
         }
-
+        
         AgentDTO dto = new AgentDTO();
         dto.setId(entity.getId());
         dto.setName(entity.getName());
@@ -96,7 +92,7 @@ public class AgentAssembler {
         dto.setUserId(entity.getUserId());
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
-
+        
         return dto;
     }
 

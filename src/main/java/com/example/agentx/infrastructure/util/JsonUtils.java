@@ -10,7 +10,7 @@ import java.util.List;
  * JSON工具类，用于处理JSON转换
  */
 public class JsonUtils {
-
+    
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
@@ -23,14 +23,14 @@ public class JsonUtils {
         if (obj == null) {
             return "{}";
         }
-
+        
         try {
             return objectMapper.writeValueAsString(obj);
         } catch (Exception e) {
             return "{}";
         }
     }
-
+    
     /**
      * 将JSON字符串转换为指定对象
      *
@@ -43,14 +43,14 @@ public class JsonUtils {
         if (json == null || json.isEmpty()) {
             return null;
         }
-
+        
         try {
             return objectMapper.readValue(json, clazz);
         } catch (Exception e) {
             return null;
         }
     }
-
+    
     /**
      * 将JSON字符串转换为List
      *
@@ -63,7 +63,7 @@ public class JsonUtils {
         if (json == null || json.isEmpty()) {
             return Collections.emptyList();
         }
-
+        
         try {
             JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, clazz);
             return objectMapper.readValue(json, type);
@@ -71,4 +71,4 @@ public class JsonUtils {
             return Collections.emptyList();
         }
     }
-}
+} 

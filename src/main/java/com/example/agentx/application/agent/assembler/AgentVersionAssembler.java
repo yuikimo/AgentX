@@ -3,7 +3,7 @@ package com.example.agentx.application.agent.assembler;
 import com.example.agentx.application.agent.dto.AgentVersionDTO;
 import com.example.agentx.domain.agent.model.AgentEntity;
 import com.example.agentx.domain.agent.model.AgentVersionEntity;
-import com.example.agentx.interfaces.dto.agent.PublishAgentVersionRequest;
+import com.example.agentx.interfaces.dto.agent.request.PublishAgentVersionRequest;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class AgentVersionAssembler {
-
 
     /**
      * 将AgentVersionEntity列表转换为AgentVersionDTO列表

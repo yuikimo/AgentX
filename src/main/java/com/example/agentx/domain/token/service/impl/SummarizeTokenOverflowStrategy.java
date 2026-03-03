@@ -1,12 +1,12 @@
 package com.example.agentx.domain.token.service.impl;
 
-import com.example.agentx.domain.llm.model.config.ProviderConfig;
 import com.example.agentx.domain.shared.enums.TokenOverflowStrategyEnum;
 import com.example.agentx.domain.token.model.TokenMessage;
 import com.example.agentx.domain.token.model.TokenProcessResult;
 import com.example.agentx.domain.token.model.config.TokenOverflowConfig;
 import com.example.agentx.domain.token.service.TokenOverflowStrategy;
 import com.example.agentx.infrastructure.llm.LLMProviderService;
+import com.example.agentx.infrastructure.llm.config.ProviderConfig;
 import dev.langchain4j.data.message.*;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
@@ -25,25 +25,25 @@ public class SummarizeTokenOverflowStrategy implements TokenOverflowStrategy {
      * 摘要消息的特殊角色标识
      */
     private static final String SUMMARY_ROLE = "summary";
-
+    
     /**
      * 策略配置
      */
     private final TokenOverflowConfig config;
-
+    
     /**
      * 需要进行摘要的消息
      */
     private List<TokenMessage> messagesToSummarize;
-
+    
     /**
      * 生成的摘要消息对象
      */
     private TokenMessage summaryMessage;
-
+    
     /**
      * 构造函数
-     *
+     * 
      * @param config 策略配置
      */
     public SummarizeTokenOverflowStrategy(TokenOverflowConfig config) {
@@ -51,16 +51,16 @@ public class SummarizeTokenOverflowStrategy implements TokenOverflowStrategy {
         this.messagesToSummarize = new ArrayList<>();
         this.summaryMessage = null;
     }
-
+    
     /**
      * 处理消息列表，应用摘要策略
      * 将超过阈值的早期消息替换为一个摘要消息
-     *
+     * 
      * @param messages 待处理的消息列表
      * @return 处理后的消息列表（包含摘要消息+保留的消息）
      */
     @Override
-    public TokenProcessResult process(List<TokenMessage> messages, TokenOverflowConfig tokenOverflowConfig) {
+    public TokenProcessResult  process(List<TokenMessage> messages,TokenOverflowConfig tokenOverflowConfig) {
         if (!needsProcessing(messages)) {
             TokenProcessResult result = new TokenProcessResult();
             result.setRetainedMessages(messages);
@@ -76,7 +76,7 @@ public class SummarizeTokenOverflowStrategy implements TokenOverflowStrategy {
 
         // 获取需要保留的消息数量
         int threshold = config.getSummaryThreshold();
-
+        
         // 分割消息：需要摘要的消息和保留的消息
         messagesToSummarize = sortedMessages.subList(0, sortedMessages.size() - threshold);
         List<TokenMessage> retainedMessages = new ArrayList<>(
@@ -86,7 +86,7 @@ public class SummarizeTokenOverflowStrategy implements TokenOverflowStrategy {
         // 生成摘要消息
         String summary = generateSummary(messagesToSummarize,tokenOverflowConfig);
         summaryMessage = createSummaryMessage(summary);
-
+        
         // 将摘要消息添加到保留消息列表的开头
         retainedMessages.add(0, summaryMessage);
 
@@ -97,13 +97,13 @@ public class SummarizeTokenOverflowStrategy implements TokenOverflowStrategy {
         result.setStrategyName(getName());
         result.setProcessed(true);
         result.setTotalTokens(calculateTotalTokens(retainedMessages));
-
+        
         return result;
     }
-
+    
     /**
      * 创建表示摘要的TokenMessage对象
-     *
+     * 
      * @param summary 摘要内容
      * @return 摘要消息对象
      */
@@ -116,20 +116,20 @@ public class SummarizeTokenOverflowStrategy implements TokenOverflowStrategy {
         message.setCreatedAt(LocalDateTime.now());
         return message;
     }
-
+    
     /**
      * 获取策略名称
-     *
+     * 
      * @return 策略名称
      */
     @Override
     public String getName() {
         return TokenOverflowStrategyEnum.SUMMARIZE.name();
     }
-
+    
     /**
      * 判断是否需要进行Token超限处理
-     *
+     * 
      * @param messages 待处理的消息列表
      * @return 是否需要处理
      */
@@ -138,20 +138,20 @@ public class SummarizeTokenOverflowStrategy implements TokenOverflowStrategy {
         if (messages == null || messages.isEmpty()) {
             return false;
         }
-
+        
         return messages.size() > config.getSummaryThreshold();
     }
-
+    
     /**
      * 获取需要摘要的消息列表（按时间排序）
      * 这是应用层应该使用的方法，用于获取需要进行摘要处理的消息对象
-     *
+     * 
      * @return 需要摘要的消息列表（按时间从旧到新排序）
      */
     public List<TokenMessage> getMessagesToSummarize() {
         return messagesToSummarize;
     }
-
+    
     /**
      * 生成摘要内容
      */
@@ -160,7 +160,7 @@ public class SummarizeTokenOverflowStrategy implements TokenOverflowStrategy {
         ProviderConfig providerConfig = tokenOverflowConfig.getProviderConfig();
 
         // 使用当前服务商调用大模型
-        ChatLanguageModel chatLanguageModel = LLMProviderService.getNormal(providerConfig.getProtocol(), providerConfig);
+        ChatLanguageModel chatLanguageModel = LLMProviderService.getStrand(providerConfig.getProtocol(), providerConfig);
         SystemMessage systemMessage = new SystemMessage(  "你是一个专业的对话摘要生成器，请严格按照以下要求工作：\n" +
                 "1. 只基于提供的对话内容生成客观摘要，不得添加任何原对话中没有的信息\n" +
                 "2. 特别关注：用户问题、回答中的关键信息、重要事实\n" +
@@ -174,13 +174,22 @@ public class SummarizeTokenOverflowStrategy implements TokenOverflowStrategy {
         ChatResponse chatResponse = chatLanguageModel.chat(Arrays.asList(systemMessage,userMessage));
          return chatResponse.aiMessage().text();
     }
-
+    
+    /**
+     * 计算消息列表的总token数
+     */
+    private int calculateTotalTokens(List<TokenMessage> messages) {
+        return messages.stream()
+                .mapToInt(m -> m.getTokenCount() != null ? m.getTokenCount() : 0)
+                .sum();
+    }
+    
     /**
      * 获取生成的摘要消息对象
-     *
+     * 
      * @return 摘要消息对象
      */
     public TokenMessage getSummaryMessage() {
         return summaryMessage;
     }
-}
+} 

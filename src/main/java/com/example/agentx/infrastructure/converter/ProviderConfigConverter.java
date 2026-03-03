@@ -1,8 +1,8 @@
 package com.example.agentx.infrastructure.converter;
 
 import com.example.agentx.domain.llm.model.config.ProviderConfig;
-import com.example.agentx.infrastructure.util.EncryptUtils;
 import com.example.agentx.infrastructure.util.JsonUtils;
+import com.example.agentx.infrastructure.util.ValidationUtils;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
@@ -21,11 +21,12 @@ import java.sql.SQLException;
 @MappedJdbcTypes({JdbcType.VARCHAR, JdbcType.LONGVARCHAR, JdbcType.OTHER})
 public class ProviderConfigConverter extends BaseTypeHandler<ProviderConfig> {
 
+
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, ProviderConfig parameter, JdbcType jdbcType)
             throws SQLException {
         String jsonStr = JsonUtils.toJsonString(parameter);
-        String encryptedStr = EncryptUtils.encrypt(jsonStr);
+        String encryptedStr = ValidationUtils.EncryptUtils.encrypt(jsonStr);
         ps.setString(i, encryptedStr);
     }
 
@@ -51,7 +52,7 @@ public class ProviderConfigConverter extends BaseTypeHandler<ProviderConfig> {
             return new ProviderConfig();
         }
 
-        String jsonStr = EncryptUtils.decrypt(encryptedStr);;
+        String jsonStr = ValidationUtils.EncryptUtils.decrypt(encryptedStr);;
 
         return  JsonUtils.parseObject(jsonStr,ProviderConfig.class);
 

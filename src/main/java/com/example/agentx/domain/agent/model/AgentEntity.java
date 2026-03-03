@@ -90,7 +90,6 @@ public class AgentEntity extends BaseEntity {
     @TableField("user_id")
     private String userId;
 
-
     /**
      * 无参构造函数
      */
@@ -273,4 +272,4 @@ public class AgentEntity extends BaseEntity {
     public AgentType getAgentTypeEnum() {
         return AgentType.fromCode(this.agentType);
     }
-}
+} 

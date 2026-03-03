@@ -12,11 +12,11 @@ import com.example.agentx.domain.agent.model.LLMModelConfig;
 import com.example.agentx.domain.agent.service.AgentDomainService;
 import com.example.agentx.domain.agent.service.AgentWorkspaceDomainService;
 import com.example.agentx.infrastructure.exception.ParamValidationException;
-import com.example.agentx.interfaces.dto.agent.CreateAgentRequest;
-import com.example.agentx.interfaces.dto.agent.PublishAgentVersionRequest;
-import com.example.agentx.interfaces.dto.agent.ReviewAgentVersionRequest;
-import com.example.agentx.interfaces.dto.agent.SearchAgentsRequest;
-import com.example.agentx.interfaces.dto.agent.UpdateAgentRequest;
+import com.example.agentx.interfaces.dto.agent.request.CreateAgentRequest;
+import com.example.agentx.interfaces.dto.agent.request.PublishAgentVersionRequest;
+import com.example.agentx.interfaces.dto.agent.request.ReviewAgentVersionRequest;
+import com.example.agentx.interfaces.dto.agent.request.SearchAgentsRequest;
+import com.example.agentx.interfaces.dto.agent.request.UpdateAgentRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,9 +47,6 @@ public class AgentAppService {
      */
     @Transactional
     public AgentDTO createAgent(CreateAgentRequest request, String userId) {
-
-        // todo xhy 判断用户是否存在
-
         // 使用组装器创建领域实体
         AgentEntity entity = AgentAssembler.toEntity(request, userId);
         entity.setUserId(userId);
@@ -177,7 +174,7 @@ public class AgentAppService {
         // 在应用层验证请求
         request.validate();
 
-        AgentVersionEntity agentVersionEntity;
+        AgentVersionEntity agentVersionEntity = null;
         // 根据状态执行相应操作
         if (PublishStatus.REJECTED.equals(request.getStatus())) {
             // 拒绝发布，需使用拒绝原因

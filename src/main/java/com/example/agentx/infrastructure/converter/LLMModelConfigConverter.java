@@ -8,7 +8,7 @@ import org.apache.ibatis.type.MappedTypes;
  */
 @MappedTypes(LLMModelConfig.class)
 public class LLMModelConfigConverter extends JsonToStringConverter<LLMModelConfig> {
-
+    
     public LLMModelConfigConverter() {
         super(LLMModelConfig.class);
     }

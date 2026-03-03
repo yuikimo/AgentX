@@ -3,8 +3,8 @@ package com.example.agentx.infrastructure.llm.service;
 import com.example.agentx.domain.llm.service.CompletionCallback;
 import com.example.agentx.infrastructure.llm.adapter.LangChain4jAdapter;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
-import com.example.agentx.domain.llm.model.LLMRequest;
 import org.springframework.stereotype.Component;
+import com.example.agentx.domain.llm.model.LLMRequest;
 
 /**
  * 流式响应处理器
@@ -34,4 +34,4 @@ public class StreamResponseHandler {
         // 委托给适配器处理
         adapter.doStreamingChat(chatStreamClient, llmRequest, callback);
     }
-}
+} 

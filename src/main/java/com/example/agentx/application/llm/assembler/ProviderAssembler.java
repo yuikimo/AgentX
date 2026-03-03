@@ -5,8 +5,8 @@ import com.example.agentx.application.llm.dto.ProviderDTO;
 import com.example.agentx.domain.llm.model.ModelEntity;
 import com.example.agentx.domain.llm.model.ProviderAggregate;
 import com.example.agentx.domain.llm.model.ProviderEntity;
-import com.example.agentx.interfaces.dto.llm.ProviderCreateRequest;
-import com.example.agentx.interfaces.dto.llm.ProviderUpdateRequest;
+import com.example.agentx.interfaces.dto.llm.request.ProviderCreateRequest;
+import com.example.agentx.interfaces.dto.llm.request.ProviderUpdateRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -76,6 +76,7 @@ public class ProviderAssembler {
 
         return provider;
     }
+
     /**
      * 将更新请求转换为实体
      */

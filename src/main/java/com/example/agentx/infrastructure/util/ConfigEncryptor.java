@@ -3,7 +3,7 @@ package com.example.agentx.infrastructure.util;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.crypto.symmetric.AES;
 import com.alibaba.fastjson.JSON;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -39,4 +39,4 @@ public class ConfigEncryptor {
         String json = new String(decrypted, StandardCharsets.UTF_8);
         return JSON.parseObject(json, clazz);
     }
-}
+} 

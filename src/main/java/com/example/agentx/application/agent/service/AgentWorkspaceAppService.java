@@ -13,7 +13,7 @@ import com.example.agentx.domain.conversation.service.ConversationDomainService;
 import com.example.agentx.domain.conversation.service.SessionDomainService;
 import com.example.agentx.domain.llm.model.ModelEntity;
 import com.example.agentx.domain.llm.model.ProviderEntity;
-import com.example.agentx.domain.llm.service.LlmDomainService;
+import com.example.agentx.domain.llm.service.LLMDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.interfaces.dto.agent.request.UpdateModelConfigRequest;
 import org.springframework.boot.autoconfigure.info.ProjectInfoProperties;
@@ -41,11 +41,11 @@ public class AgentWorkspaceAppService {
     private final SessionDomainService sessionDomainService;
 
     private final ConversationDomainService conversationDomainService;
-    private final LlmDomainService llmDomainService;
+    private final LLMDomainService llmDomainService;
     private final ProjectInfoProperties projectInfoProperties;
 
     public AgentWorkspaceAppService(AgentWorkspaceDomainService agentWorkspaceDomainService,
-                                    AgentDomainService agentServiceDomainService, SessionDomainService sessionDomainService, ConversationDomainService conversationDomainService, LlmDomainService llmDomainService, ProjectInfoProperties projectInfoProperties) {
+                                    AgentDomainService agentServiceDomainService, SessionDomainService sessionDomainService, ConversationDomainService conversationDomainService, LLMDomainService llmDomainService, ProjectInfoProperties projectInfoProperties) {
         this.agentWorkspaceDomainService = agentWorkspaceDomainService;
         this.agentServiceDomainService = agentServiceDomainService;
         this.sessionDomainService = sessionDomainService;
@@ -56,7 +56,7 @@ public class AgentWorkspaceAppService {
 
     /**
      * 获取工作区下的助理
-     *
+     * 
      * @param  userId 用户id
      * @return AgentDTO
      */

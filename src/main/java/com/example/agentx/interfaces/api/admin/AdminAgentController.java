@@ -4,7 +4,7 @@ import com.example.agentx.application.agent.dto.AgentVersionDTO;
 import com.example.agentx.application.agent.service.AgentAppService;
 import com.example.agentx.domain.agent.constant.PublishStatus;
 import com.example.agentx.interfaces.api.common.Result;
-import com.example.agentx.interfaces.dto.agent.ReviewAgentVersionRequest;
+import com.example.agentx.interfaces.dto.agent.request.ReviewAgentVersionRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -64,6 +64,7 @@ public class AdminAgentController {
         if (publishStatus == PublishStatus.REJECTED) {
             request.setRejectReason(reason);
         }
+
 
         return Result.success(agentAppService.reviewAgentVersion(versionId, request));
     }

@@ -241,4 +241,4 @@ public class AgentDTO {
         entity.setUpdatedAt(this.updatedAt);
         return entity;
     }
-}
+} 

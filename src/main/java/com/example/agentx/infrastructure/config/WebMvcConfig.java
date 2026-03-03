@@ -1,6 +1,6 @@
 package com.example.agentx.infrastructure.config;
 
-import com.example.agentx.interfaces.auth.UserAuthInterceptor;
+import com.example.agentx.infrastructure.auth.UserAuthInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

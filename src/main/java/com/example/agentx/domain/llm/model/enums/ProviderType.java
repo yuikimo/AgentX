@@ -8,28 +8,28 @@ public enum ProviderType {
      * 所有服务商(包括官方和用户自定义)
      */
     ALL("all"),
-
+    
     /**
      * 官方服务商
      */
     OFFICIAL("official"),
-
+    
     /**
      * 用户自定义服务商
      */
     CUSTOM("custom");
 
-
+    
     private final String code;
-
+    
     ProviderType(String code) {
         this.code = code;
     }
-
+    
     public String getCode() {
         return code;
     }
-
+    
     /**
      * 根据code获取对应的枚举值
      * @param code 类型编码
@@ -43,4 +43,4 @@ public enum ProviderType {
         }
         return ProviderType.ALL;
     }
-}
+} 

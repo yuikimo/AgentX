@@ -32,8 +32,7 @@ public class AgentDomainService {
     private final AgentVersionRepository agentVersionRepository;
     private final AgentWorkspaceRepository agentWorkspaceRepository;
 
-    public AgentDomainService(AgentRepository agentRepository, AgentVersionRepository agentVersionRepository,
-                              AgentWorkspaceRepository agentWorkspaceRepository) {
+    public AgentDomainService(AgentRepository agentRepository, AgentVersionRepository agentVersionRepository, AgentWorkspaceRepository agentWorkspaceRepository) {
         this.agentRepository = agentRepository;
         this.agentVersionRepository = agentVersionRepository;
         this.agentWorkspaceRepository = agentWorkspaceRepository;
@@ -141,7 +140,7 @@ public class AgentDomainService {
                 .eq(AgentEntity::getUserId, userId);
         agentRepository.checkedDelete(wrapper);
         // 删除版本
-        agentVersionRepository.checkedDelete(Wrappers.<AgentVersionEntity>lambdaQuery()
+        agentVersionRepository.delete(Wrappers.<AgentVersionEntity>lambdaQuery()
                 .eq(AgentVersionEntity::getAgentId, agentId)
                 .eq(AgentVersionEntity::getUserId, userId));
     }
@@ -306,10 +305,12 @@ public class AgentDomainService {
                 .eq(AgentEntity::getId, agentId)
                 .eq(AgentEntity::getUserId, userId);
         AgentEntity agent = agentRepository.selectOne(wrapper);
-        return agent != null;
+        return agent !=null;
     }
 
     /**
+     * 根据 agentIds 获取 agents
+     * /**
      * 根据 agentIds 获取 agents
      */
     public List<AgentEntity> getAgentsByIds(List<String> agentIds) {
@@ -317,16 +318,16 @@ public class AgentDomainService {
     }
 
     public AgentEntity getAgentById(String agentId) {
-        return this.getAgentsByIds(Collections.singletonList(agentId)).get(0);
+       return this.getAgentsByIds(Collections.singletonList(agentId)).get(0);
     }
 
     public AgentEntity getAgentWithPermissionCheck(String agentId, String userId) {
-
+        
         // 检查工作区是否存在
         boolean b1 = agentWorkspaceRepository.exist(agentId, userId);
 
         boolean b2 = exist(agentId, userId);
-        if (!b1 && !b2) {
+        if (!b1 && !b2){
             throw new BusinessException("助理不存在");
         }
         AgentEntity agentEntity = getAgentById(agentId);
@@ -335,13 +336,13 @@ public class AgentDomainService {
         String publishedVersion = agentEntity.getPublishedVersion();
         if (!StringUtils.isEmpty(publishedVersion)) {
             AgentVersionEntity agentVersionEntity = getAgentVersionById(publishedVersion);
-            BeanUtils.copyProperties(agentVersionEntity, agentEntity);
+            BeanUtils.copyProperties(agentVersionEntity,agentEntity);
         }
 
         return agentEntity;
     }
 
-    public AgentVersionEntity getAgentVersionById(String versionId) {
+    public AgentVersionEntity getAgentVersionById(String versionId){
         return agentVersionRepository.selectById(versionId);
     }
 
@@ -358,13 +359,10 @@ public class AgentDomainService {
         }
 
         // 根据版本中的 agent_id 以及 enable == true 查出对应的 agents
-        LambdaQueryWrapper<AgentEntity> queryWrapper = Wrappers.<AgentEntity>lambdaQuery()
+        List<AgentEntity> agents = agentRepository.selectList(Wrappers.<AgentEntity>lambdaQuery()
                 .in(AgentEntity::getId,
-                        versionEntities.stream()
-                                .map(AgentVersionEntity::getAgentId)
-                                .collect(Collectors.toList()))
-                .eq(AgentEntity::getEnabled, true);
-        List<AgentEntity> agents = agentRepository.selectList(queryWrapper);
+                        versionEntities.stream().map(AgentVersionEntity::getAgentId).collect(Collectors.toList()))
+                .eq(AgentEntity::getEnabled, true));
 
         // 将版本转为 map，key：agent_id，value：本身
         Map<String, AgentVersionEntity> agentVersionMap = versionEntities.stream()

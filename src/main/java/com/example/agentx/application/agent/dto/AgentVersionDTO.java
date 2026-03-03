@@ -116,6 +116,7 @@ public class AgentVersionDTO {
         this.knowledgeBaseIds = new ArrayList<>();
     }
 
+
     // Getter和Setter方法
     public String getId() {
         return id;

@@ -50,14 +50,14 @@ public class ChatCompletionHandlerImpl implements ChatCompletionHandler {
             Integer outputTokenCount,
             String llmContent) {
         try {
-            // 设置消息的Token信息
+            // 设置消息的token信息
             userMessage.setTokenCount(inputTokenCount);
             llmMessage.setTokenCount(outputTokenCount);
             llmMessage.setContent(llmContent);
 
             // 保存消息到数据库
             conversationDomainService.insertBathMessage(Arrays.asList(userMessage, llmMessage));
-
+            
             // 更新上下文
             if (contextEntity != null) {
                 List<String> activeMessages = contextEntity.getActiveMessages();
@@ -70,4 +70,4 @@ public class ChatCompletionHandlerImpl implements ChatCompletionHandler {
             throw new BusinessException("处理聊天完成逻辑失败: " + e.getMessage(), e);
         }
     }
-}
+} 

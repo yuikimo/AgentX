@@ -3,12 +3,12 @@ package com.example.agentx.interfaces.api.portal.agent;
 import com.example.agentx.application.agent.dto.AgentDTO;
 import com.example.agentx.application.agent.dto.AgentVersionDTO;
 import com.example.agentx.application.agent.service.AgentAppService;
+import com.example.agentx.infrastructure.auth.UserContext;
 import com.example.agentx.interfaces.api.common.Result;
-import com.example.agentx.interfaces.auth.UserContext;
-import com.example.agentx.interfaces.dto.agent.CreateAgentRequest;
-import com.example.agentx.interfaces.dto.agent.PublishAgentVersionRequest;
-import com.example.agentx.interfaces.dto.agent.SearchAgentsRequest;
-import com.example.agentx.interfaces.dto.agent.UpdateAgentRequest;
+import com.example.agentx.interfaces.dto.agent.request.CreateAgentRequest;
+import com.example.agentx.interfaces.dto.agent.request.PublishAgentVersionRequest;
+import com.example.agentx.interfaces.dto.agent.request.SearchAgentsRequest;
+import com.example.agentx.interfaces.dto.agent.request.UpdateAgentRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 

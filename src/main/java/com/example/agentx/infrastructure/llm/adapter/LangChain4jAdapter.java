@@ -2,10 +2,7 @@ package com.example.agentx.infrastructure.llm.adapter;
 
 import com.example.agentx.domain.llm.model.LLMRequest;
 import com.example.agentx.domain.llm.service.CompletionCallback;
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.data.message.*;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.response.ChatResponse;
@@ -32,25 +29,27 @@ public class LangChain4jAdapter {
     public ChatRequest toExternalRequest(LLMRequest llmRequest) {
         List<ChatMessage> chatMessages = new ArrayList<>();
 
-        for (LLMRequest.LLMMessage message : llmRequest.messages()) {
-            switch (message.type()) {
+        // 转换消息
+        for (LLMRequest.LLMMessage message : llmRequest.getMessages()) {
+            switch (message.getType()) {
                 case USER:
-                    chatMessages.add(new UserMessage(message.content()));
+                    chatMessages.add(new UserMessage(message.getContent()));
                     break;
                 case SYSTEM:
-                    chatMessages.add(new SystemMessage(message.content()));
+                    chatMessages.add(new SystemMessage(message.getContent()));
+                    break;
                 case ASSISTANT:
-                    chatMessages.add(new AiMessage(message.content()));
+                    chatMessages.add(new AiMessage(message.getContent()));
                     break;
             }
         }
 
         // 转换参数
-        LLMRequest.LLMRequestParameters params = llmRequest.parameters();
+        LLMRequest.LLMRequestParameters params = llmRequest.getParameters();
         OpenAiChatRequestParameters.Builder parameters = new OpenAiChatRequestParameters.Builder();
-        parameters.modelName(params.modelId())
-                .temperature(params.temperature())
-                .topP(params.topP());
+        parameters.modelName(params.getModelId())
+                .temperature(params.getTemperature())
+                .topP(params.getTopP());
 
         // 构建请求
         return new ChatRequest.Builder()
@@ -82,17 +81,18 @@ public class LangChain4jAdapter {
             }
 
             @Override
-            public void onCompleteResponse(ChatResponse chatResponse) {
-                String content = chatResponse.aiMessage().text();
-                Integer inputTokens = chatResponse.metadata().tokenUsage().inputTokenCount();
-                Integer outputTokens = chatResponse.metadata().tokenUsage().outputTokenCount();
+            public void onCompleteResponse(ChatResponse response) {
+                String content = response.aiMessage().text();
+                Integer inputTokens = response.metadata().tokenUsage().inputTokenCount();
+                Integer outputTokens = response.metadata().tokenUsage().outputTokenCount();
+
                 callback.onCompleteResponse(content, inputTokens, outputTokens);
             }
 
             @Override
-            public void onError(Throwable throwable) {
-                callback.onError(throwable);
+            public void onError(Throwable error) {
+                callback.onError(error);
             }
         });
     }
-}
+} 

@@ -20,23 +20,23 @@ public class NoTokenOverflowStrategy implements TokenOverflowStrategy {
      * 策略配置，无策略实现不使用配置参数，但保留字段以统一接口
      */
     private final TokenOverflowConfig config;
-
+    
     /**
      * 构造函数
      */
     public NoTokenOverflowStrategy() {
         this.config = TokenOverflowConfig.createDefault();
     }
-
+    
     /**
      * 带配置的构造函数
-     *
+     * 
      * @param config 策略配置
      */
     public NoTokenOverflowStrategy(TokenOverflowConfig config) {
         this.config = config != null ? config : TokenOverflowConfig.createDefault();
     }
-
+    
     /**
      * 处理消息列表，无策略实现不做任何处理，返回原消息列表
      *
@@ -75,5 +75,13 @@ public class NoTokenOverflowStrategy implements TokenOverflowStrategy {
         // 无策略实现，始终返回false，表示不需要处理
         return false;
     }
-
-}
+    
+    /**
+     * 计算消息列表的总token数
+     */
+    private int calculateTotalTokens(List<TokenMessage> messages) {
+        return messages.stream()
+                .mapToInt(m -> m.getTokenCount() != null ? m.getTokenCount() : 0)
+                .sum();
+    }
+} 

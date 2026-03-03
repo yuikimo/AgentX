@@ -1,20 +1,16 @@
 package com.example.agentx.application.conversation.service;
 
-import com.example.agentx.infrastructure.llm.config.ProviderConfig;
-import dev.langchain4j.data.message.*;
-import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import com.example.agentx.application.conversation.assembler.MessageAssembler;
 import com.example.agentx.application.conversation.dto.ChatRequest;
 import com.example.agentx.application.conversation.dto.MessageDTO;
+import com.example.agentx.application.conversation.service.handler.MessageHandlerFactory;
+import com.example.agentx.application.conversation.service.handler.context.ChatContext;
+import com.example.agentx.application.conversation.service.message.AbstractMessageHandler;
 import com.example.agentx.domain.agent.model.AgentEntity;
 import com.example.agentx.domain.agent.model.AgentWorkspaceEntity;
 import com.example.agentx.domain.agent.model.LLMModelConfig;
 import com.example.agentx.domain.agent.service.AgentDomainService;
 import com.example.agentx.domain.agent.service.AgentWorkspaceDomainService;
-import com.example.agentx.domain.conversation.handler.ChatEnvironment;
-import com.example.agentx.domain.conversation.handler.MessageHandler;
-import com.example.agentx.domain.conversation.handler.MessageHandlerFactory;
 import com.example.agentx.domain.conversation.model.ContextEntity;
 import com.example.agentx.domain.conversation.model.MessageEntity;
 import com.example.agentx.domain.conversation.model.SessionEntity;
@@ -24,16 +20,18 @@ import com.example.agentx.domain.conversation.service.MessageDomainService;
 import com.example.agentx.domain.conversation.service.SessionDomainService;
 import com.example.agentx.domain.llm.model.ModelEntity;
 import com.example.agentx.domain.llm.model.ProviderEntity;
-import com.example.agentx.domain.llm.service.LlmDomainService;
+import com.example.agentx.domain.llm.service.LLMDomainService;
 import com.example.agentx.domain.shared.enums.TokenOverflowStrategyEnum;
 import com.example.agentx.domain.token.model.TokenMessage;
 import com.example.agentx.domain.token.model.TokenProcessResult;
 import com.example.agentx.domain.token.model.config.TokenOverflowConfig;
 import com.example.agentx.domain.token.service.TokenDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import com.example.agentx.infrastructure.llm.LLMServiceFactory;
+import com.example.agentx.infrastructure.llm.config.ProviderConfig;
 import com.example.agentx.infrastructure.transport.MessageTransport;
 import com.example.agentx.infrastructure.transport.MessageTransportFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,12 +47,11 @@ public class ConversationAppService {
     private final SessionDomainService sessionDomainService;
     private final AgentDomainService agentDomainService;
     private final AgentWorkspaceDomainService agentWorkspaceDomainService;
-    private final LlmDomainService llmDomainService;
+    private final LLMDomainService llmDomainService;
     private final ContextDomainService contextDomainService;
     private final TokenDomainService tokenDomainService;
     private final MessageDomainService messageDomainService;
 
-    // 新增依赖
     private final MessageHandlerFactory messageHandlerFactory;
     private final MessageTransportFactory transportFactory;
 
@@ -64,13 +61,12 @@ public class ConversationAppService {
             SessionDomainService sessionDomainService,
             AgentDomainService agentDomainService,
             AgentWorkspaceDomainService agentWorkspaceDomainService,
-            LlmDomainService llmDomainService,
+            LLMDomainService llmDomainService,
             ContextDomainService contextDomainService,
             TokenDomainService tokenDomainService,
             MessageDomainService messageDomainService,
             MessageHandlerFactory messageHandlerFactory,
-            MessageTransportFactory transportFactory,
-            LLMServiceFactory llmServiceFactory) {
+            MessageTransportFactory transportFactory) {
         this.conversationDomainService = conversationDomainService;
         this.sessionDomainService = sessionDomainService;
         this.agentDomainService = agentDomainService;
@@ -106,32 +102,31 @@ public class ConversationAppService {
      * 对话方法 - 统一入口
      *
      * @param chatRequest 聊天请求
-     * @param userId      用户ID
+     * @param userId 用户ID
      * @return SSE发射器
      */
     public SseEmitter chat(ChatRequest chatRequest, String userId) {
         // 1. 准备对话环境
-        ChatEnvironment environment = prepareEnvironment(chatRequest, userId);
+        ChatContext environment = prepareEnvironment(chatRequest, userId);
 
         // 2. 获取传输方式 (当前仅支持SSE，将来支持WebSocket)
-        MessageTransport<SseEmitter> transport =
-                transportFactory.getTransport(MessageTransportFactory.TRANSPORT_TYPE_SSE);
+        MessageTransport<SseEmitter> transport = transportFactory.getTransport(MessageTransportFactory.TRANSPORT_TYPE_SSE);
 
         // 3. 获取适合的消息处理器 (根据agent类型)
-        MessageHandler handler = messageHandlerFactory.getHandler(environment.getAgent());
+        AbstractMessageHandler handler = messageHandlerFactory.getHandler(environment.getAgent());
 
         // 4. 处理对话
-        return handler.handleChat(environment, transport);
+        return handler.chat(environment, transport);
     }
 
     /**
      * 准备对话环境
      *
      * @param chatRequest 聊天请求
-     * @param userId      用户ID
+     * @param userId 用户ID
      * @return 对话环境
      */
-    private ChatEnvironment prepareEnvironment(ChatRequest chatRequest, String userId) {
+    private ChatContext prepareEnvironment(ChatRequest chatRequest, String userId) {
         // 1. 获取会话
         String sessionId = chatRequest.getSessionId();
         SessionEntity session = sessionDomainService.getSession(sessionId, userId);
@@ -155,7 +150,7 @@ public class ConversationAppService {
         provider.isActive();
 
         // 5. 创建环境对象
-        ChatEnvironment environment = new ChatEnvironment();
+        ChatContext environment = new ChatContext();
         environment.setSessionId(sessionId);
         environment.setUserId(userId);
         environment.setUserMessage(chatRequest.getMessage());
@@ -175,7 +170,7 @@ public class ConversationAppService {
      *
      * @param environment 对话环境
      */
-    private void setupContextAndHistory(ChatEnvironment environment) {
+    private void setupContextAndHistory(ChatContext environment) {
         String sessionId = environment.getSessionId();
 
         // 获取上下文
@@ -201,12 +196,12 @@ public class ConversationAppService {
     /**
      * 应用Token溢出策略
      *
-     * @param environment     对话环境
-     * @param contextEntity   上下文实体
+     * @param environment 对话环境
+     * @param contextEntity 上下文实体
      * @param messageEntities 消息实体列表
      */
     private void applyTokenOverflowStrategy(
-            ChatEnvironment environment,
+            ChatContext environment,
             ContextEntity contextEntity,
             List<MessageEntity> messageEntities) {
 
@@ -231,8 +226,7 @@ public class ConversationAppService {
                 providerConfig.getApiKey(),
                 providerConfig.getBaseUrl(),
                 environment.getModel().getModelId(),
-                provider.getProtocol()
-        ));
+                provider.getProtocol()));
 
         // 处理Token
         TokenProcessResult result = tokenDomainService.processMessages(tokenMessages, tokenOverflowConfig);

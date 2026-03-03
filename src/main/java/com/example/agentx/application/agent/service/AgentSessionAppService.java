@@ -13,7 +13,7 @@ import com.example.agentx.domain.conversation.model.SessionEntity;
 import com.example.agentx.domain.conversation.service.ConversationDomainService;
 import com.example.agentx.domain.conversation.service.SessionDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import com.example.agentx.interfaces.dto.conversation.ConversationRequest;
+import com.example.agentx.interfaces.dto.conversation.request.ConversationRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,7 +40,7 @@ public class AgentSessionAppService {
 
     /**
      * 获取助理下的会话列表
-     *
+     * 
      * @param userId  用户id
      * @param agentId 助理id
      * @return 会话列表
@@ -68,7 +68,7 @@ public class AgentSessionAppService {
 
     /**
      * 创建会话
-     *
+     * 
      * @param userId  用户id
      * @param agentId 助理id
      * @return 会话
@@ -85,11 +85,9 @@ public class AgentSessionAppService {
         return SessionAssembler.toDTO(session);
     }
 
-
-
     /**
      * 更新会话
-     *
+     * 
      * @param id     会话id
      * @param userId 用户id
      * @param title  标题
@@ -100,7 +98,7 @@ public class AgentSessionAppService {
 
     /**
      * 删除会话
-     *
+     * 
      * @param id 会话id
      */
     @Transactional
@@ -113,11 +111,11 @@ public class AgentSessionAppService {
 
   /**
    * 发送消息
-   *
+   * 
    * @param id 会话id
    * @param userId 用户id
    * @param conversationRequest 会话请求
-   */
+   */            
     public void sendMessage(String id, String userId, ConversationRequest conversationRequest) {
 
         // todo xhy 目前先普通的发送消息，后续还需要根据 agent 的记忆策略，对话助手/agent 策略进行处理

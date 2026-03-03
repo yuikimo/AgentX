@@ -2,8 +2,8 @@ package com.example.agentx.application.llm.assembler;
 
 import com.example.agentx.application.llm.dto.ModelDTO;
 import com.example.agentx.domain.llm.model.ModelEntity;
-import com.example.agentx.interfaces.dto.llm.ModelCreateRequest;
-import com.example.agentx.interfaces.dto.llm.ModelUpdateRequest;
+import com.example.agentx.interfaces.dto.llm.request.ModelCreateRequest;
+import com.example.agentx.interfaces.dto.llm.request.ModelUpdateRequest;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -14,8 +14,7 @@ import java.util.stream.Collectors;
  * 模型对象转换器
  */
 public class ModelAssembler {
-
-
+    
     /**
      * 将领域对象转换为DTO
      */
@@ -23,7 +22,7 @@ public class ModelAssembler {
         if (model == null) {
             return null;
         }
-
+        
         ModelDTO dto = new ModelDTO();
         dto.setId(model.getId());
         dto.setUserId(model.getUserId());
@@ -38,7 +37,7 @@ public class ModelAssembler {
         dto.setIsOfficial(model.getOfficial());
         return dto;
     }
-
+    
     /**
      * 将多个领域对象转换为DTO列表
      */
@@ -50,7 +49,7 @@ public class ModelAssembler {
                 .map(ModelAssembler::toDTO)
                 .collect(Collectors.toList());
     }
-
+    
     /**
      * 将创建请求转换为领域对象
      */
@@ -64,7 +63,7 @@ public class ModelAssembler {
         model.setType(request.getType());
         model.setCreatedAt(LocalDateTime.now());
         model.setUpdatedAt(LocalDateTime.now());
-
+        
         return model;
     }
 
@@ -82,4 +81,4 @@ public class ModelAssembler {
         return model;
     }
 
-}
+} 

@@ -1,13 +1,13 @@
 package com.example.agentx.infrastructure.llm.service;
 
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import org.springframework.stereotype.Component;
 import com.example.agentx.domain.conversation.constant.Role;
 import com.example.agentx.domain.conversation.model.ContextEntity;
 import com.example.agentx.domain.conversation.model.MessageEntity;
 import com.example.agentx.domain.conversation.service.ContextProcessor;
 import com.example.agentx.domain.llm.model.LLMRequest;
 import com.example.agentx.domain.llm.service.LLMRequestService;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +43,7 @@ public class OpenAIRequestServiceImpl implements LLMRequestService {
         List<LLMRequest.LLMMessage> messages = new ArrayList<>();
 
         // 处理历史消息
-        for (MessageEntity messageEntity : contextResult.messageEntities()) {
+        for (MessageEntity messageEntity : contextResult.getMessageEntities()) {
             Role role = messageEntity.getRole();
             String content = messageEntity.getContent();
 
@@ -55,7 +55,7 @@ public class OpenAIRequestServiceImpl implements LLMRequestService {
         }
 
         // 添加摘要消息
-        ContextEntity contextEntity = contextResult.contextEntity();
+        ContextEntity contextEntity = contextResult.getContextEntity();
         if (StringUtils.isNotEmpty(contextEntity.getSummary())) {
             String preStr = "以下消息是用户之前的历史消息精炼成的摘要消息：";
             messages.add(new LLMRequest.LLMMessage(LLMRequest.MessageType.ASSISTANT,
@@ -83,4 +83,4 @@ public class OpenAIRequestServiceImpl implements LLMRequestService {
                 .parameters(parameters)
                 .build();
     }
-}
+} 

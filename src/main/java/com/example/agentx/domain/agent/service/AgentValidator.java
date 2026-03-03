@@ -33,7 +33,7 @@ public class AgentValidator {
         SessionEntity session = sessionDomainService.getSession(sessionId, userId);
         String agentId = session.getAgentId();
 
-        // 获取对应 Agent 是否可以使用：如果 UserId 不同并且是禁用，则不可对话
+        // 获取对应agent是否可以使用：如果 userId 不同并且是禁用，则不可对话
         AgentEntity agent = agentDomainService.getAgentById(agentId);
         if (!agent.getUserId().equals(userId) && !agent.getEnabled()) {
             throw new BusinessException("agent已被禁用");
@@ -45,6 +45,21 @@ public class AgentValidator {
     /**
      * 验证结果
      */
-    public record ValidationResult(SessionEntity sessionEntity, AgentEntity agentEntity) {
+    public static class ValidationResult {
+        private final SessionEntity sessionEntity;
+        private final AgentEntity agentEntity;
+
+        public ValidationResult(SessionEntity sessionEntity, AgentEntity agentEntity) {
+            this.sessionEntity = sessionEntity;
+            this.agentEntity = agentEntity;
+        }
+
+        public SessionEntity getSessionEntity() {
+            return sessionEntity;
+        }
+
+        public AgentEntity getAgentEntity() {
+            return agentEntity;
+        }
     }
-}
+} 

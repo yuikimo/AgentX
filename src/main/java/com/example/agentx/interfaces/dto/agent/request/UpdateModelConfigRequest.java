@@ -9,20 +9,20 @@ import jakarta.validation.constraints.NotBlank;
  * 保存模型配置请求对象
  */
 public class UpdateModelConfigRequest {
-
+    
     /**
      * 模型ID
      */
     @NotBlank(message = "模型ID不能为空")
     private String modelId;
-
+    
     /**
      * 温度参数，范围0-2
      */
     @Min(value = 0, message = "temperature最小值为0")
     @Max(value = 2, message = "temperature最大值为2")
     private Double temperature;
-
+    
     /**
      * Top P参数，范围0-1
      */

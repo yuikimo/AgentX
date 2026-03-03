@@ -120,8 +120,6 @@ public class AgentVersionEntity extends BaseEntity {
     @TableField("user_id")
     private String userId;
 
-
-
     /**
      * 无参构造函数
      */

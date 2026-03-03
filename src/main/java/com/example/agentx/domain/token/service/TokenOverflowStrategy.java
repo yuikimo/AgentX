@@ -32,13 +32,4 @@ public interface TokenOverflowStrategy {
      * @return 是否需要处理
      */
     boolean needsProcessing(List<TokenMessage> messages);
-
-    /**
-     * 计算消息列表的总token数
-     */
-    default int calculateTotalTokens(List<TokenMessage> messages) {
-        return messages.stream()
-                .mapToInt(m -> m.getTokenCount() != null ? m.getTokenCount() : 0)
-                .sum();
-    }
-}
+} 
