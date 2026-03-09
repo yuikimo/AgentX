@@ -4,13 +4,12 @@ import com.example.agentx.application.agent.dto.AgentVersionDTO;
 import com.example.agentx.application.agent.service.AgentAppService;
 import com.example.agentx.domain.agent.constant.PublishStatus;
 import com.example.agentx.interfaces.api.common.Result;
-import com.example.agentx.interfaces.dto.agent.request.ReviewAgentVersionRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 /**
- * 管理员Agent管理
- * 负责处理管理员对Agent的管理操作，如审核、查看待审核列表等
+ * 管理员Agent管理 负责处理管理员对Agent的管理操作，如审核、查看待审核列表等
  */
 @RestController
 @RequestMapping("/admin/agent")
@@ -39,15 +38,13 @@ public class AdminAgentController {
      * 更新版本状态（包括审核通过/拒绝/下架等操作）
      *
      * @param versionId 版本ID
-     * @param status 目标状态: PUBLISHED, REJECTED, REMOVED
-     * @param reason 原因（拒绝时需要提供）
+     * @param status    目标状态: 1 审核中，2 已发布, 3 拒绝, 4 已下架
+     * @param reason    原因（拒绝时需要提供）
      * @return 更新后的版本
      */
     @PostMapping("/versions/{versionId}/status")
-    public Result<AgentVersionDTO> updateVersionStatus(
-            @PathVariable String versionId,
-            @RequestParam Integer status,
-            @RequestParam(required = false) String reason) {
+    public Result<AgentVersionDTO> updateVersionStatus(@PathVariable String versionId, @RequestParam Integer status,
+                                                       @RequestParam(required = false) String reason) {
 
         PublishStatus publishStatus = PublishStatus.fromCode(status);
 
@@ -65,10 +62,6 @@ public class AdminAgentController {
             request.setRejectReason(reason);
         }
 
-
         return Result.success(agentAppService.reviewAgentVersion(versionId, request));
     }
 }
-
-
-

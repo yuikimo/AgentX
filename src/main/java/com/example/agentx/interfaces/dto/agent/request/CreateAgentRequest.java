@@ -24,6 +24,7 @@ public class CreateAgentRequest {
     // 构造方法
     public CreateAgentRequest() {
     }
+
     // Getter和Setter
     public String getName() {
         return name;

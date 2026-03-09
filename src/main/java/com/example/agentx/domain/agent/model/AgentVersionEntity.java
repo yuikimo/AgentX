@@ -128,7 +128,6 @@ public class AgentVersionEntity extends BaseEntity {
         this.knowledgeBaseIds = new ArrayList<>();
     }
 
-
     // Getter和Setter方法
     public String getId() {
         return id;
@@ -265,6 +264,7 @@ public class AgentVersionEntity extends BaseEntity {
     public void setUserId(String userId) {
         this.userId = userId;
     }
+
     /**
      * 获取发布状态枚举
      */

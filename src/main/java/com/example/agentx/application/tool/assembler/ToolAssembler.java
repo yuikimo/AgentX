@@ -1,0 +1,82 @@
+package com.example.agentx.application.tool.assembler;
+
+import com.example.agentx.application.tool.dto.ToolDTO;
+import com.example.agentx.application.tool.dto.ToolVersionDTO;
+import com.example.agentx.domain.tool.model.ToolEntity;
+import com.example.agentx.domain.tool.model.ToolVersionEntity;
+import com.example.agentx.domain.tool.model.UserToolEntity;
+import com.example.agentx.infrastructure.util.JsonUtils;
+import com.example.agentx.interfaces.dto.tool.request.CreateToolRequest;
+import com.example.agentx.interfaces.dto.tool.request.UpdateToolRequest;
+import org.springframework.beans.BeanUtils;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * 工具实体转换器
+ */
+public class ToolAssembler {
+
+    /**
+     * 将创建工具请求转换为工具实体
+     *
+     * @param request 创建工具请求
+     * @param userId  用户ID
+     * @return 工具实体
+     */
+    public static ToolEntity toEntity(CreateToolRequest request, String userId) {
+        ToolEntity toolEntity = new ToolEntity();
+        BeanUtils.copyProperties(request, toolEntity);
+        toolEntity.setUserId(userId);
+
+        return toolEntity;
+    }
+
+    /**
+     * 将工具实体转换为DTO
+     *
+     * @param entity 工具实体
+     * @return 工具DTO
+     */
+    public static ToolDTO toDTO(ToolEntity entity) {
+        ToolDTO toolDTO = new ToolDTO();
+        BeanUtils.copyProperties(entity, toolDTO);
+        toolDTO.setInstallCommand(JsonUtils.toJsonString(entity.getInstallCommand()));
+        return toolDTO;
+    }
+
+    public static ToolVersionDTO toDTO(ToolVersionEntity entity) {
+        ToolVersionDTO toolVersionDTO = new ToolVersionDTO();
+        BeanUtils.copyProperties(entity, toolVersionDTO);
+        return toolVersionDTO;
+    }
+
+    /**
+     * 将工具实体列表转换为DTO列表
+     *
+     * @param entities 工具实体列表
+     * @return 工具DTO列表
+     */
+    public static List<ToolDTO> toDTOs(List<ToolEntity> entities) {
+        if (entities == null || entities.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return entities.stream().map(ToolAssembler::toDTO).collect(Collectors.toList());
+    }
+
+    public static ToolEntity toEntity(UpdateToolRequest request, String userId) {
+        ToolEntity toolEntity = new ToolEntity();
+        BeanUtils.copyProperties(request, toolEntity);
+        toolEntity.setUserId(userId);
+        return toolEntity;
+    }
+
+    public static ToolVersionDTO toDTO(UserToolEntity userToolEntity) {
+        ToolVersionDTO toolVersionDTO = new ToolVersionDTO();
+        BeanUtils.copyProperties(userToolEntity, toolVersionDTO);
+        return toolVersionDTO;
+    }
+
+}

@@ -9,8 +9,7 @@ import com.example.agentx.infrastructure.entity.BaseEntity;
 import org.apache.ibatis.type.JdbcType;
 
 /**
- * Agent工作区实体类
- * 用于记录用户添加到工作区的Agent
+ * Agent工作区实体类 用于记录用户添加到工作区的Agent
  */
 @TableName(value = "agent_workspace", autoResultMap = true)
 public class AgentWorkspaceEntity extends BaseEntity {
@@ -50,7 +49,7 @@ public class AgentWorkspaceEntity extends BaseEntity {
 
     public LLMModelConfig getLlmModelConfig() {
         // 兜底
-        if (llmModelConfig == null){
+        if (llmModelConfig == null) {
             llmModelConfig = new LLMModelConfig();
         }
         return llmModelConfig;

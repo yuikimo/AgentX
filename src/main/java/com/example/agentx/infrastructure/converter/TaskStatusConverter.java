@@ -17,27 +17,28 @@ import java.sql.SQLException;
 @MappedJdbcTypes(JdbcType.VARCHAR)
 @MappedTypes(TaskStatus.class)
 public class TaskStatusConverter extends BaseTypeHandler<TaskStatus> {
-    
+
     @Override
-    public void setNonNullParameter(PreparedStatement ps, int i, TaskStatus parameter, JdbcType jdbcType) throws SQLException {
+    public void setNonNullParameter(PreparedStatement ps, int i, TaskStatus parameter, JdbcType jdbcType)
+            throws SQLException {
         ps.setString(i, parameter.name());
     }
-    
+
     @Override
     public TaskStatus getNullableResult(ResultSet rs, String columnName) throws SQLException {
         String value = rs.getString(columnName);
         return value == null ? null : TaskStatus.valueOf(value);
     }
-    
+
     @Override
     public TaskStatus getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         String value = rs.getString(columnIndex);
         return value == null ? null : TaskStatus.valueOf(value);
     }
-    
+
     @Override
     public TaskStatus getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         String value = cs.getString(columnIndex);
         return value == null ? null : TaskStatus.valueOf(value);
     }
-} 
+}

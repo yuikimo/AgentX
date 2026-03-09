@@ -11,8 +11,7 @@ import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import org.springframework.stereotype.Service;
 
 /**
- * 模型提供商门面
- * 负责获取和验证模型及提供商
+ * 模型提供商门面 负责获取和验证模型及提供商
  */
 @Service
 public class ModelProviderFacade {
@@ -20,9 +19,8 @@ public class ModelProviderFacade {
     private final AgentWorkspaceDomainService agentWorkspaceDomainService;
     private final LLMDomainService llmDomainService;
 
-    public ModelProviderFacade(
-            AgentWorkspaceDomainService agentWorkspaceDomainService,
-            LLMDomainService llmDomainService) {
+    public ModelProviderFacade(AgentWorkspaceDomainService agentWorkspaceDomainService,
+                               LLMDomainService llmDomainService) {
         this.agentWorkspaceDomainService = agentWorkspaceDomainService;
         this.llmDomainService = llmDomainService;
     }
@@ -54,11 +52,11 @@ public class ModelProviderFacade {
                 domainConfig.getApiKey(),
                 domainConfig.getBaseUrl(),
                 model.getModelId(),
-                provider.getProtocol());
+                provider.getProtocol()
+        );
 
         // 获取流式聊天客户端
-        StreamingChatLanguageModel chatStreamClient = LLMProviderService.getStream(
-                provider.getProtocol(),
+        StreamingChatLanguageModel chatStreamClient = LLMProviderService.getStream(provider.getProtocol(),
                 providerConfig);
 
         return new ModelProviderResult(model, provider, llmModelConfig, providerConfig, chatStreamClient);
@@ -74,12 +72,9 @@ public class ModelProviderFacade {
         private final ProviderConfig providerConfig;
         private final StreamingChatLanguageModel chatStreamClient;
 
-        public ModelProviderResult(
-                ModelEntity modelEntity,
-                ProviderEntity providerEntity,
-                LLMModelConfig llmModelConfig,
-                ProviderConfig providerConfig,
-                StreamingChatLanguageModel chatStreamClient) {
+        public ModelProviderResult(ModelEntity modelEntity, ProviderEntity providerEntity,
+                                   LLMModelConfig llmModelConfig, ProviderConfig providerConfig,
+                                   StreamingChatLanguageModel chatStreamClient) {
             this.modelEntity = modelEntity;
             this.providerEntity = providerEntity;
             this.llmModelConfig = llmModelConfig;
@@ -107,4 +102,4 @@ public class ModelProviderFacade {
             return chatStreamClient;
         }
     }
-} 
+}

@@ -20,7 +20,10 @@ import com.example.agentx.interfaces.dto.agent.request.UpdateAgentRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Agent应用服务，用于适配领域层的Agent服务
@@ -78,10 +81,32 @@ public class AgentAppService {
     /**
      * 获取已上架的Agent列表，支持名称搜索
      */
-    public List<AgentVersionDTO> getPublishedAgentsByName(SearchAgentsRequest searchAgentsRequest) {
+    public List<AgentVersionDTO> getPublishedAgentsByName(SearchAgentsRequest searchAgentsRequest, String userId) {
         AgentEntity entity = AgentAssembler.toEntity(searchAgentsRequest);
         List<AgentVersionEntity> agentVersionEntities = agentServiceDomainService.getPublishedAgentsByName(entity);
-        return AgentVersionAssembler.toDTOs(agentVersionEntities);
+
+        if (agentVersionEntities.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<String> agentIds = agentVersionEntities.stream()
+                .map(AgentVersionEntity::getAgentId)
+                .toList();
+        List<AgentWorkspaceEntity> agentWorkspaceEntities = agentWorkspaceDomainService.listAgents(agentIds, userId);
+        Set<String> agentIdsSet = agentWorkspaceEntities.stream()
+                .map(AgentWorkspaceEntity::getAgentId)
+                .collect(Collectors.toSet());
+
+        List<AgentVersionDTO> agentVersionDTOS = AgentVersionAssembler.toDTOs(agentVersionEntities);
+
+        if (agentIdsSet.isEmpty()) {
+            return agentVersionDTOS;
+        }
+
+        for (AgentVersionDTO agentVersionDTO : agentVersionDTOS) {
+            agentVersionDTO.setAddWorkspace(agentIdsSet.contains(agentVersionDTO.getAgentId()));
+        }
+        return agentVersionDTOS;
     }
 
     /**

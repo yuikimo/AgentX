@@ -7,6 +7,7 @@ import com.example.agentx.interfaces.api.common.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.validation.BindException;
@@ -23,8 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 全局异常处理器
- * 用于捕获应用中的各种异常，并将其转换为统一的API响应格式
+ * 全局异常处理器 用于捕获应用中的各种异常，并将其转换为统一的API响应格式
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -67,10 +67,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Void> handleMethodArgumentNotValidException(MethodArgumentNotValidException e,
-            HttpServletRequest request) {
+                                                              HttpServletRequest request) {
         List<FieldError> fieldErrors = e.getBindingResult().getFieldErrors();
-        String errorMessage = fieldErrors.stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+        String errorMessage = fieldErrors.stream().map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .collect(Collectors.joining(", "));
 
         logger.error("方法参数校验异常: {}, URL: {}", errorMessage, request.getRequestURL(), e);
@@ -84,8 +83,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Void> handleBindException(BindException e, HttpServletRequest request) {
         List<FieldError> fieldErrors = e.getBindingResult().getFieldErrors();
-        String errorMessage = fieldErrors.stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+        String errorMessage = fieldErrors.stream().map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining(", "));
 
         logger.error("表单绑定异常: {}, URL: {}", errorMessage, request.getRequestURL(), e);
@@ -99,22 +97,20 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     public Object handleAsyncRequestTimeoutException(AsyncRequestTimeoutException e, HttpServletRequest request) {
         logger.error("异步请求超时: {}", request.getRequestURL(), e);
-        
+
         // 处理SSE请求的超时情况
         String contentType = request.getContentType();
         if (contentType != null && contentType.contains(MediaType.TEXT_EVENT_STREAM_VALUE)) {
             SseEmitter emitter = new SseEmitter();
             try {
-                emitter.send(SseEmitter.event()
-                        .name("error")
-                        .data("{\"message\":\"请求超时，请重试\",\"done\":true}"));
+                emitter.send(SseEmitter.event().name("error").data("{\"message\":\"请求超时，请重试\",\"done\":true}"));
                 emitter.complete();
             } catch (IOException ex) {
                 logger.error("发送SSE超时消息失败", ex);
             }
             return emitter;
         }
-        
+
         // 非SSE请求返回标准JSON响应
         return Result.error(503, "请求处理超时，请重试");
     }

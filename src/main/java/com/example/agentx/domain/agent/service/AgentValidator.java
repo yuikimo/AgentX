@@ -7,8 +7,7 @@ import com.example.agentx.infrastructure.exception.BusinessException;
 import org.springframework.stereotype.Component;
 
 /**
- * Agent验证器
- * 负责验证Agent的可用性
+ * Agent验证器 负责验证Agent的可用性
  */
 @Component
 public class AgentValidator {
@@ -62,4 +61,4 @@ public class AgentValidator {
             return agentEntity;
         }
     }
-} 
+}

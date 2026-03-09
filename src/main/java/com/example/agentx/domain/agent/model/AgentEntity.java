@@ -5,11 +5,15 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.agentx.domain.agent.constant.AgentType;
+import com.example.agentx.infrastructure.converter.ListStringConverter;
+import com.example.agentx.infrastructure.converter.MapConverter;
 import com.example.agentx.infrastructure.entity.BaseEntity;
+import com.example.agentx.infrastructure.exception.BusinessException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Agent实体类，代表一个AI助手
@@ -53,12 +57,11 @@ public class AgentEntity extends BaseEntity {
     @TableField("welcome_message")
     private String welcomeMessage;
 
-
     /**
      * Agent可使用的工具列表
      */
-    @TableField(value = "tools", exist = false)
-    private List<AgentTool> tools;
+    @TableField(value = "tool_ids", typeHandler = ListStringConverter.class)
+    private List<String> toolIds;
 
     /**
      * 关联的知识库ID列表
@@ -91,10 +94,17 @@ public class AgentEntity extends BaseEntity {
     private String userId;
 
     /**
+     * 预先设置工具参数，结构如下：
+     * { "<mcpServerName>":{ "toolName":"paranms" } }
+     */
+    @TableField(value = "tool_preset_params", typeHandler = MapConverter.class)
+    private Map<String, Map<String, Map<String, String>>> toolPresetParams;
+
+    /**
      * 无参构造函数
      */
     public AgentEntity() {
-        this.tools = new ArrayList<>();
+        this.toolIds = new ArrayList<>();
         this.knowledgeBaseIds = new ArrayList<>();
     }
 
@@ -147,14 +157,12 @@ public class AgentEntity extends BaseEntity {
         this.welcomeMessage = welcomeMessage;
     }
 
-
-
-    public List<AgentTool> getTools() {
-        return tools != null ? tools : new ArrayList<>();
+    public List<String> getToolIds() {
+        return toolIds != null ? toolIds : new ArrayList<>();
     }
 
-    public void setTools(List<AgentTool> tools) {
-        this.tools = tools;
+    public void setToolIds(List<String> toolIds) {
+        this.toolIds = toolIds;
     }
 
     public List<String> getKnowledgeBaseIds() {
@@ -200,7 +208,8 @@ public class AgentEntity extends BaseEntity {
     /**
      * 创建新的Agent对象
      */
-    public static AgentEntity createNew(String name, String description, String avatar, Integer agentType, String userId) {
+    public static AgentEntity createNew(String name, String description, String avatar, Integer agentType,
+                                        String userId) {
         AgentEntity agent = new AgentEntity();
         agent.setName(name);
         agent.setDescription(description);
@@ -220,18 +229,6 @@ public class AgentEntity extends BaseEntity {
         this.name = name;
         this.avatar = avatar;
         this.description = description;
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    /**
-     * 更新Agent配置
-     */
-    public void updateConfig(String systemPrompt, String welcomeMessage,
-                            List<AgentTool> tools, List<String> knowledgeBaseIds) {
-        this.systemPrompt = systemPrompt;
-        this.welcomeMessage = welcomeMessage;
-        this.tools = tools;
-        this.knowledgeBaseIds = knowledgeBaseIds;
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -272,4 +269,21 @@ public class AgentEntity extends BaseEntity {
     public AgentType getAgentTypeEnum() {
         return AgentType.fromCode(this.agentType);
     }
-} 
+
+    public void isEnable() {
+        if (!this.enabled) {
+            throw new BusinessException("助理未激活");
+        }
+    }
+
+    /**
+     * 获取预先设置的工具参数
+     */
+    public Map<String, Map<String, Map<String, String>>> getToolPresetParams() {
+        return toolPresetParams;
+    }
+
+    public void setToolPresetParams(Map<String, Map<String, Map<String, String>>> toolPresetParams) {
+        this.toolPresetParams = toolPresetParams;
+    }
+}

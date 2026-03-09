@@ -45,12 +45,10 @@ public class AgentWorkspaceDomainService {
     }
 
     public boolean exist(String agentId, String userId) {
-            Wrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaQuery()
-                            .eq(AgentWorkspaceEntity::getAgentId, agentId)
-                            .eq(AgentWorkspaceEntity::getUserId, userId);
+        Wrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaQuery()
+                .eq(AgentWorkspaceEntity::getAgentId, agentId).eq(AgentWorkspaceEntity::getUserId, userId);
 
-        Long l = agentWorkspaceRepository.selectCount(wrapper);
-        return  l > 0;
+        return agentWorkspaceRepository.selectCount(wrapper) > 0;
     }
 
     public boolean deleteAgent(String agentId, String userId) {
@@ -60,10 +58,9 @@ public class AgentWorkspaceDomainService {
 
     public AgentWorkspaceEntity getWorkspace(String agentId, String userId) {
         Wrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaQuery()
-                .eq(AgentWorkspaceEntity::getAgentId, agentId)
-                .eq(AgentWorkspaceEntity::getUserId, userId);
+                .eq(AgentWorkspaceEntity::getAgentId, agentId).eq(AgentWorkspaceEntity::getUserId, userId);
         AgentWorkspaceEntity agentWorkspaceEntity = agentWorkspaceRepository.selectOne(wrapper);
-        if (agentWorkspaceEntity == null){
+        if (agentWorkspaceEntity == null) {
             throw new BusinessException("助理不存在");
         }
         return agentWorkspaceEntity;
@@ -71,19 +68,25 @@ public class AgentWorkspaceDomainService {
 
     public AgentWorkspaceEntity findWorkspace(String agentId, String userId) {
         Wrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaQuery()
-                .eq(AgentWorkspaceEntity::getAgentId, agentId)
-                .eq(AgentWorkspaceEntity::getUserId, userId);
+                .eq(AgentWorkspaceEntity::getAgentId, agentId).eq(AgentWorkspaceEntity::getUserId, userId);
         return agentWorkspaceRepository.selectOne(wrapper);
     }
 
-    public void save(AgentWorkspaceEntity workspace){
+    public void save(AgentWorkspaceEntity workspace) {
 
         agentWorkspaceRepository.checkInsert(workspace);
     }
 
     public void update(AgentWorkspaceEntity workspace) {
         LambdaUpdateWrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaUpdate()
+                .eq(AgentWorkspaceEntity::getAgentId, workspace.getAgentId())
                 .eq(AgentWorkspaceEntity::getAgentId, workspace.getAgentId());
-        agentWorkspaceRepository.checkedUpdate(workspace,wrapper);
+        agentWorkspaceRepository.checkedUpdate(workspace, wrapper);
+    }
+
+    public List<AgentWorkspaceEntity> listAgents(List<String> agentIds, String userId) {
+        LambdaQueryWrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaQuery()
+                .eq(AgentWorkspaceEntity::getUserId, userId).in(AgentWorkspaceEntity::getAgentId, agentIds);
+        return agentWorkspaceRepository.selectList(wrapper);
     }
 }
