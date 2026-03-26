@@ -4,6 +4,7 @@ import com.example.agentx.application.agent.dto.AgentVersionDTO;
 import com.example.agentx.domain.agent.model.AgentEntity;
 import com.example.agentx.domain.agent.model.AgentVersionEntity;
 import com.example.agentx.interfaces.dto.agent.request.PublishAgentVersionRequest;
+import org.springframework.beans.BeanUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,24 +38,9 @@ public class AgentVersionAssembler {
         }
 
         AgentVersionDTO dto = new AgentVersionDTO();
-        dto.setId(entity.getId());
-        dto.setName(entity.getName());
-        dto.setDescription(entity.getDescription());
-        dto.setAvatar(entity.getAvatar());
-        dto.setAgentId(entity.getAgentId());
-        dto.setVersionNumber(entity.getVersionNumber());
-        dto.setSystemPrompt(entity.getSystemPrompt());
-        dto.setWelcomeMessage(entity.getWelcomeMessage());
-        dto.setTools(entity.getTools());
-        dto.setKnowledgeBaseIds(entity.getKnowledgeBaseIds());
-        dto.setChangeLog(entity.getChangeLog());
-        dto.setAgentType(entity.getAgentType());
-        dto.setPublishedAt(entity.getPublishedAt());
-        dto.setPublishStatus(entity.getPublishStatus());
-
+        BeanUtils.copyProperties(entity, dto);
         return dto;
     }
-
 
     /**
      * 创建AgentVersionEntity

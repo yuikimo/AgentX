@@ -10,11 +10,15 @@ import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-/** Web通用配置 */
+/**
+ * Web通用配置
+ */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    /** 配置CORS过滤器 */
+    /**
+     * 配置CORS过滤器
+     */
     @Bean
     public FilterRegistrationBean<CorsFilter> corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
@@ -38,7 +42,9 @@ public class WebConfig implements WebMvcConfigurer {
         return bean;
     }
 
-    /** 配置异步请求处理 设置默认的异步请求超时时间 */
+    /**
+     * 配置异步请求处理 设置默认的异步请求超时时间
+     */
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
         // 设置异步请求超时时间为5分钟

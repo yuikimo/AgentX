@@ -12,12 +12,12 @@ public interface ChatCompletionHandler {
     /**
      * 处理聊天完成后的业务逻辑
      *
-     * @param userMessage     用户消息实体
-     * @param llmMessage      LLM回复消息实体
-     * @param contextEntity   上下文实体
-     * @param inputTokenCount 输入token数量
+     * @param userMessage      用户消息实体
+     * @param llmMessage       LLM回复消息实体
+     * @param contextEntity    上下文实体
+     * @param inputTokenCount  输入token数量
      * @param outputTokenCount 输出token数量
-     * @param llmContent      LLM回复内容
+     * @param llmContent       LLM回复内容
      */
     void handleCompletion(
             MessageEntity userMessage,

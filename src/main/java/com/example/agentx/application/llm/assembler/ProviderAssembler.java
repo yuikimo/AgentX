@@ -46,18 +46,14 @@ public class ProviderAssembler {
      * 将多个聚合根转换为DTO列表
      */
     public static List<ProviderDTO> toDTOList(List<ProviderAggregate> providers) {
-        return providers.stream()
-                .map(ProviderAssembler::toDTO)
-                .collect(Collectors.toList());
+        return providers.stream().map(ProviderAssembler::toDTO).collect(Collectors.toList());
     }
 
     /**
      * 将多个实体转换为DTO列表
      */
     public static List<ProviderDTO> toDTOListFromEntities(List<ProviderEntity> providers) {
-        return providers.stream()
-                .map(ProviderAssembler::toDTO)
-                .collect(Collectors.toList());
+        return providers.stream().map(ProviderAssembler::toDTO).collect(Collectors.toList());
     }
 
     /**
@@ -69,7 +65,7 @@ public class ProviderAssembler {
         provider.setProtocol(request.getProtocol());
         provider.setName(request.getName());
         provider.setDescription(request.getDescription());
-        provider.setConfig(request.getConfig());  // 会自动加密
+        provider.setConfig(request.getConfig()); // 会自动加密
         provider.setStatus(request.getStatus());
         provider.setCreatedAt(LocalDateTime.now());
         provider.setUpdatedAt(LocalDateTime.now());
@@ -87,7 +83,7 @@ public class ProviderAssembler {
         provider.setProtocol(request.getProtocol());
         provider.setName(request.getName());
         provider.setDescription(request.getDescription());
-        provider.setConfig(request.getConfig());  // 会自动加密
+        provider.setConfig(request.getConfig()); // 会自动加密
         provider.setStatus(request.getStatus());
         provider.setUpdatedAt(LocalDateTime.now());
         return provider;
@@ -110,7 +106,7 @@ public class ProviderAssembler {
         }
 
         if (request.getConfig() != null) {
-            entity.setConfig(request.getConfig());  // 会自动加密
+            entity.setConfig(request.getConfig()); // 会自动加密
         }
 
         if (request.getStatus() != null) {
@@ -119,7 +115,6 @@ public class ProviderAssembler {
 
         entity.setUpdatedAt(LocalDateTime.now());
     }
-
 
     // 将聚合根转换为dto
     public static ProviderDTO toDTO(ProviderAggregate provider) {
@@ -133,7 +128,7 @@ public class ProviderAssembler {
             return dto;
         }
         for (ModelEntity model : models) {
-            ModelDTO modelDTO = ModelAssembler.toDTO(model);
+            ModelDTO modelDTO = ModelAssembler.toDTO(model, provider.getName());
             modelDTO.setIsOfficial(provider.getIsOfficial());
             dto.getModels().add(modelDTO);
         }

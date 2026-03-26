@@ -4,6 +4,9 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.example.agentx.domain.tool.model.config.ToolDefinition;
+import com.example.agentx.infrastructure.converter.ListStringConverter;
+import com.example.agentx.infrastructure.converter.ToolDefinitionListConverter;
 import com.example.agentx.infrastructure.entity.BaseEntity;
 
 import java.util.List;
@@ -85,6 +88,18 @@ public class UserToolEntity extends BaseEntity {
      */
     @TableField("public_state")
     private Boolean publicState;
+
+    /**
+     * MCP服务器名称
+     */
+    @TableField("mcp_server_name")
+    private String mcpServerName;
+
+    /**
+     * 是否为全局工具
+     */
+    @TableField("is_global")
+    private Boolean isGlobal;
 
     public String getId() {
         return id;
@@ -188,5 +203,21 @@ public class UserToolEntity extends BaseEntity {
 
     public void setOffice(Boolean office) {
         isOffice = office;
+    }
+
+    public String getMcpServerName() {
+        return mcpServerName;
+    }
+
+    public void setMcpServerName(String mcpServerName) {
+        this.mcpServerName = mcpServerName;
+    }
+
+    public Boolean getIsGlobal() {
+        return isGlobal;
+    }
+
+    public void setIsGlobal(Boolean isGlobal) {
+        this.isGlobal = isGlobal;
     }
 }

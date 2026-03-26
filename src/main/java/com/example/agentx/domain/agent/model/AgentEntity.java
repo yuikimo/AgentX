@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.example.agentx.domain.agent.constant.AgentType;
+
 import com.example.agentx.infrastructure.converter.ListStringConverter;
 import com.example.agentx.infrastructure.converter.MapConverter;
 import com.example.agentx.infrastructure.entity.BaseEntity;
@@ -82,23 +82,22 @@ public class AgentEntity extends BaseEntity {
     private Boolean enabled;
 
     /**
-     * Agent类型：1-聊天助手, 2-功能性Agent
-     */
-    @TableField("agent_type")
-    private Integer agentType;
-
-    /**
      * 创建者用户ID
      */
     @TableField("user_id")
     private String userId;
 
     /**
-     * 预先设置工具参数，结构如下：
-     * { "<mcpServerName>":{ "toolName":"paranms" } }
+     * 预先设置工具参数，结构如下： { "<mcpServerName>":{ "toolName":"paranms" } }
      */
     @TableField(value = "tool_preset_params", typeHandler = MapConverter.class)
     private Map<String, Map<String, Map<String, String>>> toolPresetParams;
+
+    /**
+     * 是否支持多模态
+     */
+    @TableField("multi_modal")
+    private Boolean multiModal;
 
     /**
      * 无参构造函数
@@ -189,14 +188,6 @@ public class AgentEntity extends BaseEntity {
         this.enabled = enabled;
     }
 
-    public Integer getAgentType() {
-        return agentType;
-    }
-
-    public void setAgentType(Integer agentType) {
-        this.agentType = agentType;
-    }
-
     public String getUserId() {
         return userId;
     }
@@ -208,13 +199,11 @@ public class AgentEntity extends BaseEntity {
     /**
      * 创建新的Agent对象
      */
-    public static AgentEntity createNew(String name, String description, String avatar, Integer agentType,
-                                        String userId) {
+    public static AgentEntity createNew(String name, String description, String avatar, String userId) {
         AgentEntity agent = new AgentEntity();
         agent.setName(name);
         agent.setDescription(description);
         agent.setAvatar(avatar);
-        agent.setAgentType(agentType != null ? agentType : AgentType.CHAT_ASSISTANT.getCode());
         agent.setUserId(userId);
         agent.setEnabled(true); // 默认启用
         agent.setCreatedAt(LocalDateTime.now());
@@ -263,13 +252,6 @@ public class AgentEntity extends BaseEntity {
         this.deletedAt = LocalDateTime.now();
     }
 
-    /**
-     * 获取Agent类型枚举
-     */
-    public AgentType getAgentTypeEnum() {
-        return AgentType.fromCode(this.agentType);
-    }
-
     public void isEnable() {
         if (!this.enabled) {
             throw new BusinessException("助理未激活");
@@ -285,5 +267,13 @@ public class AgentEntity extends BaseEntity {
 
     public void setToolPresetParams(Map<String, Map<String, Map<String, String>>> toolPresetParams) {
         this.toolPresetParams = toolPresetParams;
+    }
+
+    public Boolean getMultiModal() {
+        return multiModal;
+    }
+
+    public void setMultiModal(Boolean multiModal) {
+        this.multiModal = multiModal;
     }
 }

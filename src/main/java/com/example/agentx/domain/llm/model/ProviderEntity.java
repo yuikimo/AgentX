@@ -8,6 +8,8 @@ import com.example.agentx.infrastructure.entity.BaseEntity;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 
+import java.util.Objects;
+
 /**
  * 服务提供商领域模型
  */
@@ -95,8 +97,14 @@ public class ProviderEntity extends BaseEntity {
     }
 
     public void isActive() {
-        if (!status){
+        if (!status) {
             throw new BusinessException("服务商未激活");
+        }
+    }
+
+    public void isAvailable(String userId) {
+        if (!isOfficial && !Objects.equals(this.getUserId(), userId)) {
+            throw new BusinessException("模型未找到");
         }
     }
 }

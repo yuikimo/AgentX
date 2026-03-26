@@ -5,12 +5,16 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.agentx.domain.tool.model.UserToolEntity;
 import com.example.agentx.domain.tool.repository.UserToolRepository;
+import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.interfaces.dto.tool.request.QueryToolRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -32,8 +36,9 @@ public class UserToolDomainService {
     public Page<UserToolEntity> listByUserId(String userId, QueryToolRequest queryToolRequest) {
         LambdaQueryWrapper<UserToolEntity> wrapper = Wrappers.<UserToolEntity>lambdaQuery()
                 .eq(UserToolEntity::getUserId, userId);
-        return userToolRepository.selectPage(new Page<>(queryToolRequest.getPage(), queryToolRequest.getPageSize()),
-                wrapper);
+        return userToolRepository.selectPage(
+                new Page<>(queryToolRequest.getPage(), queryToolRequest.getPageSize()), wrapper
+        );
     }
 
     public UserToolEntity findByToolIdAndUserId(String toolId, String userId) {
@@ -49,14 +54,15 @@ public class UserToolDomainService {
 
     public void delete(String toolId, String userId) {
         LambdaQueryWrapper<UserToolEntity> wrapper = Wrappers.<UserToolEntity>lambdaQuery()
-                .eq(UserToolEntity::getToolId, toolId).eq(UserToolEntity::getUserId, userId);
+                .eq(UserToolEntity::getToolId, toolId)
+                .eq(UserToolEntity::getUserId, userId);
         userToolRepository.checkedDelete(wrapper);
     }
 
     // 获取工具的安装次数
     public Map<String, Long> getToolsInstall(List<String> toolIds) {
-        if (CollectionUtils.isEmpty(toolIds)) {
-            return Map.of();
+        if (toolIds == null || toolIds.isEmpty()) {
+            return new HashMap<>();
         }
         LambdaQueryWrapper<UserToolEntity> wrapper = Wrappers.<UserToolEntity>lambdaQuery()
                 .in(UserToolEntity::getToolId, toolIds);
@@ -67,5 +73,52 @@ public class UserToolDomainService {
                 .collect(Collectors.groupingBy(UserToolEntity::getToolId, Collectors.counting()));
 
         return toolInstallMap;
+    }
+
+    /**
+     * 检查工具版本是否已安装
+     *
+     * @param toolIds 工具版本id列表
+     * @param userId  用户id
+     */
+    public List<UserToolEntity> getInstallTool(List<String> toolIds, String userId) {
+        if (toolIds == null || toolIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<UserToolEntity> userToolEntities = userToolRepository.selectList(Wrappers.<UserToolEntity>lambdaQuery()
+                .in(UserToolEntity::getToolId, toolIds)
+                .eq(UserToolEntity::getUserId, userId)
+        );
+
+        Map<String, UserToolEntity> userToolMap = userToolEntities.stream()
+                .collect(Collectors.toMap(UserToolEntity::getToolId, Function.identity()));
+
+        toolIds.forEach(toolId -> {
+            UserToolEntity userToolEntity = userToolMap.get(toolId);
+            if (userToolEntity == null) {
+                throw new BusinessException("使用的工具不存在");
+            }
+        });
+        return userToolEntities;
+    }
+
+    /**
+     * 根据工具ID列表获取用户安装的工具
+     *
+     * @param userId  用户ID
+     * @param toolIds 工具ID列表
+     * @return 用户安装的工具列表
+     */
+    public List<UserToolEntity> getUserToolsByIds(String userId, List<String> toolIds) {
+        if (toolIds == null || toolIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        LambdaQueryWrapper<UserToolEntity> wrapper = Wrappers.<UserToolEntity>lambdaQuery()
+                .eq(UserToolEntity::getUserId, userId)
+                .in(UserToolEntity::getToolId, toolIds);
+
+        return userToolRepository.selectList(wrapper);
     }
 }

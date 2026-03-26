@@ -9,7 +9,6 @@ import jakarta.validation.constraints.NotBlank;
  * 发布Agent版本请求
  */
 public class PublishAgentVersionRequest {
-
     @NotBlank(message = "版本号不能为空")
     private String versionNumber;
     @NotBlank(message = "变更日志不能为空")

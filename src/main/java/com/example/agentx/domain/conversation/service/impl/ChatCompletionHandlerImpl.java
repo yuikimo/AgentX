@@ -57,7 +57,7 @@ public class ChatCompletionHandlerImpl implements ChatCompletionHandler {
 
             // 保存消息到数据库
             conversationDomainService.insertBathMessage(Arrays.asList(userMessage, llmMessage));
-            
+
             // 更新上下文
             if (contextEntity != null) {
                 List<String> activeMessages = contextEntity.getActiveMessages();

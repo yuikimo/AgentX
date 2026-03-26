@@ -1,8 +1,7 @@
 package com.example.agentx.infrastructure.auth;
 
 /**
- * 用户上下文
- * 用于存储当前线程的用户信息
+ * 用户上下文 用于存储当前线程的用户信息
  */
 public class UserContext {
 
@@ -10,7 +9,7 @@ public class UserContext {
 
     /**
      * 设置当前用户ID
-     * 
+     *
      * @param userId 用户ID
      */
     public static void setCurrentUserId(String userId) {
@@ -19,7 +18,7 @@ public class UserContext {
 
     /**
      * 获取当前用户ID
-     * 
+     *
      * @return 用户ID，如果未设置则返回null
      */
     public static String getCurrentUserId() {

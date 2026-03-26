@@ -2,6 +2,7 @@ package com.example.agentx.interfaces.api.portal.user;
 
 import com.example.agentx.application.user.service.LoginAppService;
 import com.example.agentx.interfaces.api.common.Result;
+import com.example.agentx.interfaces.dto.user.request.LoginRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;

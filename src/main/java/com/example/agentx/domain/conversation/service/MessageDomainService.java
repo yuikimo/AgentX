@@ -1,5 +1,6 @@
 package com.example.agentx.domain.conversation.service;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.example.agentx.domain.conversation.model.ContextEntity;
 import com.example.agentx.domain.conversation.model.MessageEntity;
 import com.example.agentx.domain.conversation.repository.ContextRepository;
@@ -11,7 +12,6 @@ import java.util.List;
 @Service
 public class MessageDomainService {
 
-
     private final MessageRepository messageRepository;
 
     private final ContextRepository contextRepository;
@@ -21,15 +21,15 @@ public class MessageDomainService {
         this.contextRepository = contextRepository;
     }
 
-    public List<MessageEntity> listByIds(List<String> ids){
+    public List<MessageEntity> listByIds(List<String> ids) {
         return messageRepository.selectByIds(ids);
     }
 
     /**
      * 保存消息并且更新消息到上下文
      */
-    public void saveMessageAndUpdateContext(List<MessageEntity> messageEntities, ContextEntity contextEntity){
-        if (messageEntities == null || messageEntities.isEmpty()){
+    public void saveMessageAndUpdateContext(List<MessageEntity> messageEntities, ContextEntity contextEntity) {
+        if (messageEntities == null || messageEntities.isEmpty()) {
             return;
         }
         for (MessageEntity messageEntity : messageEntities) {
@@ -43,12 +43,17 @@ public class MessageDomainService {
     /**
      * 保存消息
      */
-    public void saveMessage(List<MessageEntity> messageEntities){
+    public void saveMessage(List<MessageEntity> messageEntities) {
         messageRepository.insert(messageEntities);
     }
 
-    public void updateMessage(MessageEntity message){
+    public void updateMessage(MessageEntity message) {
         messageRepository.updateById(message);
     }
 
+    public boolean isFirstConversation(String sessionId) {
+        return messageRepository
+                .selectCount(Wrappers.<MessageEntity>lambdaQuery()
+                        .eq(MessageEntity::getSessionId, sessionId)) <= 3;
+    }
 }

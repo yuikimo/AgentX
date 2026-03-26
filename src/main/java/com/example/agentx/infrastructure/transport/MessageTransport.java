@@ -8,36 +8,40 @@ import com.example.agentx.application.conversation.dto.AgentChatResponse;
 public interface MessageTransport<T> {
     /**
      * 创建连接
+     *
      * @param timeout 超时时间(毫秒)
      * @return 连接对象
      */
     T createConnection(long timeout);
-    
+
     /**
      * 发送消息
-     * @param connection 连接对象
+     *
+     * @param connection         连接对象
      * @param streamChatResponse 消息内容
      */
     void sendMessage(T connection, AgentChatResponse streamChatResponse);
 
     /**
      * 发送消息
-     * @param connection 连接对象
+     *
+     * @param connection         连接对象
      * @param streamChatResponse 消息内容
      */
     void sendEndMessage(T connection, AgentChatResponse streamChatResponse);
 
-
     /**
      * 完成连接
+     *
      * @param connection 连接对象
      */
     void completeConnection(T connection);
-    
+
     /**
      * 处理错误
+     *
      * @param connection 连接对象
-     * @param error 错误对象
+     * @param error      错误对象
      */
     void handleError(T connection, Throwable error);
-} 
+}

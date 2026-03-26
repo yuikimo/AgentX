@@ -18,6 +18,8 @@ public class UserEntity extends BaseEntity {
     private String githubId;
     private String githubLogin;
     private String avatarUrl;
+    private String loginPlatform;
+    private Boolean isAdmin;
 
     public String getId() {
         return id;
@@ -81,6 +83,26 @@ public class UserEntity extends BaseEntity {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+    }
+
+    public String getLoginPlatform() {
+        return loginPlatform;
+    }
+
+    public void setLoginPlatform(String loginPlatform) {
+        this.loginPlatform = loginPlatform;
+    }
+
+    public Boolean getIsAdmin() {
+        return isAdmin;
+    }
+
+    public void setIsAdmin(Boolean isAdmin) {
+        this.isAdmin = isAdmin;
+    }
+
+    public boolean isAdmin() {
+        return Boolean.TRUE.equals(isAdmin);
     }
 
     public void valid() {

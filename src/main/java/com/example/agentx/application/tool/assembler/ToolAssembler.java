@@ -2,10 +2,12 @@ package com.example.agentx.application.tool.assembler;
 
 import com.example.agentx.application.tool.dto.ToolDTO;
 import com.example.agentx.application.tool.dto.ToolVersionDTO;
+import com.example.agentx.application.tool.dto.ToolWithUserDTO;
 import com.example.agentx.domain.tool.model.ToolEntity;
 import com.example.agentx.domain.tool.model.ToolVersionEntity;
 import com.example.agentx.domain.tool.model.UserToolEntity;
-import com.example.agentx.infrastructure.util.JsonUtils;
+import com.example.agentx.domain.user.model.UserEntity;
+import com.example.agentx.infrastructure.utils.JsonUtils;
 import com.example.agentx.interfaces.dto.tool.request.CreateToolRequest;
 import com.example.agentx.interfaces.dto.tool.request.UpdateToolRequest;
 import org.springframework.beans.BeanUtils;
@@ -77,6 +79,44 @@ public class ToolAssembler {
         ToolVersionDTO toolVersionDTO = new ToolVersionDTO();
         BeanUtils.copyProperties(userToolEntity, toolVersionDTO);
         return toolVersionDTO;
+    }
+
+    /**
+     * 将工具实体转换为包含用户信息的DTO
+     *
+     * @param entity 工具实体
+     * @param user   用户实体
+     * @return 包含用户信息的工具DTO
+     */
+    public static ToolWithUserDTO toToolWithUserDTO(ToolEntity entity, UserEntity user) {
+        if (entity == null) {
+            return null;
+        }
+
+        ToolWithUserDTO dto = new ToolWithUserDTO();
+        BeanUtils.copyProperties(entity, dto);
+
+        // 设置用户信息
+        if (user != null) {
+            dto.setUserNickname(user.getNickname());
+            dto.setUserEmail(user.getEmail());
+            dto.setUserAvatarUrl(user.getAvatarUrl());
+        }
+
+        return dto;
+    }
+
+    /**
+     * 将工具实体列表转换为包含用户信息的DTO列表
+     *
+     * @param entities 工具实体列表
+     * @return 包含用户信息的工具DTO列表
+     */
+    public static List<ToolWithUserDTO> toToolWithUserDTOs(List<ToolEntity> entities) {
+        if (entities == null || entities.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return entities.stream().map(entity -> toToolWithUserDTO(entity, null)).collect(Collectors.toList());
     }
 
 }

@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
  * 任务对象转换器
  */
 public class TaskAssembler {
-    
+
     /**
      * 将实体转换为DTO
      *
@@ -22,7 +22,7 @@ public class TaskAssembler {
         if (entity == null) {
             return null;
         }
-        
+
         TaskDTO dto = new TaskDTO();
         dto.setId(entity.getId());
         dto.setSessionId(entity.getSessionId());
@@ -36,7 +36,7 @@ public class TaskAssembler {
         dto.setEndTime(entity.getEndTime());
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
-        
+
         return dto;
     }
 
@@ -50,10 +50,8 @@ public class TaskAssembler {
         if (entities == null || entities.isEmpty()) {
             return Collections.emptyList();
         }
-        
-        return entities.stream()
-                .map(TaskAssembler::toDTO)
-                .collect(Collectors.toList());
+
+        return entities.stream().map(TaskAssembler::toDTO).collect(Collectors.toList());
     }
 
-} 
+}

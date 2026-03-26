@@ -1,6 +1,5 @@
 package com.example.agentx.domain.llm.model;
 
-
 import com.example.agentx.domain.llm.model.config.ProviderConfig;
 import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 
@@ -9,8 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 服务提供商聚合根
- * 注意：这是领域模型中的聚合根，包含领域逻辑，与ProviderEntity（持久化实体）区分
+ * 服务提供商聚合根 注意：这是领域模型中的聚合根，包含领域逻辑，与ProviderEntity（持久化实体）区分
  */
 public class ProviderAggregate {
 
@@ -51,14 +49,14 @@ public class ProviderAggregate {
      * 获取服务商配置（解密版本）
      */
     public ProviderConfig getConfig() {
-        return entity.getConfig();  // 已解密
+        return entity.getConfig(); // 已解密
     }
 
     /**
      * 设置服务商配置（会自动加密）
      */
     public void setConfig(ProviderConfig config) {
-        entity.setConfig(config);  // 会自动加密
+        entity.setConfig(config); // 会自动加密
     }
 
     // 委托方法，代理到实体
@@ -129,4 +127,4 @@ public class ProviderAggregate {
     public ProviderEntity getEntity() {
         return entity;
     }
-} 
+}

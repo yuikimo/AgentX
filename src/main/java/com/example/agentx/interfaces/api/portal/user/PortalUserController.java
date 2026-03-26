@@ -1,11 +1,22 @@
 package com.example.agentx.interfaces.api.portal.user;
 
+import com.example.agentx.application.llm.dto.ModelDTO;
+import com.example.agentx.application.llm.service.LLMAppService;
 import com.example.agentx.application.user.dto.UserDTO;
+import com.example.agentx.application.user.dto.UserSettingsDTO;
 import com.example.agentx.application.user.service.UserAppService;
+import com.example.agentx.application.user.service.UserSettingsAppService;
+import com.example.agentx.domain.llm.model.enums.ModelType;
+import com.example.agentx.domain.llm.model.enums.ProviderType;
 import com.example.agentx.infrastructure.auth.UserContext;
 import com.example.agentx.interfaces.api.common.Result;
+import com.example.agentx.interfaces.dto.user.request.ChangePasswordRequest;
+import com.example.agentx.interfaces.dto.user.request.UserSettingsUpdateRequest;
+import com.example.agentx.interfaces.dto.user.request.UserUpdateRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /** 用户 */
 @RestController
@@ -14,8 +25,15 @@ public class PortalUserController {
 
     private final UserAppService userAppService;
 
-    public PortalUserController(UserAppService userAppService) {
+    private final UserSettingsAppService userSettingsAppService;
+
+    private final LLMAppService llmAppService;
+
+    public PortalUserController(UserAppService userAppService, UserSettingsAppService userSettingsAppService,
+            LLMAppService llmAppService) {
         this.userAppService = userAppService;
+        this.userSettingsAppService = userSettingsAppService;
+        this.llmAppService = llmAppService;
     }
 
     /** 获取用户信息
@@ -34,5 +52,64 @@ public class PortalUserController {
         String userId = UserContext.getCurrentUserId();
         userAppService.updateUserInfo(userUpdateRequest, userId);
         return Result.success();
+    }
+
+    /** 修改密码
+     * 
+     * @param request 修改密码请求
+     * @return 修改结果 */
+    @PutMapping("/password")
+    public Result<?> updatePassword(@RequestBody @Validated ChangePasswordRequest request) {
+        String userId = UserContext.getCurrentUserId();
+        userAppService.changePassword(request, userId);
+        return Result.success().message("密码修改成功");
+    }
+
+    /** 获取用户设置
+     * @return 用户设置信息 */
+    @GetMapping("/settings")
+    public Result<UserSettingsDTO> getUserSettings() {
+        String userId = UserContext.getCurrentUserId();
+        UserSettingsDTO settings = userSettingsAppService.getUserSettings(userId);
+        return Result.success(settings);
+    }
+
+    /** 更新用户设置
+     * @param request 更新请求
+     * @return 更新后的用户设置 */
+    @PutMapping("/settings")
+    public Result<UserSettingsDTO> updateUserSettings(@RequestBody @Validated UserSettingsUpdateRequest request) {
+        String userId = UserContext.getCurrentUserId();
+        UserSettingsDTO settings = userSettingsAppService.updateUserSettings(request, userId);
+        return Result.success(settings);
+    }
+
+    /** 获取用户默认模型ID
+     * @return 默认模型ID */
+    @GetMapping("/settings/default-model")
+    public Result<String> getUserDefaultModelId() {
+        String userId = UserContext.getCurrentUserId();
+        String defaultModelId = userSettingsAppService.getUserDefaultModelId(userId);
+        return Result.success(defaultModelId);
+    }
+
+    /** 获取可用的OCR模型列表（复用现有模型接口，支持视觉模型）
+     * @return OCR模型列表 */
+    @GetMapping("/settings/ocr-models")
+    public Result<List<ModelDTO>> getOcrModels() {
+        String userId = UserContext.getCurrentUserId();
+        // OCR模型实际上是对话模型，但支持视觉输入，所以复用CHAT类型
+        List<ModelDTO> models = llmAppService.getActiveModelsByType(ProviderType.ALL, userId, ModelType.CHAT);
+        return Result.success(models);
+    }
+
+    /** 获取可用的嵌入模型列表（按模型类型筛选）
+     * @return 嵌入模型列表 */
+    @GetMapping("/settings/embedding-models")
+    public Result<List<ModelDTO>> getEmbeddingModels() {
+        String userId = UserContext.getCurrentUserId();
+        // 筛选嵌入模型类型
+        List<ModelDTO> models = llmAppService.getActiveModelsByType(ProviderType.ALL, userId, ModelType.EMBEDDING);
+        return Result.success(models);
     }
 }

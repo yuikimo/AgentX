@@ -1,0 +1,41 @@
+package com.example.agentx.domain.trace.event;
+
+import com.example.agentx.domain.trace.constant.ExecutionPhase;
+import com.example.agentx.domain.trace.model.TraceContext;
+import org.springframework.context.ApplicationEvent;
+
+/**
+ * 执行完成事件
+ */
+public class ExecutionCompletedEvent extends ApplicationEvent {
+
+    private final TraceContext traceContext;
+    private final boolean success;
+    private final ExecutionPhase errorPhase;
+    private final String errorMessage;
+
+    public ExecutionCompletedEvent(Object source, TraceContext traceContext, boolean success, ExecutionPhase errorPhase,
+                                   String errorMessage) {
+        super(source);
+        this.traceContext = traceContext;
+        this.success = success;
+        this.errorPhase = errorPhase;
+        this.errorMessage = errorMessage;
+    }
+
+    public TraceContext getTraceContext() {
+        return traceContext;
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public ExecutionPhase getErrorPhase() {
+        return errorPhase;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+}

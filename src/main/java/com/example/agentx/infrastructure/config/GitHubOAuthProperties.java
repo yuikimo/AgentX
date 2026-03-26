@@ -70,4 +70,4 @@ public class GitHubOAuthProperties {
     public void setUserEmailUrl(String userEmailUrl) {
         this.userEmailUrl = userEmailUrl;
     }
-} 
+}

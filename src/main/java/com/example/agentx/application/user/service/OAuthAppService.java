@@ -4,7 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.example.agentx.domain.user.model.UserEntity;
 import com.example.agentx.domain.user.service.UserDomainService;
 import com.example.agentx.infrastructure.config.GitHubOAuthProperties;
-import com.example.agentx.infrastructure.util.JwtUtils;
+import com.example.agentx.infrastructure.exception.BusinessException;
+import com.example.agentx.infrastructure.utils.JwtUtils;
 import com.example.agentx.interfaces.dto.user.GitHubTokenResponse;
 import com.example.agentx.interfaces.dto.user.GitHubUserInfo;
 import org.apache.http.HttpEntity;
@@ -35,42 +36,33 @@ public class OAuthAppService {
     private final GitHubOAuthProperties githubProperties;
     private final UserDomainService userDomainService;
 
-    public OAuthAppService(GitHubOAuthProperties githubProperties,
-                           UserDomainService userDomainService) {
+    public OAuthAppService(GitHubOAuthProperties githubProperties, UserDomainService userDomainService) {
         this.githubProperties = githubProperties;
         this.userDomainService = userDomainService;
     }
 
-    /**
-     * 获取 GitHub 授权 URL
-     *
-     * @return GitHub 授权 URL
-     */
+    /** 获取 GitHub 授权 URL
+     * @return GitHub 授权 URL */
     public String getGitHubAuthorizeUrl() {
-        return githubProperties.getAuthorizeUrl() +
-                "?client_id=" + githubProperties.getClientId() +
-                "&redirect_uri=" + githubProperties.getRedirectUri() +
-                "&scope=user:email";
+        return githubProperties.getAuthorizeUrl() + "?client_id=" + githubProperties.getClientId() + "&redirect_uri="
+                + githubProperties.getRedirectUri() + "&scope=user:email";
     }
 
-    /**
-     * 处理 GitHub 回调
-     *
+    /** 处理 GitHub 回调
      * @param code 授权码
-     * @return 登录令牌
-     */
+     * @return 登录令牌 */
     public Map<String, String> handleGitHubCallback(String code) {
         try {
             // 1. 获取访问令牌
             GitHubTokenResponse tokenResponse = getAccessToken(code);
             if (tokenResponse == null || !StringUtils.hasText(tokenResponse.getAccessToken())) {
-                throw new RuntimeException("获取GitHub访问令牌失败");
+                throw new BusinessException("获取GitHub访问令牌失败");
             }
 
             // 2. 获取用户信息
             GitHubUserInfo userInfo = getUserInfo(tokenResponse.getAccessToken());
             if (userInfo == null || userInfo.getId() == null) {
-                throw new RuntimeException("获取GitHub用户信息失败");
+                throw new BusinessException("获取GitHub用户信息失败");
             }
 
             // 3. 如果用户邮箱为空，尝试获取用户主邮箱
@@ -90,16 +82,13 @@ public class OAuthAppService {
             return result;
         } catch (Exception e) {
             logger.error("GitHub登录处理失败", e);
-            throw new RuntimeException("GitHub登录失败: " + e.getMessage());
+            throw new BusinessException("GitHub登录失败: " + e.getMessage());
         }
     }
 
-    /**
-     * 获取访问令牌
-     *
+    /** 获取访问令牌
      * @param code 授权码
-     * @return 访问令牌响应
-     */
+     * @return 访问令牌响应 */
     private GitHubTokenResponse getAccessToken(String code) {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpPost httpPost = new HttpPost(githubProperties.getTokenUrl());
@@ -132,12 +121,9 @@ public class OAuthAppService {
         return null;
     }
 
-    /**
-     * 获取用户信息
-     *
+    /** 获取用户信息
      * @param accessToken 访问令牌
-     * @return 用户信息
-     */
+     * @return 用户信息 */
     private GitHubUserInfo getUserInfo(String accessToken) {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpGet httpGet = new HttpGet(githubProperties.getUserInfoUrl());
@@ -160,12 +146,9 @@ public class OAuthAppService {
         return null;
     }
 
-    /**
-     * 获取用户主邮箱
-     *
+    /** 获取用户主邮箱
      * @param accessToken 访问令牌
-     * @return 主邮箱
-     */
+     * @return 主邮箱 */
     private String getPrimaryEmail(String accessToken) {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpGet httpGet = new HttpGet(githubProperties.getUserEmailUrl());
@@ -180,13 +163,10 @@ public class OAuthAppService {
                 if (entity != null) {
                     String result = EntityUtils.toString(entity);
                     // 解析邮箱列表，查找主邮箱
-                    return JSON.parseArray(result)
-                            .stream()
-                            .filter(item -> item instanceof Map && Boolean.TRUE.equals(((Map<?, ?>) item).get(
-                                    "primary")))
-                            .map(item -> (String) ((Map<?, ?>) item).get("email"))
-                            .findFirst()
-                            .orElse(null);
+                    return JSON.parseArray(result).stream()
+                            .filter(item -> item instanceof Map
+                                    && Boolean.TRUE.equals(((Map<?, ?>) item).get("primary")))
+                            .map(item -> (String) ((Map<?, ?>) item).get("email")).findFirst().orElse(null);
                 }
             }
         } catch (IOException e) {
@@ -195,12 +175,9 @@ public class OAuthAppService {
         return null;
     }
 
-    /**
-     * 查找或创建用户
-     *
+    /** 查找或创建用户
      * @param userInfo GitHub用户信息
-     * @return 用户实体
-     */
+     * @return 用户实体 */
     private UserEntity findOrCreateUser(GitHubUserInfo userInfo) {
         // 先通过 GitHub ID 查找用户
         UserEntity user = userDomainService.findUserByGithubId(String.valueOf(userInfo.getId()));
@@ -234,11 +211,8 @@ public class OAuthAppService {
         return userDomainService.register(newUser.getEmail(), null, newUser.getPassword());
     }
 
-    /**
-     * 生成随机密码
-     *
-     * @return 随机密码
-     */
+    /** 生成随机密码
+     * @return 随机密码 */
     private String generateRandomPassword() {
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
         StringBuilder password = new StringBuilder();
@@ -251,4 +225,4 @@ public class OAuthAppService {
 
         return password.toString();
     }
-} 
+}

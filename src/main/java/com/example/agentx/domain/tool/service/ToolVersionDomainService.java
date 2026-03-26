@@ -28,7 +28,6 @@ public class ToolVersionDomainService {
     public Page<ToolVersionEntity> listToolVersion(QueryToolRequest queryToolRequest) {
         long page = queryToolRequest.getPage();
         long pageSize = queryToolRequest.getPageSize();
-
         String toolName = queryToolRequest.getToolName();
 
         // 1. 查询所有公开版本，支持名称模糊
@@ -60,7 +59,8 @@ public class ToolVersionDomainService {
 
     public ToolVersionEntity getToolVersion(String toolId, String version) {
         Wrapper<ToolVersionEntity> wrapper = Wrappers.<ToolVersionEntity>lambdaQuery()
-                .eq(ToolVersionEntity::getToolId, toolId).eq(ToolVersionEntity::getVersion, version);
+                .eq(ToolVersionEntity::getToolId, toolId)
+                .eq(ToolVersionEntity::getVersion, version);
         ToolVersionEntity toolVersionEntity = toolVersionRepository.selectOne(wrapper);
         if (toolVersionEntity == null) {
             throw new BusinessException("工具版本不存在: " + toolId + " " + version);
@@ -73,10 +73,10 @@ public class ToolVersionDomainService {
     }
 
     public ToolVersionEntity findLatestToolVersion(String toolId, String userId) {
+
         LambdaQueryWrapper<ToolVersionEntity> queryWrapper = Wrappers.<ToolVersionEntity>lambdaQuery()
                 .eq(ToolVersionEntity::getToolId, toolId)
                 .orderByDesc(ToolVersionEntity::getCreatedAt)
-                .eq(ToolVersionEntity::getPublicStatus, true)
                 .last("LIMIT 1");
 
         ToolVersionEntity toolVersionEntity = toolVersionRepository.selectOne(queryWrapper);

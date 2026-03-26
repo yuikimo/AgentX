@@ -2,6 +2,7 @@ package com.example.agentx.application.conversation.assembler;
 
 import com.example.agentx.application.conversation.dto.MessageDTO;
 import com.example.agentx.domain.conversation.model.MessageEntity;
+import org.springframework.beans.BeanUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -24,12 +25,8 @@ public class MessageAssembler {
         }
 
         MessageDTO dto = new MessageDTO();
-        dto.setId(message.getId());
-        dto.setRole(message.getRole());
-        dto.setContent(message.getContent());
-        dto.setCreatedAt(message.getCreatedAt());
-        dto.setMessageType(message.getMessageType());
 
+        BeanUtils.copyProperties(message, dto);
         return dto;
     }
 
@@ -44,8 +41,6 @@ public class MessageAssembler {
             return Collections.emptyList();
         }
 
-        return messages.stream()
-                .map(MessageAssembler::toDTO)
-                .collect(Collectors.toList());
+        return messages.stream().map(MessageAssembler::toDTO).collect(Collectors.toList());
     }
 }

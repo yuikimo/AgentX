@@ -22,7 +22,6 @@ public class TaskDomainService {
         this.taskRepository = taskRepository;
     }
 
-
     public TaskEntity addTask(TaskEntity taskEntity) {
         taskEntity.setStartTime(LocalDateTime.now());
         taskRepository.checkInsert(taskEntity);
@@ -59,6 +58,7 @@ public class TaskDomainService {
 
     /**
      * 根据父任务id查出子任务
+     *
      * @param parentTaskId 父任务id
      * @return
      */

@@ -12,9 +12,7 @@ public class TaskAppService {
 
     private final TaskDomainService taskDomainService;
 
-
-    public TaskAppService(TaskDomainService taskDomainService
-    ) {
+    public TaskAppService(TaskDomainService taskDomainService) {
         this.taskDomainService = taskDomainService;
     }
 
@@ -28,4 +26,4 @@ public class TaskAppService {
         return taskDomainService.getCurrentSessionTask(sessionId, userId);
 
     }
-} 
+}

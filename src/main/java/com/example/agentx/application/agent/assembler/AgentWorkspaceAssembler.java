@@ -5,8 +5,7 @@ import com.example.agentx.interfaces.dto.agent.request.UpdateModelConfigRequest;
 import org.springframework.beans.BeanUtils;
 
 /**
- * Agent领域对象组装器
- * 负责DTO、Entity和Request之间的转换
+ * Agent领域对象组装器 负责DTO、Entity和Request之间的转换
  */
 public class AgentWorkspaceAssembler {
 

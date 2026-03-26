@@ -1,6 +1,6 @@
 package com.example.agentx.interfaces.dto.agent.request;
 
-import com.example.agentx.infrastructure.util.ValidationUtils;
+import com.example.agentx.infrastructure.utils.ValidationUtils;
 
 /**
  * 更新Agent状态的请求对象

@@ -1,34 +1,52 @@
 package com.example.agentx.application.conversation.service.message.agent;
 
+import com.example.agentx.application.conversation.service.handler.context.ChatContext;
 import com.example.agentx.application.conversation.service.message.AbstractMessageHandler;
 import com.example.agentx.domain.conversation.service.MessageDomainService;
+import com.example.agentx.domain.conversation.service.SessionDomainService;
+import com.example.agentx.domain.llm.service.HighAvailabilityDomainService;
+import com.example.agentx.domain.llm.service.LLMDomainService;
+import com.example.agentx.domain.user.service.UserSettingsDomainService;
 import com.example.agentx.infrastructure.llm.LLMServiceFactory;
 import dev.langchain4j.service.tool.ToolProvider;
 import org.springframework.stereotype.Component;
 
 /**
- * Agent消息处理器
- * 用于支持工具调用的对话模式
- * 实现任务拆分、执行和结果汇总的工作流
- * 使用事件驱动架构进行状态转换
+ * Agent消息处理器 用于支持工具调用的对话模式 实现任务拆分、执行和结果汇总的工作流 使用事件驱动架构进行状态转换
  */
 @Component(value = "agentMessageHandler")
 public class AgentMessageHandler extends AbstractMessageHandler {
 
     private final AgentToolManager agentToolManager;
 
-    public AgentMessageHandler(
-            LLMServiceFactory llmServiceFactory,
-            AgentToolManager agentToolManager,
-            MessageDomainService messageDomainService) {
-        super(llmServiceFactory, messageDomainService);
+    protected final HighAvailabilityDomainService highAvailabilityDomainService;
+    protected final SessionDomainService sessionDomainService;
+    protected final UserSettingsDomainService userSettingsDomainService;
+    protected final LLMDomainService llmDomainService;
+
+    public AgentMessageHandler(LLMServiceFactory llmServiceFactory, MessageDomainService messageDomainService,
+                               HighAvailabilityDomainService highAvailabilityDomainService,
+                               SessionDomainService sessionDomainService,
+                               UserSettingsDomainService userSettingsDomainService, LLMDomainService llmDomainService,
+                               AgentToolManager agentToolManager,
+                               HighAvailabilityDomainService highAvailabilityDomainService1,
+                               SessionDomainService sessionDomainService1,
+                               UserSettingsDomainService userSettingsDomainService1,
+                               LLMDomainService llmDomainService1) {
+        super(llmServiceFactory, messageDomainService, highAvailabilityDomainService, sessionDomainService,
+                userSettingsDomainService, llmDomainService);
         this.agentToolManager = agentToolManager;
+        this.highAvailabilityDomainService = highAvailabilityDomainService1;
+        this.sessionDomainService = sessionDomainService1;
+        this.userSettingsDomainService = userSettingsDomainService1;
+        this.llmDomainService = llmDomainService1;
     }
 
-    // todo xhy 从 agent 中获取
     @Override
-    protected ToolProvider provideTools() {
-        return agentToolManager.createToolProvider(
-                agentToolManager.getAvailableTools());
+    protected ToolProvider provideTools(ChatContext chatContext) {
+        // 关键改造：传递用户ID给工具管理器
+        return agentToolManager.createToolProvider(agentToolManager.getAvailableTools(chatContext),
+                chatContext.getAgent().getToolPresetParams(), chatContext.getUserId() // 新增：传递用户ID
+        );
     }
 }

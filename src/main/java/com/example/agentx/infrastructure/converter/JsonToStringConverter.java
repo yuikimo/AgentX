@@ -1,6 +1,6 @@
 package com.example.agentx.infrastructure.converter;
 
-import com.example.agentx.infrastructure.util.JsonUtils;
+import com.example.agentx.infrastructure.utils.JsonUtils;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
@@ -54,7 +54,7 @@ public abstract class JsonToStringConverter<T> extends BaseTypeHandler<T> {
         return parseJson(json);
     }
 
-    private T parseJson(String json) throws SQLException {
+    protected T parseJson(String json) throws SQLException {
         if (json == null) {
             return null;
         }

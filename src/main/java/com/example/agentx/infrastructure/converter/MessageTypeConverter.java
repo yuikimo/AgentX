@@ -1,10 +1,10 @@
 package com.example.agentx.infrastructure.converter;
 
-import com.example.agentx.domain.conversation.constant.MessageType;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
+import com.example.agentx.domain.conversation.constant.MessageType;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;

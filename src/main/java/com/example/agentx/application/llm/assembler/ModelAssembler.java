@@ -4,6 +4,7 @@ import com.example.agentx.application.llm.dto.ModelDTO;
 import com.example.agentx.domain.llm.model.ModelEntity;
 import com.example.agentx.interfaces.dto.llm.request.ModelCreateRequest;
 import com.example.agentx.interfaces.dto.llm.request.ModelUpdateRequest;
+import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
  * 模型对象转换器
  */
 public class ModelAssembler {
-    
+
     /**
      * 将领域对象转换为DTO
      */
@@ -22,7 +23,7 @@ public class ModelAssembler {
         if (model == null) {
             return null;
         }
-        
+
         ModelDTO dto = new ModelDTO();
         dto.setId(model.getId());
         dto.setUserId(model.getUserId());
@@ -32,12 +33,24 @@ public class ModelAssembler {
         dto.setDescription(model.getDescription());
         dto.setType(model.getType());
         dto.setStatus(model.getStatus());
+        dto.setModelEndpoint(model.getModelEndpoint());
         dto.setCreatedAt(model.getCreatedAt());
         dto.setUpdatedAt(model.getUpdatedAt());
         dto.setIsOfficial(model.getOfficial());
         return dto;
     }
-    
+
+    /**
+     * 将领域对象转换为DTO，并设置服务商名称
+     */
+    public static ModelDTO toDTO(ModelEntity model, String providerName) {
+        ModelDTO dto = toDTO(model);
+        if (dto != null) {
+            dto.setProviderName(providerName);
+        }
+        return dto;
+    }
+
     /**
      * 将多个领域对象转换为DTO列表
      */
@@ -45,11 +58,9 @@ public class ModelAssembler {
         if (models == null || models.isEmpty()) {
             return Collections.emptyList();
         }
-        return models.stream()
-                .map(ModelAssembler::toDTO)
-                .collect(Collectors.toList());
+        return models.stream().map(ModelAssembler::toDTO).collect(Collectors.toList());
     }
-    
+
     /**
      * 将创建请求转换为领域对象
      */
@@ -62,11 +73,16 @@ public class ModelAssembler {
         model.setDescription(request.getDescription());
         model.setType(request.getType());
         model.setCreatedAt(LocalDateTime.now());
+        model.setModelEndpoint(request.getModelEndpoint());
         model.setUpdatedAt(LocalDateTime.now());
-        
+        model.setModelEndpoint(request.getModelEndpoint());
+        if (ObjectUtils.isEmpty(request.getModelEndpoint())) {
+            model.setModelEndpoint(request.getModelId());
+
+        }
+
         return model;
     }
-
 
     public static ModelEntity toEntity(ModelUpdateRequest request, String userId) {
         ModelEntity model = new ModelEntity();
@@ -74,11 +90,16 @@ public class ModelAssembler {
         model.setName(request.getName());
         model.setDescription(request.getDescription());
         model.setModelId(request.getModelId());
+        model.setModelEndpoint(request.getModelEndpoint());
         model.setCreatedAt(LocalDateTime.now());
         model.setUpdatedAt(LocalDateTime.now());
         model.setId(request.getId());
+        model.setModelEndpoint(request.getModelEndpoint());
+        if (ObjectUtils.isEmpty(request.getModelEndpoint())) {
+            model.setModelEndpoint(request.getModelId());
+        }
 
         return model;
     }
 
-} 
+}

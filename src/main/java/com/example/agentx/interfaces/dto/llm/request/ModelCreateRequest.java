@@ -3,25 +3,42 @@ package com.example.agentx.interfaces.dto.llm.request;
 import com.example.agentx.domain.llm.model.enums.ModelType;
 import jakarta.validation.constraints.NotBlank;
 
-/** 模型创建请求 */
+/**
+ * 模型创建请求
+ */
 public class ModelCreateRequest {
 
-    /** 服务商ID */
+    /**
+     * 服务商ID
+     */
     private String providerId;
 
-    /** 模型id */
+    /**
+     * 模型id
+     */
     @NotBlank(message = "模型id不可为空")
     private String modelId;
 
-    /** 模型名称 */
+    /**
+     * 模型名称
+     */
     @NotBlank(message = "名称不可为空")
     private String name;
 
-    /** 模型描述 */
+    /**
+     * 模型描述
+     */
     private String description;
 
-    /** 模型类型 */
+    /**
+     * 模型类型
+     */
     private ModelType type;
+
+    /**
+     * 模型部署名称
+     */
+    private String modelEndpoint;
 
     public String getProviderId() {
         return providerId;
@@ -61,6 +78,14 @@ public class ModelCreateRequest {
 
     public void setType(ModelType type) {
         this.type = type;
+    }
+
+    public String getModelEndpoint() {
+        return modelEndpoint;
+    }
+
+    public void setModelEndpoint(String modelEndpoint) {
+        this.modelEndpoint = modelEndpoint;
     }
 
 }

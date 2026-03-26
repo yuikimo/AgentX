@@ -5,6 +5,7 @@ import java.util.List;
 import com.example.agentx.application.conversation.assembler.SessionAssembler;
 import com.example.agentx.application.conversation.dto.SessionDTO;
 import com.example.agentx.domain.agent.model.AgentEntity;
+import com.example.agentx.domain.agent.model.AgentVersionEntity;
 import com.example.agentx.domain.agent.service.AgentDomainService;
 import com.example.agentx.domain.agent.service.AgentWorkspaceDomainService;
 import com.example.agentx.domain.conversation.constant.Role;
@@ -12,6 +13,7 @@ import com.example.agentx.domain.conversation.model.MessageEntity;
 import com.example.agentx.domain.conversation.model.SessionEntity;
 import com.example.agentx.domain.conversation.service.ConversationDomainService;
 import com.example.agentx.domain.conversation.service.SessionDomainService;
+import com.example.agentx.domain.scheduledtask.service.ScheduledTaskExecutionService;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.interfaces.dto.conversation.request.ConversationRequest;
 import org.springframework.stereotype.Service;
@@ -28,19 +30,23 @@ public class AgentSessionAppService {
 
     private final ConversationDomainService conversationDomainService;
 
+    private final ScheduledTaskExecutionService scheduledTaskExecutionService;
+
     public AgentSessionAppService(AgentWorkspaceDomainService agentWorkspaceDomainService,
-            AgentDomainService agentServiceDomainService,
-            SessionDomainService sessionDomainService,
-            ConversationDomainService conversationDomainService) {
+                                  AgentDomainService agentServiceDomainService,
+                                  SessionDomainService sessionDomainService,
+                                  ConversationDomainService conversationDomainService,
+                                  ScheduledTaskExecutionService scheduledTaskExecutionService) {
         this.agentWorkspaceDomainService = agentWorkspaceDomainService;
         this.agentServiceDomainService = agentServiceDomainService;
         this.sessionDomainService = sessionDomainService;
         this.conversationDomainService = conversationDomainService;
+        this.scheduledTaskExecutionService = scheduledTaskExecutionService;
     }
 
     /**
      * 获取助理下的会话列表
-     * 
+     *
      * @param userId  用户id
      * @param agentId 助理id
      * @return 会话列表
@@ -51,7 +57,7 @@ public class AgentSessionAppService {
         boolean b = agentServiceDomainService.exist(agentId, userId);
         boolean b1 = agentWorkspaceDomainService.exist(agentId, userId);
 
-        if (!b && !b1){
+        if (!b && !b1) {
             throw new BusinessException("助理不存在");
         }
 
@@ -62,13 +68,25 @@ public class AgentSessionAppService {
             SessionEntity session = sessionDomainService.createSession(agentId, userId);
             sessions.add(session);
         }
-        return SessionAssembler.toDTOs(sessions);
+
+        AgentEntity agent = agentServiceDomainService.getAgentById(agentId);
+        Boolean multiModal = agent.getMultiModal();
+        if (!agent.getUserId().equals(userId)) {
+            AgentVersionEntity latestAgentVersion = agentServiceDomainService.getLatestAgentVersion(agentId);
+            multiModal = latestAgentVersion.getMultiModal();
+        }
+
+        List<SessionDTO> dtOs = SessionAssembler.toDTOs(sessions);
+        for (SessionDTO dtO : dtOs) {
+            dtO.setMultiModal(multiModal);
+        }
+        return dtOs;
 
     }
 
     /**
      * 创建会话
-     * 
+     *
      * @param userId  用户id
      * @param agentId 助理id
      * @return 会话
@@ -87,7 +105,7 @@ public class AgentSessionAppService {
 
     /**
      * 更新会话
-     * 
+     *
      * @param id     会话id
      * @param userId 用户id
      * @param title  标题
@@ -98,7 +116,7 @@ public class AgentSessionAppService {
 
     /**
      * 删除会话
-     * 
+     *
      * @param id 会话id
      */
     @Transactional
@@ -107,31 +125,34 @@ public class AgentSessionAppService {
 
         // 删除会话下的消息
         conversationDomainService.deleteConversationMessages(id);
+
+        // 删除定时任务（包括取消延迟队列中的任务）
+        scheduledTaskExecutionService.deleteTasksBySessionId(id, userId);
     }
 
-  /**
-   * 发送消息
-   * 
-   * @param id 会话id
-   * @param userId 用户id
-   * @param conversationRequest 会话请求
-   */            
+    /**
+     * 发送消息
+     *
+     * @param id                  会话id
+     * @param userId              用户id
+     * @param conversationRequest 会话请求
+     */
     public void sendMessage(String id, String userId, ConversationRequest conversationRequest) {
 
         // todo xhy 目前先普通的发送消息，后续还需要根据 agent 的记忆策略，对话助手/agent 策略进行处理
 
-//        // 查询会话是否存在,根据id和userid
-//        String agentId = conversationRequest.getAgentId();
-//        AgentDTO agent = agentServiceDomainService.getAgent(agentId, userId);
-//
-//        // todo xhy 目前是模型名称，后续需要换为模型 id
-//        ModelConfig modelConfig = agent.getModelConfig();
-//        if (StringUtils.isEmpty(modelConfig.getModelName())){
-//            throw new BusinessException("模型为空");
-//        }
-//
-//        // todo xhy 目前硬编码模型服务商，后续需要根据不同的服务商进行发送消息
-//        conversationDomainService.sendMessage(id, userId, conversationRequest.getMessage(),
-//                modelConfig.getModelName());
+        // // 查询会话是否存在,根据id和userid
+        // String agentId = conversationRequest.getAgentId();
+        // AgentDTO agent = agentServiceDomainService.getAgent(agentId, userId);
+        //
+        // // todo xhy 目前是模型名称，后续需要换为模型 id
+        // ModelConfig modelConfig = agent.getModelConfig();
+        // if (StringUtils.isEmpty(modelConfig.getModelName())){
+        // throw new BusinessException("模型为空");
+        // }
+        //
+        // // todo xhy 目前硬编码模型服务商，后续需要根据不同的服务商进行发送消息
+        // conversationDomainService.sendMessage(id, userId, conversationRequest.getMessage(),
+        // modelConfig.getModelName());
     }
 }

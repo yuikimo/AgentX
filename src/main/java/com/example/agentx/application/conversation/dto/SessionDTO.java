@@ -36,6 +36,11 @@ public class SessionDTO {
     private String agentId;
 
     /**
+     * 支持多模态
+     */
+    private Boolean multiModal;
+
+    /**
      * 无参构造函数
      */
     public SessionDTO() {
@@ -44,9 +49,8 @@ public class SessionDTO {
     /**
      * 全参构造函数
      */
-    public SessionDTO(String id, String title, String description,
-            LocalDateTime createdAt, LocalDateTime updatedAt,
-            boolean isArchived, String agentVersionId) {
+    public SessionDTO(String id, String title, String description, LocalDateTime createdAt, LocalDateTime updatedAt,
+                      boolean isArchived, String agentVersionId) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -113,5 +117,11 @@ public class SessionDTO {
         this.agentId = agentVersionId;
     }
 
+    public Boolean getMultiModal() {
+        return multiModal;
+    }
 
+    public void setMultiModal(Boolean multiModal) {
+        this.multiModal = multiModal;
+    }
 }

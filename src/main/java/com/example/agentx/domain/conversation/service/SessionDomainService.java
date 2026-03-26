@@ -25,7 +25,9 @@ public class SessionDomainService {
      */
     public List<SessionEntity> getSessionsByAgentId(String agentId) {
         return sessionRepository.selectList(Wrappers.<SessionEntity>lambdaQuery()
-                .eq(SessionEntity::getAgentId, agentId).orderByDesc(SessionEntity::getCreatedAt));
+                .eq(SessionEntity::getAgentId, agentId)
+                .orderByDesc(SessionEntity::getCreatedAt)
+        );
     }
 
     /**
@@ -36,7 +38,9 @@ public class SessionDomainService {
      */
     public void deleteSession(String sessionId, String userId) {
         sessionRepository.checkedDelete(Wrappers.<SessionEntity>lambdaQuery()
-                .eq(SessionEntity::getId, sessionId).eq(SessionEntity::getUserId, userId));
+                .eq(SessionEntity::getId, sessionId)
+                .eq(SessionEntity::getUserId, userId)
+        );
     }
 
     /**
@@ -52,7 +56,9 @@ public class SessionDomainService {
         session.setUserId(userId);
         session.setTitle(title);
         sessionRepository.checkedUpdate(session, Wrappers.<SessionEntity>lambdaUpdate()
-                .eq(SessionEntity::getId, sessionId).eq(SessionEntity::getUserId, userId));
+                .eq(SessionEntity::getId, sessionId)
+                .eq(SessionEntity::getUserId, userId)
+        );
     }
 
     /**
@@ -78,7 +84,9 @@ public class SessionDomainService {
      */
     public void checkSessionExist(String sessionId, String userId) {
         SessionEntity session = sessionRepository.selectOne(Wrappers.<SessionEntity>lambdaQuery()
-                .eq(SessionEntity::getId, sessionId).eq(SessionEntity::getUserId, userId));
+                .eq(SessionEntity::getId, sessionId)
+                .eq(SessionEntity::getUserId, userId)
+        );
         if (session == null) {
             throw new BusinessException("会话不存在");
         }
@@ -86,17 +94,20 @@ public class SessionDomainService {
 
     public SessionEntity find(String sessionId,String userId) {
         return sessionRepository.selectOne(Wrappers.<SessionEntity>lambdaQuery()
-                .eq(SessionEntity::getId, sessionId).eq(SessionEntity::getUserId, userId));
+                .eq(SessionEntity::getId, sessionId)
+                .eq(SessionEntity::getUserId, userId)
+        );
     }
 
     public void deleteSessions(List<String> sessionIds) {
-        sessionRepository.delete(Wrappers.<SessionEntity>lambdaQuery()
-                .in(SessionEntity::getId, sessionIds));
+        sessionRepository.delete(Wrappers.<SessionEntity>lambdaQuery().in(SessionEntity::getId, sessionIds));
     }
 
     public SessionEntity getSession(String sessionId, String userId) {
         SessionEntity session = sessionRepository.selectOne(Wrappers.<SessionEntity>lambdaQuery()
-                .eq(SessionEntity::getId, sessionId).eq(SessionEntity::getUserId, userId));
+                .eq(SessionEntity::getId, sessionId)
+                .eq(SessionEntity::getUserId, userId)
+        );
         if (session == null) {
             throw new BusinessException("会话不存在");
         }

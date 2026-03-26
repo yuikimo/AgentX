@@ -33,6 +33,8 @@ public class ToolDTO {
     private LocalDateTime updatedAt;
     private String rejectReason;
     private ToolStatus failedStepStatus;
+    private String mcpServerName;
+    private Boolean isGlobal;
 
     // 构造方法
     public ToolDTO() {
@@ -213,5 +215,21 @@ public class ToolDTO {
 
     public void setFailedStepStatus(ToolStatus failedStepStatus) {
         this.failedStepStatus = failedStepStatus;
+    }
+
+    public String getMcpServerName() {
+        return mcpServerName;
+    }
+
+    public void setMcpServerName(String mcpServerName) {
+        this.mcpServerName = mcpServerName;
+    }
+
+    public Boolean getIsGlobal() {
+        return isGlobal;
+    }
+
+    public void setIsGlobal(Boolean isGlobal) {
+        this.isGlobal = isGlobal;
     }
 }

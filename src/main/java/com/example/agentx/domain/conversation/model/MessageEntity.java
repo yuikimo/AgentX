@@ -3,11 +3,14 @@ package com.example.agentx.domain.conversation.model;
 import com.baomidou.mybatisplus.annotation.*;
 import com.example.agentx.domain.conversation.constant.MessageType;
 import com.example.agentx.domain.conversation.constant.Role;
+import com.example.agentx.infrastructure.converter.ListConverter;
 import com.example.agentx.infrastructure.converter.MessageTypeConverter;
 import com.example.agentx.infrastructure.converter.RoleConverter;
 import com.example.agentx.infrastructure.entity.BaseEntity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 消息实体类，代表对话中的一条消息
@@ -30,7 +33,7 @@ public class MessageEntity extends BaseEntity {
     /**
      * 消息角色 (user, assistant, system)
      */
-    @TableField(value = "role",typeHandler = RoleConverter.class)
+    @TableField(value = "role", typeHandler = RoleConverter.class)
     private Role role;
 
     /**
@@ -48,7 +51,7 @@ public class MessageEntity extends BaseEntity {
     /**
      * 创建时间
      */
-    @TableField(value = "created_at",fill = FieldFill.INSERT)
+    @TableField(value = "created_at", fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
     /**
@@ -74,6 +77,9 @@ public class MessageEntity extends BaseEntity {
      */
     @TableField("metadata")
     private String metadata;
+
+    @TableField(value = "file_urls", typeHandler = ListConverter.class)
+    private List<String> fileUrls = new ArrayList<>();
 
     /**
      * 无参构造函数
@@ -162,15 +168,23 @@ public class MessageEntity extends BaseEntity {
         this.metadata = metadata;
     }
 
-    public boolean isUserMessage(){
+    public boolean isUserMessage() {
         return this.role == Role.USER;
     }
 
-    public boolean isAIMessage(){
+    public boolean isAIMessage() {
         return this.role == Role.ASSISTANT;
     }
 
-    public boolean isSystemMessage(){
+    public boolean isSystemMessage() {
         return this.role == Role.SYSTEM;
+    }
+
+    public List<String> getFileUrls() {
+        return fileUrls;
+    }
+
+    public void setFileUrls(List<String> fileUrls) {
+        this.fileUrls = fileUrls;
     }
 }

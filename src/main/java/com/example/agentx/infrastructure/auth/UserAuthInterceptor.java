@@ -1,6 +1,6 @@
 package com.example.agentx.infrastructure.auth;
 
-import com.example.agentx.infrastructure.util.JwtUtils;
+import com.example.agentx.infrastructure.utils.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
@@ -11,8 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 用户鉴权拦截器
- * 用于拦截需要鉴权的请求，验证用户身份并设置用户上下文
+ * 用户鉴权拦截器 用于拦截需要鉴权的请求，验证用户身份并设置用户上下文
  */
 @Component
 public class UserAuthInterceptor implements HandlerInterceptor {

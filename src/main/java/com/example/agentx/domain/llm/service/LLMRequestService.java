@@ -4,8 +4,7 @@ import com.example.agentx.domain.conversation.service.ContextProcessor;
 import com.example.agentx.domain.llm.model.LLMRequest;
 
 /**
- * LLM请求服务接口
- * 定义在领域层，由基础设施层实现
+ * LLM请求服务接口 定义在领域层，由基础设施层实现
  */
 public interface LLMRequestService {
 
@@ -20,11 +19,6 @@ public interface LLMRequestService {
      * @param topP          topP参数
      * @return 构建好的领域请求对象
      */
-    LLMRequest buildRequest(
-            ContextProcessor.ContextResult contextResult,
-            String userMessage,
-            String systemPrompt,
-            String modelId,
-            float temperature,
-            float topP);
-} 
+    LLMRequest buildRequest(ContextProcessor.ContextResult contextResult, String userMessage, String systemPrompt,
+                            String modelId, float temperature, float topP);
+}

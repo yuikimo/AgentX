@@ -22,6 +22,11 @@ public class ModelEntity extends BaseEntity {
     private String name;
     private String description;
 
+    /**
+     * 模型部署名称
+     */
+    private String modelEndpoint;
+
     private Boolean isOfficial;
 
     @TableField(typeHandler = ModelTypeConverter.class, jdbcType = JdbcType.VARCHAR)
@@ -99,6 +104,14 @@ public class ModelEntity extends BaseEntity {
 
     public void setOfficial(Boolean official) {
         isOfficial = official;
+    }
+
+    public String getModelEndpoint() {
+        return modelEndpoint;
+    }
+
+    public void setModelEndpoint(String modelEndpoint) {
+        this.modelEndpoint = modelEndpoint;
     }
 
     public void isActive() {

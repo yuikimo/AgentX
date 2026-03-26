@@ -1,9 +1,12 @@
 package com.example.agentx.application.agent.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.agentx.application.agent.assembler.AgentAssembler;
 import com.example.agentx.application.agent.assembler.AgentVersionAssembler;
 import com.example.agentx.application.agent.dto.AgentDTO;
+import com.example.agentx.application.agent.dto.AgentStatisticsDTO;
 import com.example.agentx.application.agent.dto.AgentVersionDTO;
+import com.example.agentx.application.agent.dto.AgentWithUserDTO;
 import com.example.agentx.domain.agent.constant.PublishStatus;
 import com.example.agentx.domain.agent.model.AgentEntity;
 import com.example.agentx.domain.agent.model.AgentVersionEntity;
@@ -11,9 +14,11 @@ import com.example.agentx.domain.agent.model.AgentWorkspaceEntity;
 import com.example.agentx.domain.agent.model.LLMModelConfig;
 import com.example.agentx.domain.agent.service.AgentDomainService;
 import com.example.agentx.domain.agent.service.AgentWorkspaceDomainService;
+import com.example.agentx.domain.scheduledtask.service.ScheduledTaskExecutionService;
 import com.example.agentx.infrastructure.exception.ParamValidationException;
 import com.example.agentx.interfaces.dto.agent.request.CreateAgentRequest;
 import com.example.agentx.interfaces.dto.agent.request.PublishAgentVersionRequest;
+import com.example.agentx.interfaces.dto.agent.request.QueryAgentRequest;
 import com.example.agentx.interfaces.dto.agent.request.ReviewAgentVersionRequest;
 import com.example.agentx.interfaces.dto.agent.request.SearchAgentsRequest;
 import com.example.agentx.interfaces.dto.agent.request.UpdateAgentRequest;
@@ -26,23 +31,21 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Agent应用服务，用于适配领域层的Agent服务
- * 职责：
- * 1. 接收和验证来自接口层的请求
- * 2. 将请求转换为领域对象或参数
- * 3. 调用领域服务执行业务逻辑
- * 4. 转换和返回结果给接口层
+ * Agent应用服务，用于适配领域层的Agent服务 职责： 1. 接收和验证来自接口层的请求 2. 将请求转换为领域对象或参数 3. 调用领域服务执行业务逻辑 4. 转换和返回结果给接口层
  */
 @Service
 public class AgentAppService {
 
     private final AgentDomainService agentServiceDomainService;
     private final AgentWorkspaceDomainService agentWorkspaceDomainService;
+    private final ScheduledTaskExecutionService scheduledTaskExecutionService;
 
     public AgentAppService(AgentDomainService agentServiceDomainService,
-                           AgentWorkspaceDomainService agentWorkspaceDomainService) {
+                           AgentWorkspaceDomainService agentWorkspaceDomainService,
+                           ScheduledTaskExecutionService scheduledTaskExecutionService) {
         this.agentServiceDomainService = agentServiceDomainService;
         this.agentWorkspaceDomainService = agentWorkspaceDomainService;
+        this.scheduledTaskExecutionService = scheduledTaskExecutionService;
     }
 
     /**
@@ -54,8 +57,8 @@ public class AgentAppService {
         AgentEntity entity = AgentAssembler.toEntity(request, userId);
         entity.setUserId(userId);
         AgentEntity agent = agentServiceDomainService.createAgent(entity);
-        AgentWorkspaceEntity agentWorkspaceEntity = new AgentWorkspaceEntity(agent.getId(), userId,
-                new LLMModelConfig());
+        AgentWorkspaceEntity agentWorkspaceEntity =
+                new AgentWorkspaceEntity(agent.getId(), userId, new LLMModelConfig());
         agentWorkspaceDomainService.save(agentWorkspaceEntity);
         return AgentAssembler.toDTO(agent);
     }
@@ -81,28 +84,22 @@ public class AgentAppService {
     /**
      * 获取已上架的Agent列表，支持名称搜索
      */
+
     public List<AgentVersionDTO> getPublishedAgentsByName(SearchAgentsRequest searchAgentsRequest, String userId) {
         AgentEntity entity = AgentAssembler.toEntity(searchAgentsRequest);
         List<AgentVersionEntity> agentVersionEntities = agentServiceDomainService.getPublishedAgentsByName(entity);
-
         if (agentVersionEntities.isEmpty()) {
             return new ArrayList<>();
         }
-
-        List<String> agentIds = agentVersionEntities.stream()
-                .map(AgentVersionEntity::getAgentId)
-                .toList();
+        List<String> agentIds = agentVersionEntities.stream().map(AgentVersionEntity::getAgentId).toList();
         List<AgentWorkspaceEntity> agentWorkspaceEntities = agentWorkspaceDomainService.listAgents(agentIds, userId);
-        Set<String> agentIdsSet = agentWorkspaceEntities.stream()
-                .map(AgentWorkspaceEntity::getAgentId)
+        Set<String> agentIdsSet = agentWorkspaceEntities.stream().map(AgentWorkspaceEntity::getAgentId)
                 .collect(Collectors.toSet());
 
         List<AgentVersionDTO> agentVersionDTOS = AgentVersionAssembler.toDTOs(agentVersionEntities);
-
         if (agentIdsSet.isEmpty()) {
             return agentVersionDTOS;
         }
-
         for (AgentVersionDTO agentVersionDTO : agentVersionDTOS) {
             agentVersionDTO.setAddWorkspace(agentIdsSet.contains(agentVersionDTO.getAgentId()));
         }
@@ -117,7 +114,6 @@ public class AgentAppService {
         // 使用组装器创建更新实体
         AgentEntity updateEntity = AgentAssembler.toEntity(request, userId);
 
-        updateEntity.setUserId(userId);
         // 调用领域服务更新Agent
         AgentEntity agentEntity = agentServiceDomainService.updateAgent(updateEntity);
         return AgentAssembler.toDTO(agentEntity);
@@ -134,7 +130,11 @@ public class AgentAppService {
     /**
      * 删除Agent
      */
+    @Transactional
     public void deleteAgent(String agentId, String userId) {
+        // 先删除Agent关联的定时任务（包括取消延迟队列中的任务）
+        scheduledTaskExecutionService.deleteTasksByAgentId(agentId, userId);
+        // 再删除Agent本身
         agentServiceDomainService.deleteAgent(agentId, userId);
     }
 
@@ -153,9 +153,8 @@ public class AgentAppService {
         if (agentVersionEntity != null) {
             // 检查版本号是否大于上一个版本
             if (!request.isVersionGreaterThan(agentVersionEntity.getVersionNumber())) {
-                throw new ParamValidationException("versionNumber",
-                        "新版本号(" + request.getVersionNumber() +
-                                ")必须大于当前最新版本号(" + agentVersionEntity.getVersionNumber() + ")");
+                throw new ParamValidationException("versionNumber", "新版本号(" + request.getVersionNumber()
+                        + ")必须大于当前最新版本号(" + agentVersionEntity.getVersionNumber() + ")");
             }
         }
 
@@ -199,7 +198,7 @@ public class AgentAppService {
         // 在应用层验证请求
         request.validate();
 
-        AgentVersionEntity agentVersionEntity = null;
+        AgentVersionEntity agentVersionEntity;
         // 根据状态执行相应操作
         if (PublishStatus.REJECTED.equals(request.getStatus())) {
             // 拒绝发布，需使用拒绝原因
@@ -220,5 +219,25 @@ public class AgentAppService {
     public List<AgentVersionDTO> getVersionsByStatus(PublishStatus status) {
         List<AgentVersionEntity> versionsByStatus = agentServiceDomainService.getVersionsByStatus(status);
         return AgentVersionAssembler.toDTOs(versionsByStatus);
+    }
+
+    /**
+     * 分页查询Agent列表（管理员使用，包含用户信息）
+     *
+     * @param queryAgentRequest 查询条件
+     * @return Agent分页数据（包含用户信息）
+     */
+    public Page<AgentWithUserDTO> getAgents(QueryAgentRequest queryAgentRequest) {
+        Page<AgentEntity> page = agentServiceDomainService.getAgents(queryAgentRequest);
+        return agentServiceDomainService.getAgentsWithUserInfo(page);
+    }
+
+    /**
+     * 获取Agent统计信息
+     *
+     * @return Agent统计数据
+     */
+    public AgentStatisticsDTO getAgentStatistics() {
+        return agentServiceDomainService.getAgentStatistics();
     }
 }

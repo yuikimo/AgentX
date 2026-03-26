@@ -4,6 +4,8 @@ import com.example.agentx.domain.conversation.constant.MessageType;
 import com.example.agentx.domain.conversation.constant.Role;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 消息DTO，用于API响应
@@ -38,12 +40,14 @@ public class MessageDTO {
      * 消息类型
      */
     private MessageType messageType;
+
+    private List<String> fileUrls = new ArrayList<>();
+
     /**
      * 无参构造函数
      */
     public MessageDTO() {
     }
-
 
     // Getter和Setter方法
     public String getId() {
@@ -100,5 +104,13 @@ public class MessageDTO {
 
     public void setMessageType(MessageType messageType) {
         this.messageType = messageType;
+    }
+
+    public List<String> getFileUrls() {
+        return fileUrls;
+    }
+
+    public void setFileUrls(List<String> fileUrls) {
+        this.fileUrls = fileUrls;
     }
 }

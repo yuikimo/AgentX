@@ -6,11 +6,13 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.agentx.domain.agent.constant.PublishStatus;
 import com.example.agentx.infrastructure.converter.ListConverter;
+import com.example.agentx.infrastructure.converter.MapConverter;
 import com.example.agentx.infrastructure.entity.BaseEntity;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Agent版本实体类，代表一个Agent的发布版本
@@ -69,8 +71,8 @@ public class AgentVersionEntity extends BaseEntity {
     /**
      * Agent可使用的工具列表
      */
-    @TableField(value = "tools", typeHandler = ListConverter.class)
-    private List<AgentTool> tools;
+    @TableField(value = "tool_ids", typeHandler = ListConverter.class)
+    private List<String> toolIds;
 
     /**
      * 关联的知识库ID列表
@@ -83,12 +85,6 @@ public class AgentVersionEntity extends BaseEntity {
      */
     @TableField("change_log")
     private String changeLog;
-
-    /**
-     * Agent类型：1-聊天助手, 2-功能性Agent
-     */
-    @TableField("agent_type")
-    private Integer agentType;
 
     /**
      * 发布状态：1-审核中, 2-已发布, 3-拒绝, 4-已下架
@@ -121,10 +117,22 @@ public class AgentVersionEntity extends BaseEntity {
     private String userId;
 
     /**
+     * 预先设置的工具参数
+     */
+    @TableField(value = "tool_preset_params", typeHandler = MapConverter.class)
+    private Map<String, Map<String, Map<String, String>>> toolPresetParams;
+
+    /**
+     * 是否支持多模态
+     */
+    @TableField("multi_modal")
+    private Boolean multiModal;
+
+    /**
      * 无参构造函数
      */
     public AgentVersionEntity() {
-        this.tools = new ArrayList<>();
+        this.toolIds = new ArrayList<>();
         this.knowledgeBaseIds = new ArrayList<>();
     }
 
@@ -169,12 +177,12 @@ public class AgentVersionEntity extends BaseEntity {
         this.welcomeMessage = welcomeMessage;
     }
 
-    public List<AgentTool> getTools() {
-        return tools != null ? tools : new ArrayList<>();
+    public List<String> getToolIds() {
+        return toolIds != null ? toolIds : new ArrayList<>();
     }
 
-    public void setTools(List<AgentTool> tools) {
-        this.tools = tools;
+    public void setToolIds(List<String> toolIds) {
+        this.toolIds = toolIds;
     }
 
     public List<String> getKnowledgeBaseIds() {
@@ -191,14 +199,6 @@ public class AgentVersionEntity extends BaseEntity {
 
     public void setChangeLog(String changeLog) {
         this.changeLog = changeLog;
-    }
-
-    public Integer getAgentType() {
-        return agentType;
-    }
-
-    public void setAgentType(Integer agentType) {
-        this.agentType = agentType;
     }
 
     public Integer getPublishStatus() {
@@ -301,10 +301,9 @@ public class AgentVersionEntity extends BaseEntity {
         version.setVersionNumber(versionNumber);
         version.setSystemPrompt(agent.getSystemPrompt());
         version.setWelcomeMessage(agent.getWelcomeMessage());
-        version.setTools(agent.getTools());
+        version.setToolIds(agent.getToolIds());
         version.setKnowledgeBaseIds(agent.getKnowledgeBaseIds());
         version.setChangeLog(changeLog);
-        version.setAgentType(agent.getAgentType());
         version.setUserId(agent.getUserId());
 
         // 创建时间和发布时间应该相同
@@ -316,6 +315,23 @@ public class AgentVersionEntity extends BaseEntity {
         // 设置初始状态为审核中
         version.setPublishStatus(PublishStatus.REVIEWING.getCode());
         version.setReviewTime(now);
+        version.setToolPresetParams(agent.getToolPresetParams());
         return version;
+    }
+
+    public Map<String, Map<String, Map<String, String>>> getToolPresetParams() {
+        return toolPresetParams;
+    }
+
+    public void setToolPresetParams(Map<String, Map<String, Map<String, String>>> toolPresetParams) {
+        this.toolPresetParams = toolPresetParams;
+    }
+
+    public Boolean getMultiModal() {
+        return multiModal;
+    }
+
+    public void setMultiModal(Boolean multiModal) {
+        this.multiModal = multiModal;
     }
 }
