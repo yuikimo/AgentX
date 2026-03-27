@@ -1,16 +1,16 @@
 package com.example.agentx.application.highavailability.listener;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
 import com.example.agentx.domain.llm.event.ModelCreatedEvent;
 import com.example.agentx.domain.llm.event.ModelDeletedEvent;
 import com.example.agentx.domain.llm.event.ModelStatusChangedEvent;
 import com.example.agentx.domain.llm.event.ModelUpdatedEvent;
 import com.example.agentx.domain.llm.event.ModelsBatchDeletedEvent;
 import com.example.agentx.domain.llm.service.HighAvailabilityDomainService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
 
 /**
  * 高可用事件处理器 负责处理模型相关的领域事件，同步到高可用网关

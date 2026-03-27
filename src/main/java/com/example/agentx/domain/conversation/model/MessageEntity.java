@@ -51,7 +51,7 @@ public class MessageEntity extends BaseEntity {
     /**
      * 创建时间
      */
-    @TableField(value = "created_at", fill = FieldFill.INSERT)
+    @TableField(value = "created_at")
     private LocalDateTime createdAt;
 
     /**
@@ -59,6 +59,12 @@ public class MessageEntity extends BaseEntity {
      */
     @TableField("token_count")
     private Integer tokenCount = 0;
+
+    /**
+     * 消息本体Token数量
+     */
+    @TableField("body_token_count")
+    private Integer bodyTokenCount = 0;
 
     /**
      * 服务提供商
@@ -180,11 +186,23 @@ public class MessageEntity extends BaseEntity {
         return this.role == Role.SYSTEM;
     }
 
+    public boolean isSummaryMessage() {
+        return this.role == Role.SUMMARY;
+    }
+
     public List<String> getFileUrls() {
         return fileUrls;
     }
 
     public void setFileUrls(List<String> fileUrls) {
         this.fileUrls = fileUrls;
+    }
+
+    public Integer getBodyTokenCount() {
+        return bodyTokenCount;
+    }
+
+    public void setBodyTokenCount(Integer bodyTokenCount) {
+        this.bodyTokenCount = bodyTokenCount;
     }
 }

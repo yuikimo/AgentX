@@ -1,9 +1,9 @@
 package com.example.agentx.application.conversation.service.handler;
 
-import com.example.agentx.application.conversation.service.message.AbstractMessageHandler;
-import com.example.agentx.domain.agent.model.AgentEntity;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import com.example.agentx.application.conversation.service.message.AbstractMessageHandler;
+import com.example.agentx.domain.agent.model.AgentEntity;
 
 /**
  * 消息处理器类型枚举

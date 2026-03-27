@@ -1,12 +1,15 @@
 package com.example.agentx.interfaces.api.portal.file;
 
-import com.example.agentx.infrastructure.storage.OssUploadService;
-import com.example.agentx.interfaces.api.common.Result;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.agentx.infrastructure.storage.OssUploadService;
+import com.example.agentx.infrastructure.storage.OssUploadService.UploadCredential;
+import com.example.agentx.interfaces.api.common.Result;
 
-/** 文件上传控制器 提供前端直传OSS的上传凭证API */
+/**
+ * 文件上传控制器 提供前端直传OSS的上传凭证API
+ */
 @RestController
 @RequestMapping("/upload")
 public class UploadController {
@@ -17,13 +20,15 @@ public class UploadController {
         this.ossUploadService = ossUploadService;
     }
 
-    /** 获取上传凭证
-     * 
-     * @return 上传凭证 */
+    /**
+     * 获取上传凭证
+     *
+     * @return 上传凭证
+     */
     @GetMapping("/credential")
-    public Result<OssUploadService.UploadCredential> getUploadCredential() {
+    public Result<UploadCredential> getUploadCredential() {
 
-        OssUploadService.UploadCredential credential = ossUploadService.generateUploadCredential();
+        UploadCredential credential = ossUploadService.generateUploadCredential();
 
         return Result.success(credential);
     }

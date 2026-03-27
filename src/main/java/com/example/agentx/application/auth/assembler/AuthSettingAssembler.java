@@ -1,9 +1,9 @@
 package com.example.agentx.application.auth.assembler;
 
+import org.springframework.beans.BeanUtils;
 import com.example.agentx.application.auth.dto.AuthSettingDTO;
 import com.example.agentx.application.auth.dto.UpdateAuthSettingRequest;
 import com.example.agentx.domain.auth.model.AuthSettingEntity;
-import org.springframework.beans.BeanUtils;
 
 import java.util.Collections;
 import java.util.List;

@@ -1,5 +1,6 @@
 package com.example.agentx.application.auth.service;
 
+import org.springframework.stereotype.Service;
 import com.example.agentx.application.auth.assembler.AuthSettingAssembler;
 import com.example.agentx.application.auth.dto.AuthConfigDTO;
 import com.example.agentx.application.auth.dto.AuthSettingDTO;
@@ -10,10 +11,10 @@ import com.example.agentx.domain.auth.constant.FeatureType;
 import com.example.agentx.domain.auth.model.AuthSettingEntity;
 import com.example.agentx.domain.auth.service.AuthSettingDomainService;
 import com.example.agentx.domain.sso.model.SsoProvider;
-import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 认证配置应用服务
@@ -36,7 +37,7 @@ public class AuthSettingAppService {
         // 获取启用的登录方式
         List<AuthSettingEntity> loginSettings = authSettingDomainService.getEnabledFeatures(FeatureType.LOGIN);
 
-        HashMap<String, LoginMethodDTO> loginMethods = new HashMap<>();
+        Map<String, LoginMethodDTO> loginMethods = new HashMap<>();
         for (AuthSettingEntity setting : loginSettings) {
             LoginMethodDTO method = new LoginMethodDTO();
             method.setEnabled(setting.getEnabled());

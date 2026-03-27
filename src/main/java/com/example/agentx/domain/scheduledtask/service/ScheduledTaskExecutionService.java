@@ -1,10 +1,10 @@
 package com.example.agentx.domain.scheduledtask.service;
 
-import com.example.agentx.domain.scheduledtask.model.ScheduledTaskEntity;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import com.example.agentx.domain.scheduledtask.model.ScheduledTaskEntity;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -141,10 +141,8 @@ public class ScheduledTaskExecutionService {
      */
     public void deleteTasksBySessionId(String sessionId, String userId) {
         // 先获取要删除的任务列表，用于取消队列中的调度
-        List<ScheduledTaskEntity> tasksToDelete = scheduledTaskDomainService.getTasksBySessionId(sessionId)
-                .stream()
-                .filter(task -> userId.equals(task.getUserId()))
-                .toList();
+        List<ScheduledTaskEntity> tasksToDelete = scheduledTaskDomainService.getTasksBySessionId(sessionId).stream()
+                .filter(task -> userId.equals(task.getUserId())).toList();
 
         // 取消延迟队列中的所有相关任务
         tasksToDelete.forEach(task -> cancelTask(task.getId()));
@@ -163,10 +161,8 @@ public class ScheduledTaskExecutionService {
      */
     public void deleteTasksByAgentId(String agentId, String userId) {
         // 先获取要删除的任务列表，用于取消队列中的调度
-        List<ScheduledTaskEntity> tasksToDelete = scheduledTaskDomainService.getTasksByAgentId(agentId)
-                .stream()
-                .filter(task -> userId.equals(task.getUserId()))
-                .toList();
+        List<ScheduledTaskEntity> tasksToDelete = scheduledTaskDomainService.getTasksByAgentId(agentId).stream()
+                .filter(task -> userId.equals(task.getUserId())).toList();
 
         // 取消延迟队列中的所有相关任务
         tasksToDelete.forEach(task -> cancelTask(task.getId()));

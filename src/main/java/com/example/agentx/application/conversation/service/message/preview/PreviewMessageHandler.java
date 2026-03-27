@@ -1,10 +1,14 @@
 package com.example.agentx.application.conversation.service.message.preview;
 
+import dev.langchain4j.service.TokenStream;
+import dev.langchain4j.service.tool.ToolProvider;
+import org.springframework.stereotype.Component;
 import com.example.agentx.application.conversation.dto.AgentChatResponse;
 import com.example.agentx.application.conversation.service.handler.context.ChatContext;
 import com.example.agentx.application.conversation.service.message.AbstractMessageHandler;
 import com.example.agentx.application.conversation.service.message.Agent;
 import com.example.agentx.application.conversation.service.message.agent.AgentToolManager;
+import com.example.agentx.application.conversation.service.message.agent.tool.RagToolManager;
 import com.example.agentx.domain.conversation.constant.MessageType;
 import com.example.agentx.domain.conversation.model.MessageEntity;
 import com.example.agentx.domain.conversation.service.MessageDomainService;
@@ -14,10 +18,10 @@ import com.example.agentx.domain.llm.service.LLMDomainService;
 import com.example.agentx.domain.user.service.UserSettingsDomainService;
 import com.example.agentx.infrastructure.llm.LLMServiceFactory;
 import com.example.agentx.infrastructure.transport.MessageTransport;
-import dev.langchain4j.service.TokenStream;
-import dev.langchain4j.service.tool.ToolProvider;
-import org.springframework.stereotype.Component;
+import com.example.agentx.application.billing.service.BillingService;
+import com.example.agentx.domain.user.service.AccountDomainService;
 
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -26,31 +30,18 @@ import java.util.concurrent.atomic.AtomicReference;
 @Component(value = "previewMessageHandler")
 public class PreviewMessageHandler extends AbstractMessageHandler {
 
-
     private final AgentToolManager agentToolManager;
-
-    protected final HighAvailabilityDomainService highAvailabilityDomainService;
-
-    protected final SessionDomainService sessionDomainService;
-    protected final UserSettingsDomainService userSettingsDomainService;
-    protected final LLMDomainService llmDomainService;
 
     public PreviewMessageHandler(LLMServiceFactory llmServiceFactory, MessageDomainService messageDomainService,
                                  HighAvailabilityDomainService highAvailabilityDomainService,
                                  SessionDomainService sessionDomainService,
                                  UserSettingsDomainService userSettingsDomainService, LLMDomainService llmDomainService,
-                                 AgentToolManager agentToolManager,
-                                 HighAvailabilityDomainService highAvailabilityDomainService1,
-                                 SessionDomainService sessionDomainService1,
-                                 UserSettingsDomainService userSettingsDomainService1,
-                                 LLMDomainService llmDomainService1) {
+                                 RagToolManager ragToolManager, BillingService billingService,
+                                 AccountDomainService accountDomainService,
+                                 AgentToolManager agentToolManager) {
         super(llmServiceFactory, messageDomainService, highAvailabilityDomainService, sessionDomainService,
-                userSettingsDomainService, llmDomainService);
+                userSettingsDomainService, llmDomainService, ragToolManager, billingService, accountDomainService);
         this.agentToolManager = agentToolManager;
-        this.highAvailabilityDomainService = highAvailabilityDomainService1;
-        this.sessionDomainService = sessionDomainService1;
-        this.userSettingsDomainService = userSettingsDomainService1;
-        this.llmDomainService = llmDomainService1;
     }
 
     @Override
@@ -70,14 +61,16 @@ public class PreviewMessageHandler extends AbstractMessageHandler {
 
         TokenStream tokenStream = agent.chat(chatContext.getUserMessage());
 
-        tokenStream.onError(throwable -> {
-            transport.sendMessage(connection,
-                    AgentChatResponse.buildEndMessage(throwable.getMessage(), MessageType.TEXT));
-        });
+        tokenStream.onError(throwable -> transport.sendMessage(connection,
+                AgentChatResponse.buildEndMessage(throwable.getMessage(), MessageType.TEXT)));
 
         // 部分响应处理
         tokenStream.onPartialResponse(reply -> {
             messageBuilder.get().append(reply);
+            // 删除换行后消息为空字符串
+            if (messageBuilder.get().toString().trim().isEmpty()) {
+                return;
+            }
             transport.sendMessage(connection, AgentChatResponse.build(reply, MessageType.TEXT));
         });
 
@@ -85,11 +78,15 @@ public class PreviewMessageHandler extends AbstractMessageHandler {
         tokenStream.onCompleteResponse(chatResponse -> {
             // 发送结束消息
             transport.sendEndMessage(connection, AgentChatResponse.buildEndMessage(MessageType.TEXT));
+
+            // 执行模型调用计费
+            performBillingWithErrorHandling(chatContext, chatResponse.tokenUsage().inputTokenCount(),
+                    chatResponse.tokenUsage().outputTokenCount(), transport, connection);
         });
 
         // 工具执行处理
         tokenStream.onToolExecuted(toolExecution -> {
-            if (!messageBuilder.get().isEmpty()) {
+            if (messageBuilder.get().length() > 0) {
                 transport.sendMessage(connection, AgentChatResponse.buildEndMessage(MessageType.TEXT));
                 llmEntity.setContent(messageBuilder.toString());
 

@@ -1,22 +1,16 @@
 package com.example.agentx.interfaces.dto.agent.request;
 
 import com.example.agentx.domain.agent.constant.PublishStatus;
-import com.example.agentx.infrastructure.exception.ParamValidationException;
 import com.example.agentx.infrastructure.utils.ValidationUtils;
+import com.example.agentx.infrastructure.exception.ParamValidationException;
 
-/**
- * 审核/更新Agent版本状态的请求对象
- */
+/** 审核/更新Agent版本状态的请求对象 */
 public class ReviewAgentVersionRequest {
 
-    /**
-     * 目标状态: PUBLISHED-发布, REJECTED-拒绝, REMOVED-下架, REVIEWING-审核中
-     */
+    /** 目标状态: PUBLISHED-发布, REJECTED-拒绝, REMOVED-下架, REVIEWING-审核中 */
     private PublishStatus status;
 
-    /**
-     * 拒绝原因，当status为REJECTED时必填
-     */
+    /** 拒绝原因，当status为REJECTED时必填 */
     private String rejectReason;
 
     // 构造方法
@@ -28,9 +22,7 @@ public class ReviewAgentVersionRequest {
         this.rejectReason = rejectReason;
     }
 
-    /**
-     * 校验请求参数
-     */
+    /** 校验请求参数 */
     public void validate() {
         ValidationUtils.notNull(status, "status");
 

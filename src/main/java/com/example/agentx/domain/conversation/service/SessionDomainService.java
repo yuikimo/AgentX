@@ -20,35 +20,35 @@ public class SessionDomainService {
 
     /**
      * 根据 agentId 获取会话列表
-     * 
+     *
      * @param agentId 助理id
      */
-    public List<SessionEntity> getSessionsByAgentId(String agentId) {
+    public List<SessionEntity> getSessionsByAgentId(String agentId, String userId) {
         return sessionRepository.selectList(Wrappers.<SessionEntity>lambdaQuery()
                 .eq(SessionEntity::getAgentId, agentId)
+                .eq(SessionEntity::getUserId, userId)
                 .orderByDesc(SessionEntity::getCreatedAt)
         );
     }
 
     /**
      * 删除会话
-     * 
+     *
      * @param sessionId 会话id
-     * @param userId 用户id
+     * @param userId    用户id
      */
     public void deleteSession(String sessionId, String userId) {
         sessionRepository.checkedDelete(Wrappers.<SessionEntity>lambdaQuery()
                 .eq(SessionEntity::getId, sessionId)
-                .eq(SessionEntity::getUserId, userId)
-        );
+                .eq(SessionEntity::getUserId, userId));
     }
 
     /**
      * 更新会话
-     * 
-     * @param sessionId     会话id
-     * @param userId 用户id
-     * @param title  标题
+     *
+     * @param sessionId 会话id
+     * @param userId    用户id
+     * @param title     标题
      */
     public void updateSession(String sessionId, String userId, String title) {
         SessionEntity session = new SessionEntity();
@@ -57,13 +57,12 @@ public class SessionDomainService {
         session.setTitle(title);
         sessionRepository.checkedUpdate(session, Wrappers.<SessionEntity>lambdaUpdate()
                 .eq(SessionEntity::getId, sessionId)
-                .eq(SessionEntity::getUserId, userId)
-        );
+                .eq(SessionEntity::getUserId, userId));
     }
 
     /**
      * 创建会话
-     * 
+     *
      * @param agentId 助理id
      * @param userId  用户id
      */
@@ -78,25 +77,23 @@ public class SessionDomainService {
 
     /**
      * 检查会话是否存在
-     * 
+     *
      * @param sessionId 会话id
-     * @param userId 用户id
+     * @param userId    用户id
      */
     public void checkSessionExist(String sessionId, String userId) {
         SessionEntity session = sessionRepository.selectOne(Wrappers.<SessionEntity>lambdaQuery()
                 .eq(SessionEntity::getId, sessionId)
-                .eq(SessionEntity::getUserId, userId)
-        );
+                .eq(SessionEntity::getUserId, userId));
         if (session == null) {
             throw new BusinessException("会话不存在");
         }
     }
 
-    public SessionEntity find(String sessionId,String userId) {
+    public SessionEntity find(String sessionId, String userId) {
         return sessionRepository.selectOne(Wrappers.<SessionEntity>lambdaQuery()
                 .eq(SessionEntity::getId, sessionId)
-                .eq(SessionEntity::getUserId, userId)
-        );
+                .eq(SessionEntity::getUserId, userId));
     }
 
     public void deleteSessions(List<String> sessionIds) {
@@ -106,11 +103,11 @@ public class SessionDomainService {
     public SessionEntity getSession(String sessionId, String userId) {
         SessionEntity session = sessionRepository.selectOne(Wrappers.<SessionEntity>lambdaQuery()
                 .eq(SessionEntity::getId, sessionId)
-                .eq(SessionEntity::getUserId, userId)
-        );
+                .eq(SessionEntity::getUserId, userId));
         if (session == null) {
             throw new BusinessException("会话不存在");
         }
         return session;
     }
+
 }

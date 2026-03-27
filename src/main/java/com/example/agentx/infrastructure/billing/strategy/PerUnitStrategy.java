@@ -1,9 +1,11 @@
 package com.example.agentx.infrastructure.billing.strategy;
 
-import com.example.agentx.domain.product.constant.PricingConfigKeys;
 import org.springframework.stereotype.Component;
+import com.example.agentx.domain.product.constant.UsageDataKeys;
+import com.example.agentx.domain.product.constant.PricingConfigKeys;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Map;
 
 /**
@@ -12,9 +14,22 @@ import java.util.Map;
 @Component
 public class PerUnitStrategy implements RuleStrategy {
 
+    // 使用统一的常量定义
+
     @Override
     public BigDecimal process(Map<String, Object> usageData, Map<String, Object> pricingConfig) {
-        return null;
+        if (!validateUsageData(usageData) || !validatePricingConfig(pricingConfig)) {
+            throw new IllegalArgumentException("无效的用量数据或价格配置");
+        }
+
+        // 获取使用数量
+        Integer quantity = (Integer) usageData.get(UsageDataKeys.QUANTITY);
+
+        // 获取单价
+        BigDecimal costPerUnit = getBigDecimalValue(pricingConfig, PricingConfigKeys.COST_PER_UNIT);
+
+        // 计算总费用：quantity * costPerUnit
+        return new BigDecimal(quantity).multiply(costPerUnit).setScale(8, RoundingMode.HALF_UP);
     }
 
     @Override
@@ -24,7 +39,19 @@ public class PerUnitStrategy implements RuleStrategy {
 
     @Override
     public boolean validateUsageData(Map<String, Object> usageData) {
-        return false;
+        if (usageData == null || usageData.isEmpty()) {
+            return false;
+        }
+
+        // 检查必需字段
+        Object quantity = usageData.get(UsageDataKeys.QUANTITY);
+
+        if (!(quantity instanceof Integer)) {
+            return false;
+        }
+
+        // 检查数值有效性
+        return (Integer) quantity > 0;
     }
 
     @Override

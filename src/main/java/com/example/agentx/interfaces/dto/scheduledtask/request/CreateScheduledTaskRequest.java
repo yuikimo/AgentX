@@ -1,9 +1,9 @@
 package com.example.agentx.interfaces.dto.scheduledtask.request;
 
-import com.example.agentx.domain.scheduledtask.constant.RepeatType;
-import com.example.agentx.domain.scheduledtask.model.RepeatConfig;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import com.example.agentx.domain.scheduledtask.constant.RepeatType;
+import com.example.agentx.domain.scheduledtask.model.RepeatConfig;
 
 /**
  * 创建定时任务请求

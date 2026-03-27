@@ -1,8 +1,8 @@
 package com.example.agentx.domain.llm.service;
 
-import com.example.agentx.domain.llm.event.ModelsBatchDeletedEvent;
 import com.example.agentx.domain.llm.model.HighAvailabilityResult;
 import com.example.agentx.domain.llm.model.ModelEntity;
+import com.example.agentx.domain.llm.event.ModelsBatchDeletedEvent;
 
 import java.util.List;
 

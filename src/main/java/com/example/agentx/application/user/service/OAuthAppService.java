@@ -41,16 +41,22 @@ public class OAuthAppService {
         this.userDomainService = userDomainService;
     }
 
-    /** 获取 GitHub 授权 URL
-     * @return GitHub 授权 URL */
+    /**
+     * 获取 GitHub 授权 URL
+     *
+     * @return GitHub 授权 URL
+     */
     public String getGitHubAuthorizeUrl() {
         return githubProperties.getAuthorizeUrl() + "?client_id=" + githubProperties.getClientId() + "&redirect_uri="
                 + githubProperties.getRedirectUri() + "&scope=user:email";
     }
 
-    /** 处理 GitHub 回调
+    /**
+     * 处理 GitHub 回调
+     *
      * @param code 授权码
-     * @return 登录令牌 */
+     * @return 登录令牌
+     */
     public Map<String, String> handleGitHubCallback(String code) {
         try {
             // 1. 获取访问令牌
@@ -86,9 +92,12 @@ public class OAuthAppService {
         }
     }
 
-    /** 获取访问令牌
+    /**
+     * 获取访问令牌
+     *
      * @param code 授权码
-     * @return 访问令牌响应 */
+     * @return 访问令牌响应
+     */
     private GitHubTokenResponse getAccessToken(String code) {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpPost httpPost = new HttpPost(githubProperties.getTokenUrl());
@@ -121,9 +130,12 @@ public class OAuthAppService {
         return null;
     }
 
-    /** 获取用户信息
+    /**
+     * 获取用户信息
+     *
      * @param accessToken 访问令牌
-     * @return 用户信息 */
+     * @return 用户信息
+     */
     private GitHubUserInfo getUserInfo(String accessToken) {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpGet httpGet = new HttpGet(githubProperties.getUserInfoUrl());
@@ -146,9 +158,12 @@ public class OAuthAppService {
         return null;
     }
 
-    /** 获取用户主邮箱
+    /**
+     * 获取用户主邮箱
+     *
      * @param accessToken 访问令牌
-     * @return 主邮箱 */
+     * @return 主邮箱
+     */
     private String getPrimaryEmail(String accessToken) {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpGet httpGet = new HttpGet(githubProperties.getUserEmailUrl());
@@ -175,9 +190,12 @@ public class OAuthAppService {
         return null;
     }
 
-    /** 查找或创建用户
+    /**
+     * 查找或创建用户
+     *
      * @param userInfo GitHub用户信息
-     * @return 用户实体 */
+     * @return 用户实体
+     */
     private UserEntity findOrCreateUser(GitHubUserInfo userInfo) {
         // 先通过 GitHub ID 查找用户
         UserEntity user = userDomainService.findUserByGithubId(String.valueOf(userInfo.getId()));
@@ -211,8 +229,11 @@ public class OAuthAppService {
         return userDomainService.register(newUser.getEmail(), null, newUser.getPassword());
     }
 
-    /** 生成随机密码
-     * @return 随机密码 */
+    /**
+     * 生成随机密码
+     *
+     * @return 随机密码
+     */
     private String generateRandomPassword() {
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
         StringBuilder password = new StringBuilder();

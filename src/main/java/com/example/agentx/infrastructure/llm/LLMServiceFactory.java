@@ -1,11 +1,11 @@
 package com.example.agentx.infrastructure.llm;
 
-import com.example.agentx.domain.llm.model.ModelEntity;
-import com.example.agentx.domain.llm.model.ProviderEntity;
-import com.example.agentx.infrastructure.llm.config.ProviderConfig;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import org.springframework.stereotype.Component;
+import com.example.agentx.domain.llm.model.ModelEntity;
+import com.example.agentx.domain.llm.model.ProviderEntity;
+import com.example.agentx.infrastructure.llm.config.ProviderConfig;
 
 /**
  * LLM服务工厂，用于创建LLM客户端
@@ -24,7 +24,7 @@ public class LLMServiceFactory {
         com.example.agentx.domain.llm.model.config.ProviderConfig config = provider.getConfig();
 
         ProviderConfig providerConfig = new ProviderConfig(config.getApiKey(), config.getBaseUrl(),
-                model.getModelId(), provider.getProtocol());
+                model.getModelEndpoint(), provider.getProtocol());
 
         return LLMProviderService.getStream(provider.getProtocol(), providerConfig);
     }
@@ -40,7 +40,7 @@ public class LLMServiceFactory {
         com.example.agentx.domain.llm.model.config.ProviderConfig config = provider.getConfig();
 
         ProviderConfig providerConfig = new ProviderConfig(config.getApiKey(), config.getBaseUrl(),
-                model.getModelId(), provider.getProtocol());
+                model.getModelEndpoint(), provider.getProtocol());
 
         return LLMProviderService.getStrand(provider.getProtocol(), providerConfig);
     }

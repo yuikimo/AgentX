@@ -1,18 +1,28 @@
 package com.example.agentx.interfaces.api.portal.user;
 
-import com.example.agentx.application.user.service.LoginAppService;
-import com.example.agentx.interfaces.api.common.Result;
-import com.example.agentx.interfaces.dto.user.request.LoginRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.agentx.application.user.service.LoginAppService;
+import com.example.agentx.infrastructure.verification.CaptchaUtils;
+import com.example.agentx.interfaces.api.common.Result;
+import com.example.agentx.interfaces.dto.user.request.GetCaptchaRequest;
+import com.example.agentx.interfaces.dto.user.request.LoginRequest;
+import com.example.agentx.interfaces.dto.user.request.RegisterRequest;
+import com.example.agentx.interfaces.dto.user.request.ResetPasswordRequest;
+import com.example.agentx.interfaces.dto.user.request.SendEmailCodeRequest;
+import com.example.agentx.interfaces.dto.user.request.SendResetPasswordCodeRequest;
+import com.example.agentx.interfaces.dto.user.request.VerifyEmailCodeRequest;
+import com.example.agentx.interfaces.dto.user.response.CaptchaResponse;
 
 import java.util.Map;
 
-/** 登录注册 */
+/**
+ * 登录注册
+ */
 @RestController
 @RequestMapping
 public class LoginController {
@@ -23,27 +33,36 @@ public class LoginController {
         this.loginAppService = loginAppService;
     }
 
-    /** 登录
+    /**
+     * 登录
+     *
      * @param loginRequest
-     * @return */
+     * @return
+     */
     @PostMapping("/login")
     public Result<Map<String, Object>> login(@RequestBody @Validated LoginRequest loginRequest) {
         String token = loginAppService.login(loginRequest);
         return Result.success("登录成功", Map.of("token", token));
     }
 
-    /** 注册
+    /**
+     * 注册
+     *
      * @param registerRequest
-     * @return */
+     * @return
+     */
     @PostMapping("/register")
     public Result<?> register(@RequestBody @Validated RegisterRequest registerRequest) {
         loginAppService.register(registerRequest);
         return Result.success().message("注册成功");
     }
 
-    /** 获取图形验证码
+    /**
+     * 获取图形验证码
+     *
      * @param request
-     * @return */
+     * @return
+     */
     @PostMapping("/get-captcha")
     public Result<CaptchaResponse> getCaptcha(@RequestBody(required = false) GetCaptchaRequest request) {
         CaptchaUtils.CaptchaResult captchaResult = CaptchaUtils.generateCaptcha();
@@ -51,13 +70,16 @@ public class LoginController {
         return Result.success(response);
     }
 
-    /** 发送邮箱验证码接口
+    /**
+     * 发送邮箱验证码接口
+     *
      * @param request
      * @param httpRequest
-     * @return */
+     * @return
+     */
     @PostMapping("/send-email-code")
     public Result<?> sendEmailCode(@RequestBody @Validated SendEmailCodeRequest request,
-            HttpServletRequest httpRequest) {
+                                   HttpServletRequest httpRequest) {
         // 获取客户端IP
         String clientIp = getClientIp(httpRequest);
 
@@ -66,13 +88,16 @@ public class LoginController {
         return Result.success().message("验证码已发送，请查收邮件");
     }
 
-    /** 发送重置密码邮箱验证码接口
+    /**
+     * 发送重置密码邮箱验证码接口
+     *
      * @param request
      * @param httpRequest
-     * @return */
+     * @return
+     */
     @PostMapping("/send-reset-password-code")
     public Result<?> sendResetPasswordCode(@RequestBody @Validated SendResetPasswordCodeRequest request,
-            HttpServletRequest httpRequest) {
+                                           HttpServletRequest httpRequest) {
         // 获取客户端IP
         String clientIp = getClientIp(httpRequest);
 
@@ -81,9 +106,12 @@ public class LoginController {
         return Result.success().message("验证码已发送，请查收邮件");
     }
 
-    /** 验证邮箱验证码接口
+    /**
+     * 验证邮箱验证码接口
+     *
      * @param request
-     * @return */
+     * @return
+     */
     @PostMapping("/verify-email-code")
     public Result<Boolean> verifyEmailCode(@RequestBody @Validated VerifyEmailCodeRequest request) {
         boolean isValid = loginAppService.verifyEmailCode(request.getEmail(), request.getCode());
@@ -94,18 +122,24 @@ public class LoginController {
         }
     }
 
-    /** 重置密码接口
+    /**
+     * 重置密码接口
+     *
      * @param request
-     * @return */
+     * @return
+     */
     @PostMapping("/reset-password")
     public Result<?> resetPassword(@RequestBody @Validated ResetPasswordRequest request) {
         loginAppService.resetPassword(request.getEmail(), request.getNewPassword(), request.getCode());
         return Result.success().message("密码重置成功");
     }
 
-    /** 获取客户端IP
+    /**
+     * 获取客户端IP
+     *
      * @param request
-     * @return */
+     * @return
+     */
     private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {

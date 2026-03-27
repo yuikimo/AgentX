@@ -1,13 +1,13 @@
 package com.example.agentx.application.conversation.listener;
 
-import com.example.agentx.application.conversation.dto.ChatRequest;
-import com.example.agentx.application.conversation.service.ConversationAppService;
-import com.example.agentx.domain.scheduledtask.event.ScheduledTaskExecuteEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import com.example.agentx.application.conversation.dto.ChatRequest;
+import com.example.agentx.application.conversation.service.ConversationAppService;
+import com.example.agentx.domain.scheduledtask.event.ScheduledTaskExecuteEvent;
 
 /**
  * 定时任务事件监听器 监听Domain层发布的任务执行事件，调用ConversationAppService执行对话

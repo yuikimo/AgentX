@@ -1,14 +1,15 @@
 package com.example.agentx.infrastructure.config;
 
-import com.example.agentx.domain.container.constant.ContainerStatus;
-import com.example.agentx.domain.container.model.ContainerEntity;
-import com.example.agentx.domain.container.service.ContainerDomainService;
-import com.example.agentx.infrastructure.docker.DockerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.stereotype.Component;
+import com.example.agentx.domain.container.constant.ContainerStatus;
+import com.example.agentx.domain.container.model.ContainerEntity;
+import com.example.agentx.domain.container.service.ContainerDomainService;
+import com.example.agentx.infrastructure.docker.DockerService;
+import com.example.agentx.infrastructure.entity.Operator;
 
 import java.util.List;
 
@@ -83,7 +84,8 @@ public class ContainerShutdownListener implements ApplicationListener<ContextClo
             dockerService.stopContainer(dockerContainerId);
 
             // 更新数据库状态
-            containerDomainService.updateContainerStatus(container.getId(), ContainerStatus.STOPPED, dockerContainerId);
+            containerDomainService.updateContainerStatus(container.getId(), ContainerStatus.STOPPED, Operator.ADMIN,
+                    dockerContainerId);
 
         } catch (Exception e) {
             // 记录错误但不抛出异常，避免影响其他容器的停止
@@ -91,7 +93,8 @@ public class ContainerShutdownListener implements ApplicationListener<ContextClo
 
             // 尝试将容器标记为错误状态
             try {
-                containerDomainService.markContainerError(container.getId(), "应用关闭时停止容器失败: " + e.getMessage());
+                containerDomainService.markContainerError(container.getId(), "应用关闭时停止容器失败: " + e.getMessage(),
+                        Operator.ADMIN);
             } catch (Exception updateException) {
                 logger.error("更新容器错误状态失败: {}", container.getName(), updateException);
             }

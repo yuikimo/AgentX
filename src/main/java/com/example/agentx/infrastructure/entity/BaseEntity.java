@@ -20,12 +20,11 @@ public class BaseEntity {
     @TableField(exist = false)
     private Operator operatedBy = Operator.USER;
 
-
-    public void setAdmin(){
+    public void setAdmin() {
         this.operatedBy = Operator.ADMIN;
     }
 
-    public boolean needCheckUserId(){
+    public boolean needCheckUserId() {
         return this.operatedBy == Operator.USER;
     }
 

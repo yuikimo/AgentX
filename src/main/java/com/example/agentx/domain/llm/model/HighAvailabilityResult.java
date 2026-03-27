@@ -20,6 +20,11 @@ public class HighAvailabilityResult {
      */
     private String instanceId;
 
+    /**
+     * 模型是否被切换（降级到备用模型）
+     */
+    private boolean switched;
+
     public HighAvailabilityResult() {
     }
 
@@ -27,6 +32,14 @@ public class HighAvailabilityResult {
         this.provider = provider;
         this.model = model;
         this.instanceId = instanceId;
+        this.switched = false;
+    }
+
+    public HighAvailabilityResult(ProviderEntity provider, ModelEntity model, String instanceId, boolean switched) {
+        this.provider = provider;
+        this.model = model;
+        this.instanceId = instanceId;
+        this.switched = switched;
     }
 
     public ProviderEntity getProvider() {
@@ -51,5 +64,13 @@ public class HighAvailabilityResult {
 
     public void setInstanceId(String instanceId) {
         this.instanceId = instanceId;
+    }
+
+    public boolean isSwitched() {
+        return switched;
+    }
+
+    public void setSwitched(boolean switched) {
+        this.switched = switched;
     }
 }

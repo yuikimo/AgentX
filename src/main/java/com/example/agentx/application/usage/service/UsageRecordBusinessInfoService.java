@@ -1,5 +1,6 @@
 package com.example.agentx.application.usage.service;
 
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.agent.model.AgentEntity;
 import com.example.agentx.domain.agent.service.AgentDomainService;
 import com.example.agentx.domain.llm.model.ModelEntity;
@@ -7,7 +8,6 @@ import com.example.agentx.domain.llm.service.LLMDomainService;
 import com.example.agentx.domain.product.constant.BillingType;
 import com.example.agentx.domain.product.model.ProductEntity;
 import com.example.agentx.domain.product.service.ProductDomainService;
-import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -34,6 +34,47 @@ public class UsageRecordBusinessInfoService {
     }
 
     /**
+     * 业务信息数据结构
+     */
+    public static class BusinessInfo {
+        private String serviceName;
+        private String serviceType;
+        private String serviceDescription;
+        private String pricingRule;
+        private String relatedEntityName;
+
+        public BusinessInfo(String serviceName, String serviceType, String serviceDescription, String pricingRule,
+                            String relatedEntityName) {
+            this.serviceName = serviceName;
+            this.serviceType = serviceType;
+            this.serviceDescription = serviceDescription;
+            this.pricingRule = pricingRule;
+            this.relatedEntityName = relatedEntityName;
+        }
+
+        // Getters
+        public String getServiceName() {
+            return serviceName;
+        }
+
+        public String getServiceType() {
+            return serviceType;
+        }
+
+        public String getServiceDescription() {
+            return serviceDescription;
+        }
+
+        public String getPricingRule() {
+            return pricingRule;
+        }
+
+        public String getRelatedEntityName() {
+            return relatedEntityName;
+        }
+    }
+
+    /**
      * 批量获取商品业务信息映射，避免循环查询
      *
      * @param productIds 商品ID集合
@@ -50,13 +91,11 @@ public class UsageRecordBusinessInfoService {
 
         // 2. 按类型分组收集需要查询的实体ID
         Set<String> modelIds = productMap.values().stream()
-                .filter(product -> product.getType() == BillingType.MODEL_USAGE)
-                .map(ProductEntity::getServiceId)
+                .filter(product -> product.getType() == BillingType.MODEL_USAGE).map(ProductEntity::getServiceId)
                 .collect(Collectors.toSet());
 
         Set<String> agentIds = productMap.values().stream()
-                .filter(product -> product.getType() == BillingType.AGENT_USAGE)
-                .map(ProductEntity::getServiceId)
+                .filter(product -> product.getType() == BillingType.AGENT_USAGE).map(ProductEntity::getServiceId)
                 .collect(Collectors.toSet());
 
         // 3. 批量查询关联实体
@@ -230,46 +269,5 @@ public class UsageRecordBusinessInfoService {
         }
 
         return String.format("按%s计费，详情请联系客服", unit);
-    }
-
-    /**
-     * 业务信息数据结构
-     */
-    public static class BusinessInfo {
-        private String serviceName;
-        private String serviceType;
-        private String serviceDescription;
-        private String pricingRule;
-        private String relatedEntityName;
-
-        public BusinessInfo(String serviceName, String serviceType, String serviceDescription, String pricingRule,
-                            String relatedEntityName) {
-            this.serviceName = serviceName;
-            this.serviceType = serviceType;
-            this.serviceDescription = serviceDescription;
-            this.pricingRule = pricingRule;
-            this.relatedEntityName = relatedEntityName;
-        }
-
-        // Getters
-        public String getServiceName() {
-            return serviceName;
-        }
-
-        public String getServiceType() {
-            return serviceType;
-        }
-
-        public String getServiceDescription() {
-            return serviceDescription;
-        }
-
-        public String getPricingRule() {
-            return pricingRule;
-        }
-
-        public String getRelatedEntityName() {
-            return relatedEntityName;
-        }
     }
 }

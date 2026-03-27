@@ -5,23 +5,21 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.example.agentx.application.agent.assembler.AgentVersionAssembler;
-import com.example.agentx.application.agent.dto.AgentStatisticsDTO;
-import com.example.agentx.application.agent.dto.AgentVersionDTO;
-import com.example.agentx.application.agent.dto.AgentWithUserDTO;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.agent.constant.PublishStatus;
-import com.example.agentx.domain.agent.model.AgentEntity;
-import com.example.agentx.domain.agent.model.AgentVersionEntity;
+import com.example.agentx.domain.agent.model.*;
 import com.example.agentx.domain.agent.repository.AgentRepository;
 import com.example.agentx.domain.agent.repository.AgentVersionRepository;
 import com.example.agentx.domain.agent.repository.AgentWorkspaceRepository;
-import com.example.agentx.domain.user.model.UserEntity;
 import com.example.agentx.domain.user.repository.UserRepository;
+import com.example.agentx.domain.user.model.UserEntity;
 import com.example.agentx.infrastructure.exception.BusinessException;
+import com.example.agentx.application.agent.dto.AgentWithUserDTO;
+import com.example.agentx.application.agent.dto.AgentVersionDTO;
+import com.example.agentx.application.agent.dto.AgentStatisticsDTO;
+import com.example.agentx.application.agent.assembler.AgentVersionAssembler;
 import com.example.agentx.interfaces.dto.agent.request.QueryAgentRequest;
-import org.springframework.beans.BeanUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.Function;
@@ -49,7 +47,6 @@ public class AgentDomainService {
     /**
      * 创建新Agent
      */
-    @Transactional
     public AgentEntity createAgent(AgentEntity agent) {
         agentRepository.insert(agent);
         return agent;
@@ -61,8 +58,7 @@ public class AgentDomainService {
     public AgentEntity getAgent(String agentId, String userId) {
 
         // 需要根据 agentId 和 userId 作为条件进行查询
-        LambdaQueryWrapper<AgentEntity> wrapper = Wrappers.<AgentEntity>lambdaQuery()
-                .eq(AgentEntity::getId, agentId)
+        LambdaQueryWrapper<AgentEntity> wrapper = Wrappers.<AgentEntity>lambdaQuery().eq(AgentEntity::getId, agentId)
                 .eq(AgentEntity::getUserId, userId);
         AgentEntity agent = agentRepository.selectOne(wrapper);
         if (agent == null) {
@@ -101,13 +97,11 @@ public class AgentDomainService {
     /**
      * 更新Agent信息（基本信息和配置合并更新）
      */
-    @Transactional
     public AgentEntity updateAgent(AgentEntity updateEntity) {
 
         // 需要根据 agentId 和 userId 作为条件进行修改
         LambdaUpdateWrapper<AgentEntity> wrapper = Wrappers.<AgentEntity>lambdaUpdate()
-                .eq(AgentEntity::getId, updateEntity.getId())
-                .eq(AgentEntity::getUserId, updateEntity.getUserId());
+                .eq(AgentEntity::getId, updateEntity.getId()).eq(AgentEntity::getUserId, updateEntity.getUserId());
         agentRepository.checkedUpdate(updateEntity, wrapper);
         return updateEntity;
     }
@@ -115,7 +109,6 @@ public class AgentDomainService {
     /**
      * 切换Agent的启用/禁用状态
      */
-    @Transactional
     public AgentEntity toggleAgentStatus(String agentId) {
 
         AgentEntity agent = agentRepository.selectById(agentId);
@@ -137,23 +130,19 @@ public class AgentDomainService {
     /**
      * 删除Agent
      */
-    @Transactional
     public void deleteAgent(String agentId, String userId) {
         // 根据agentId和userId删除即可，创建 wrapper
-        LambdaQueryWrapper<AgentEntity> wrapper = Wrappers.<AgentEntity>lambdaQuery()
-                .eq(AgentEntity::getId, agentId)
+        LambdaQueryWrapper<AgentEntity> wrapper = Wrappers.<AgentEntity>lambdaQuery().eq(AgentEntity::getId, agentId)
                 .eq(AgentEntity::getUserId, userId);
         agentRepository.checkedDelete(wrapper);
         // 删除版本
         agentVersionRepository.delete(Wrappers.<AgentVersionEntity>lambdaQuery()
-                .eq(AgentVersionEntity::getAgentId, agentId)
-                .eq(AgentVersionEntity::getUserId, userId));
+                .eq(AgentVersionEntity::getAgentId, agentId).eq(AgentVersionEntity::getUserId, userId));
     }
 
     /**
      * 发布Agent版本
      */
-    @Transactional
     public AgentVersionEntity publishAgentVersion(String agentId, AgentVersionEntity versionEntity) {
         AgentEntity agent = agentRepository.selectById(agentId);
         if (agent == null) {
@@ -199,7 +188,6 @@ public class AgentDomainService {
     /**
      * 更新版本发布状态
      */
-    @Transactional
     public AgentVersionEntity updateVersionPublishStatus(String versionId, PublishStatus status) {
         AgentVersionEntity version = agentVersionRepository.selectById(versionId);
         if (version == null) {
@@ -227,7 +215,6 @@ public class AgentDomainService {
     /**
      * 拒绝版本发布
      */
-    @Transactional
     public AgentVersionEntity rejectVersion(String versionId, String reason) {
         AgentVersionEntity version = agentVersionRepository.selectById(versionId);
         if (version == null) {
@@ -259,8 +246,7 @@ public class AgentDomainService {
 
         // 查询所有版本并按创建时间降序排序
         LambdaQueryWrapper<AgentVersionEntity> wrapper = Wrappers.<AgentVersionEntity>lambdaQuery()
-                .eq(AgentVersionEntity::getAgentId, agentId)
-                .orderByDesc(AgentVersionEntity::getCreatedAt);
+                .eq(AgentVersionEntity::getAgentId, agentId).orderByDesc(AgentVersionEntity::getCreatedAt);
         return agentVersionRepository.selectList(wrapper);
     }
 
@@ -270,8 +256,7 @@ public class AgentDomainService {
     public AgentVersionEntity getAgentVersion(String agentId, String versionNumber) {
         // 使用agentId和versionNumber查询版本
         LambdaQueryWrapper<AgentVersionEntity> wrapper = Wrappers.<AgentVersionEntity>lambdaQuery()
-                .eq(AgentVersionEntity::getAgentId, agentId)
-                .eq(AgentVersionEntity::getVersionNumber, versionNumber);
+                .eq(AgentVersionEntity::getAgentId, agentId).eq(AgentVersionEntity::getVersionNumber, versionNumber);
         AgentVersionEntity version = agentVersionRepository.selectOne(wrapper);
         if (version == null) {
             throw new BusinessException("Agent版本不存在: " + versionNumber);
@@ -284,8 +269,7 @@ public class AgentDomainService {
      */
     public AgentVersionEntity getLatestAgentVersion(String agentId) {
         LambdaQueryWrapper<AgentVersionEntity> queryWrapper = Wrappers.<AgentVersionEntity>lambdaQuery()
-                .eq(AgentVersionEntity::getAgentId, agentId)
-                .orderByDesc(AgentVersionEntity::getPublishedAt)
+                .eq(AgentVersionEntity::getAgentId, agentId).orderByDesc(AgentVersionEntity::getPublishedAt)
                 .last("LIMIT 1");
 
         AgentVersionEntity version = agentVersionRepository.selectOne(queryWrapper);
@@ -293,6 +277,18 @@ public class AgentDomainService {
             return null; // 第一次发布时没有版本，返回null而不是抛出异常
         }
         return version;
+    }
+
+    /**
+     * 获取指定Agent的已发布版本信息（用于跨用户访问场景）
+     */
+    public AgentVersionEntity getPublishedAgentVersion(String agentId) {
+        LambdaQueryWrapper<AgentVersionEntity> queryWrapper = Wrappers.<AgentVersionEntity>lambdaQuery()
+                .eq(AgentVersionEntity::getAgentId, agentId)
+                .eq(AgentVersionEntity::getPublishStatus, PublishStatus.PUBLISHED.getCode())
+                .orderByDesc(AgentVersionEntity::getPublishedAt).last("LIMIT 1");
+
+        return agentVersionRepository.selectOne(queryWrapper);
     }
 
     /**
@@ -309,8 +305,7 @@ public class AgentDomainService {
      */
     public boolean exist(String agentId, String userId) {
 
-        LambdaQueryWrapper<AgentEntity> wrapper = Wrappers.<AgentEntity>lambdaQuery()
-                .eq(AgentEntity::getId, agentId)
+        LambdaQueryWrapper<AgentEntity> wrapper = Wrappers.<AgentEntity>lambdaQuery().eq(AgentEntity::getId, agentId)
                 .eq(AgentEntity::getUserId, userId);
         AgentEntity agent = agentRepository.selectOne(wrapper);
         return agent != null;
@@ -320,6 +315,16 @@ public class AgentDomainService {
      * 根据 agentIds 获取 agents
      */
     public List<AgentEntity> getAgentsByIds(List<String> agentIds) {
+        return agentRepository.selectByIds(agentIds);
+    }
+
+    /**
+     * 根据 agentIds 批量获取 agents (Set版本，用于业务信息映射优化)
+     */
+    public List<AgentEntity> getAgentsByIds(Set<String> agentIds) {
+        if (agentIds == null || agentIds.isEmpty()) {
+            return Collections.emptyList();
+        }
         return agentRepository.selectByIds(agentIds);
     }
 
@@ -374,8 +379,7 @@ public class AgentDomainService {
         Map<String, AgentVersionEntity> agentVersionMap = versionEntities.stream()
                 .collect(Collectors.toMap(AgentVersionEntity::getAgentId, Function.identity()));
 
-        return agents.stream().map(agent -> agentVersionMap.get(agent.getId()))
-                .filter(Objects::nonNull)
+        return agents.stream().map(agent -> agentVersionMap.get(agent.getId())).filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -434,7 +438,7 @@ public class AgentDomainService {
      * @return Agent分页数据
      */
     public Page<AgentEntity> getAgents(QueryAgentRequest queryAgentRequest) {
-        LambdaQueryWrapper<AgentEntity> wrapper = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<AgentEntity> wrapper = Wrappers.<AgentEntity>lambdaQuery();
 
         // 关键词搜索：Agent名称、描述
         if (queryAgentRequest.getKeyword() != null && !queryAgentRequest.getKeyword().trim().isEmpty()) {
@@ -474,8 +478,7 @@ public class AgentDomainService {
         }
 
         // 获取所有用户ID
-        List<String> userIds = agentPage.getRecords().stream().map(AgentEntity::getUserId)
-                .distinct()
+        List<String> userIds = agentPage.getRecords().stream().map(AgentEntity::getUserId).distinct()
                 .collect(Collectors.toList());
 
         // 批量查询用户信息
@@ -484,16 +487,12 @@ public class AgentDomainService {
                 .collect(Collectors.toMap(UserEntity::getId, Function.identity()));
 
         // 获取所有Agent的版本信息
-        List<String> agentIds = agentPage.getRecords().stream()
-                .map(AgentEntity::getId).
-                collect(Collectors.toList());
+        List<String> agentIds = agentPage.getRecords().stream().map(AgentEntity::getId).collect(Collectors.toList());
         Map<String, List<AgentVersionEntity>> versionMap = getVersionsForAgents(agentIds);
 
         // 组装结果
-        List<AgentWithUserDTO> records = agentPage.getRecords().stream()
-                .map(agent -> convertToAgentWithUserDTO(agent, userMap.get(agent.getUserId()),
-                        versionMap.get(agent.getId())))
-                .collect(Collectors.toList());
+        List<AgentWithUserDTO> records = agentPage.getRecords().stream().map(agent -> convertToAgentWithUserDTO(agent,
+                userMap.get(agent.getUserId()), versionMap.get(agent.getId()))).collect(Collectors.toList());
 
         Page<AgentWithUserDTO> result = new Page<>();
         result.setCurrent(agentPage.getCurrent());
@@ -512,8 +511,7 @@ public class AgentDomainService {
         }
 
         LambdaQueryWrapper<AgentVersionEntity> wrapper = Wrappers.<AgentVersionEntity>lambdaQuery()
-                .in(AgentVersionEntity::getAgentId, agentIds)
-                .orderByDesc(AgentVersionEntity::getCreatedAt);
+                .in(AgentVersionEntity::getAgentId, agentIds).orderByDesc(AgentVersionEntity::getCreatedAt);
 
         List<AgentVersionEntity> allVersions = agentVersionRepository.selectList(wrapper);
 
@@ -588,4 +586,5 @@ public class AgentDomainService {
 
         return statistics;
     }
+
 }

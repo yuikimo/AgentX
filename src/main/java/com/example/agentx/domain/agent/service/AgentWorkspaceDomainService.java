@@ -7,14 +7,14 @@ import java.util.stream.Collectors;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.agent.model.AgentEntity;
 import com.example.agentx.domain.agent.model.AgentWorkspaceEntity;
 import com.example.agentx.domain.agent.repository.AgentRepository;
 import com.example.agentx.domain.agent.repository.AgentWorkspaceRepository;
-import com.example.agentx.infrastructure.exception.BusinessException;
-import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.example.agentx.infrastructure.exception.BusinessException;
 
 @Service
 public class AgentWorkspaceDomainService {
@@ -32,8 +32,7 @@ public class AgentWorkspaceDomainService {
     public List<AgentEntity> getWorkspaceAgents(String userId) {
 
         LambdaQueryWrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaQuery()
-                .eq(AgentWorkspaceEntity::getUserId, userId)
-                .select(AgentWorkspaceEntity::getAgentId);
+                .eq(AgentWorkspaceEntity::getUserId, userId).select(AgentWorkspaceEntity::getAgentId);
 
         List<String> agentIds = agentWorkspaceRepository.selectList(wrapper).stream()
                 .map(AgentWorkspaceEntity::getAgentId).collect(Collectors.toList());
@@ -47,22 +46,19 @@ public class AgentWorkspaceDomainService {
 
     public boolean exist(String agentId, String userId) {
         Wrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaQuery()
-                .eq(AgentWorkspaceEntity::getAgentId, agentId)
-                .eq(AgentWorkspaceEntity::getUserId, userId);
+                .eq(AgentWorkspaceEntity::getAgentId, agentId).eq(AgentWorkspaceEntity::getUserId, userId);
 
         return agentWorkspaceRepository.selectCount(wrapper) > 0;
     }
 
     public boolean deleteAgent(String agentId, String userId) {
         return agentWorkspaceRepository.delete(Wrappers.<AgentWorkspaceEntity>lambdaQuery()
-                .eq(AgentWorkspaceEntity::getAgentId, agentId)
-                .eq(AgentWorkspaceEntity::getUserId, userId)) > 0;
+                .eq(AgentWorkspaceEntity::getAgentId, agentId).eq(AgentWorkspaceEntity::getUserId, userId)) > 0;
     }
 
     public AgentWorkspaceEntity getWorkspace(String agentId, String userId) {
         Wrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaQuery()
-                .eq(AgentWorkspaceEntity::getAgentId, agentId)
-                .eq(AgentWorkspaceEntity::getUserId, userId);
+                .eq(AgentWorkspaceEntity::getAgentId, agentId).eq(AgentWorkspaceEntity::getUserId, userId);
         AgentWorkspaceEntity agentWorkspaceEntity = agentWorkspaceRepository.selectOne(wrapper);
         if (agentWorkspaceEntity == null) {
             throw new BusinessException("助理不存在");
@@ -72,8 +68,7 @@ public class AgentWorkspaceDomainService {
 
     public AgentWorkspaceEntity findWorkspace(String agentId, String userId) {
         Wrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaQuery()
-                .eq(AgentWorkspaceEntity::getAgentId, agentId)
-                .eq(AgentWorkspaceEntity::getUserId, userId);
+                .eq(AgentWorkspaceEntity::getAgentId, agentId).eq(AgentWorkspaceEntity::getUserId, userId);
         return agentWorkspaceRepository.selectOne(wrapper);
     }
 
@@ -84,14 +79,14 @@ public class AgentWorkspaceDomainService {
 
     public void update(AgentWorkspaceEntity workspace) {
         LambdaUpdateWrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaUpdate()
+                .eq(AgentWorkspaceEntity::getAgentId, workspace.getAgentId())
                 .eq(AgentWorkspaceEntity::getAgentId, workspace.getAgentId());
         agentWorkspaceRepository.checkedUpdate(workspace, wrapper);
     }
 
     public List<AgentWorkspaceEntity> listAgents(List<String> agentIds, String userId) {
         LambdaQueryWrapper<AgentWorkspaceEntity> wrapper = Wrappers.<AgentWorkspaceEntity>lambdaQuery()
-                .eq(AgentWorkspaceEntity::getUserId, userId)
-                .in(AgentWorkspaceEntity::getAgentId, agentIds);
+                .eq(AgentWorkspaceEntity::getUserId, userId).in(AgentWorkspaceEntity::getAgentId, agentIds);
         return agentWorkspaceRepository.selectList(wrapper);
     }
 }

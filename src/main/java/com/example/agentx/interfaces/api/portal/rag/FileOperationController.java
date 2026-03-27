@@ -1,16 +1,12 @@
 package com.example.agentx.interfaces.api.portal.rag;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.example.agentx.application.rag.dto.BatchDeleteFilesRequest;
-import com.example.agentx.application.rag.dto.DocumentUnitDTO;
-import com.example.agentx.application.rag.dto.FileDetailInfoDTO;
-import com.example.agentx.application.rag.dto.QueryDocumentUnitsRequest;
-import com.example.agentx.application.rag.dto.UpdateDocumentUnitRequest;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import com.example.agentx.application.rag.dto.*;
 import com.example.agentx.application.rag.service.FileOperationAppService;
 import com.example.agentx.infrastructure.auth.UserContext;
 import com.example.agentx.interfaces.api.common.Result;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
 
 /**
  * 文件操作控制器

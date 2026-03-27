@@ -1,14 +1,12 @@
 package com.example.agentx.domain.agent.repository;
 
-import com.example.agentx.domain.agent.model.AgentWorkspaceEntity;
-import com.example.agentx.infrastructure.repository.MyBatisPlusExtRepository;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import com.example.agentx.domain.agent.model.AgentWorkspaceEntity;
+import com.example.agentx.infrastructure.repository.MyBatisPlusExtRepository;
 
-/**
- * Agent工作区仓库接口
- */
+/** Agent工作区仓库接口 */
 @Mapper
 public interface AgentWorkspaceRepository extends MyBatisPlusExtRepository<AgentWorkspaceEntity> {
 

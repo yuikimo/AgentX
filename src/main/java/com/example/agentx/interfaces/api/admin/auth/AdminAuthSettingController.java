@@ -1,9 +1,5 @@
 package com.example.agentx.interfaces.api.admin.auth;
 
-import com.example.agentx.application.auth.dto.AuthSettingDTO;
-import com.example.agentx.application.auth.dto.UpdateAuthSettingRequest;
-import com.example.agentx.application.auth.service.AuthSettingAppService;
-import com.example.agentx.interfaces.api.common.Result;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +8,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.agentx.application.auth.dto.AuthSettingDTO;
+import com.example.agentx.application.auth.dto.UpdateAuthSettingRequest;
+import com.example.agentx.application.auth.service.AuthSettingAppService;
+import com.example.agentx.interfaces.api.common.Result;
 
 import java.util.List;
 

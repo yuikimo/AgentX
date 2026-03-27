@@ -1,11 +1,11 @@
 package com.example.agentx.domain.llm.model;
 
 import com.baomidou.mybatisplus.annotation.*;
+import org.apache.ibatis.type.JdbcType;
 import com.example.agentx.domain.llm.model.enums.ModelType;
 import com.example.agentx.infrastructure.converter.ModelTypeConverter;
 import com.example.agentx.infrastructure.entity.BaseEntity;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import org.apache.ibatis.type.JdbcType;
 
 /**
  * 模型领域模型

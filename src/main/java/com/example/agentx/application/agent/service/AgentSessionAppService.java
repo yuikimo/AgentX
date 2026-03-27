@@ -2,12 +2,14 @@ package com.example.agentx.application.agent.service;
 
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.example.agentx.application.conversation.assembler.SessionAssembler;
-import com.example.agentx.application.conversation.dto.SessionDTO;
 import com.example.agentx.domain.agent.model.AgentEntity;
 import com.example.agentx.domain.agent.model.AgentVersionEntity;
 import com.example.agentx.domain.agent.service.AgentDomainService;
 import com.example.agentx.domain.agent.service.AgentWorkspaceDomainService;
+import com.example.agentx.application.conversation.dto.SessionDTO;
 import com.example.agentx.domain.conversation.constant.Role;
 import com.example.agentx.domain.conversation.model.MessageEntity;
 import com.example.agentx.domain.conversation.model.SessionEntity;
@@ -16,8 +18,6 @@ import com.example.agentx.domain.conversation.service.SessionDomainService;
 import com.example.agentx.domain.scheduledtask.service.ScheduledTaskExecutionService;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.interfaces.dto.conversation.request.ConversationRequest;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AgentSessionAppService {
@@ -62,7 +62,7 @@ public class AgentSessionAppService {
         }
 
         // 获取对应的会话列表
-        List<SessionEntity> sessions = sessionDomainService.getSessionsByAgentId(agentId);
+        List<SessionEntity> sessions = sessionDomainService.getSessionsByAgentId(agentId, userId);
         if (sessions.isEmpty()) {
             // 如果会话列表为空，则新创建一个并且返回
             SessionEntity session = sessionDomainService.createSession(agentId, userId);

@@ -1,9 +1,9 @@
 package com.example.agentx.infrastructure.payment.factory;
 
+import org.springframework.stereotype.Component;
 import com.example.agentx.domain.order.constant.PaymentPlatform;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.infrastructure.payment.provider.PaymentProvider;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -91,8 +91,7 @@ public class PaymentProviderFactory {
      * @return 支付提供商列表
      */
     public List<PaymentProvider> getAvailableProviders() {
-        return providerCache.values().stream()
-                .sorted(Comparator.comparing(PaymentProvider::getDisplayInfo))
+        return providerCache.values().stream().sorted(Comparator.comparing(PaymentProvider::getDisplayInfo))
                 .collect(java.util.stream.Collectors.toList());
     }
 

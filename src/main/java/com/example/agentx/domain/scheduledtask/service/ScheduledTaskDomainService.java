@@ -1,11 +1,11 @@
 package com.example.agentx.domain.scheduledtask.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.scheduledtask.constant.ScheduleTaskStatus;
 import com.example.agentx.domain.scheduledtask.model.ScheduledTaskEntity;
 import com.example.agentx.domain.scheduledtask.repository.ScheduledTaskRepository;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,9 +41,7 @@ public class ScheduledTaskDomainService {
      */
     public List<ScheduledTaskEntity> getTasksByUserId(String userId) {
         return scheduledTaskRepository.selectList(Wrappers.<ScheduledTaskEntity>lambdaQuery()
-                .eq(ScheduledTaskEntity::getUserId, userId)
-                .orderByDesc(ScheduledTaskEntity::getCreatedAt)
-        );
+                .eq(ScheduledTaskEntity::getUserId, userId).orderByDesc(ScheduledTaskEntity::getCreatedAt));
     }
 
     /**
@@ -54,11 +52,9 @@ public class ScheduledTaskDomainService {
      * @return 定时任务列表
      */
     public List<ScheduledTaskEntity> getTasksByUserIdAndStatus(String userId, ScheduleTaskStatus status) {
-        return scheduledTaskRepository.selectList(Wrappers.<ScheduledTaskEntity>lambdaQuery()
-                .eq(ScheduledTaskEntity::getUserId, userId)
-                .eq(ScheduledTaskEntity::getStatus, status)
-                .orderByDesc(ScheduledTaskEntity::getCreatedAt)
-        );
+        return scheduledTaskRepository
+                .selectList(Wrappers.<ScheduledTaskEntity>lambdaQuery().eq(ScheduledTaskEntity::getUserId, userId)
+                        .eq(ScheduledTaskEntity::getStatus, status).orderByDesc(ScheduledTaskEntity::getCreatedAt));
     }
 
     /**
@@ -69,9 +65,7 @@ public class ScheduledTaskDomainService {
      */
     public List<ScheduledTaskEntity> getTasksBySessionId(String sessionId) {
         return scheduledTaskRepository.selectList(Wrappers.<ScheduledTaskEntity>lambdaQuery()
-                .eq(ScheduledTaskEntity::getSessionId, sessionId)
-                .orderByDesc(ScheduledTaskEntity::getCreatedAt)
-        );
+                .eq(ScheduledTaskEntity::getSessionId, sessionId).orderByDesc(ScheduledTaskEntity::getCreatedAt));
     }
 
     /**
@@ -82,9 +76,7 @@ public class ScheduledTaskDomainService {
      */
     public List<ScheduledTaskEntity> getTasksByAgentId(String agentId) {
         return scheduledTaskRepository.selectList(Wrappers.<ScheduledTaskEntity>lambdaQuery()
-                .eq(ScheduledTaskEntity::getAgentId, agentId)
-                .orderByDesc(ScheduledTaskEntity::getCreatedAt)
-        );
+                .eq(ScheduledTaskEntity::getAgentId, agentId).orderByDesc(ScheduledTaskEntity::getCreatedAt));
     }
 
     /**
@@ -95,8 +87,7 @@ public class ScheduledTaskDomainService {
     public List<ScheduledTaskEntity> getActiveTasksToExecute() {
         return scheduledTaskRepository.selectList(Wrappers.<ScheduledTaskEntity>lambdaQuery()
                 .eq(ScheduledTaskEntity::getStatus, ScheduleTaskStatus.ACTIVE)
-                .orderByAsc(ScheduledTaskEntity::getCreatedAt)
-        );
+                .orderByAsc(ScheduledTaskEntity::getCreatedAt));
     }
 
     /**
@@ -106,9 +97,7 @@ public class ScheduledTaskDomainService {
      */
     public void updateTask(ScheduledTaskEntity task) {
         scheduledTaskRepository.checkedUpdate(task, Wrappers.<ScheduledTaskEntity>lambdaUpdate()
-                .eq(ScheduledTaskEntity::getId, task.getId())
-                .eq(ScheduledTaskEntity::getUserId, task.getUserId())
-        );
+                .eq(ScheduledTaskEntity::getId, task.getId()).eq(ScheduledTaskEntity::getUserId, task.getUserId()));
     }
 
     /**
@@ -119,9 +108,7 @@ public class ScheduledTaskDomainService {
      */
     public void deleteTask(String taskId, String userId) {
         scheduledTaskRepository.checkedDelete(Wrappers.<ScheduledTaskEntity>lambdaQuery()
-                .eq(ScheduledTaskEntity::getId, taskId)
-                .eq(ScheduledTaskEntity::getUserId, userId)
-        );
+                .eq(ScheduledTaskEntity::getId, taskId).eq(ScheduledTaskEntity::getUserId, userId));
     }
 
     /**
@@ -134,9 +121,7 @@ public class ScheduledTaskDomainService {
         ScheduledTaskEntity task = new ScheduledTaskEntity();
         task.setStatus(ScheduleTaskStatus.PAUSED);
         scheduledTaskRepository.checkedUpdate(task, Wrappers.<ScheduledTaskEntity>lambdaUpdate()
-                .eq(ScheduledTaskEntity::getId, taskId)
-                .eq(ScheduledTaskEntity::getUserId, userId)
-        );
+                .eq(ScheduledTaskEntity::getId, taskId).eq(ScheduledTaskEntity::getUserId, userId));
     }
 
     /**
@@ -148,11 +133,8 @@ public class ScheduledTaskDomainService {
     public void resumeTask(String taskId, String userId) {
         ScheduledTaskEntity task = new ScheduledTaskEntity();
         task.setStatus(ScheduleTaskStatus.ACTIVE);
-        scheduledTaskRepository.checkedUpdate(task,
-                Wrappers.<ScheduledTaskEntity>lambdaUpdate()
-                        .eq(ScheduledTaskEntity::getId, taskId)
-                        .eq(ScheduledTaskEntity::getUserId, userId)
-        );
+        scheduledTaskRepository.checkedUpdate(task, Wrappers.<ScheduledTaskEntity>lambdaUpdate()
+                .eq(ScheduledTaskEntity::getId, taskId).eq(ScheduledTaskEntity::getUserId, userId));
     }
 
     /**
@@ -164,11 +146,8 @@ public class ScheduledTaskDomainService {
     public void completeTask(String taskId, String userId) {
         ScheduledTaskEntity task = new ScheduledTaskEntity();
         task.setStatus(ScheduleTaskStatus.COMPLETED);
-        scheduledTaskRepository.checkedUpdate(task,
-                Wrappers.<ScheduledTaskEntity>lambdaUpdate()
-                        .eq(ScheduledTaskEntity::getId, taskId)
-                        .eq(ScheduledTaskEntity::getUserId, userId)
-        );
+        scheduledTaskRepository.checkedUpdate(task, Wrappers.<ScheduledTaskEntity>lambdaUpdate()
+                .eq(ScheduledTaskEntity::getId, taskId).eq(ScheduledTaskEntity::getUserId, userId));
     }
 
     /**
@@ -182,11 +161,8 @@ public class ScheduledTaskDomainService {
         scheduledTaskEntity.setNextExecuteTime(executeTime);
         scheduledTaskEntity.setId(taskId);
 
-        scheduledTaskRepository.checkedUpdate(scheduledTaskEntity,
-                Wrappers.<ScheduledTaskEntity>lambdaUpdate()
-                        .eq(ScheduledTaskEntity::getId, taskId)
-                        .set(ScheduledTaskEntity::getLastExecuteTime, executeTime)
-        );
+        scheduledTaskRepository.checkedUpdate(scheduledTaskEntity, Wrappers.<ScheduledTaskEntity>lambdaUpdate()
+                .eq(ScheduledTaskEntity::getId, taskId).set(ScheduledTaskEntity::getLastExecuteTime, executeTime));
     }
 
     /**
@@ -196,11 +172,8 @@ public class ScheduledTaskDomainService {
      * @param userId 用户ID
      */
     public void checkTaskExist(String taskId, String userId) {
-        ScheduledTaskEntity task = scheduledTaskRepository.selectOne(
-                Wrappers.<ScheduledTaskEntity>lambdaQuery()
-                        .eq(ScheduledTaskEntity::getId, taskId)
-                        .eq(ScheduledTaskEntity::getUserId, userId)
-        );
+        ScheduledTaskEntity task = scheduledTaskRepository.selectOne(Wrappers.<ScheduledTaskEntity>lambdaQuery()
+                .eq(ScheduledTaskEntity::getId, taskId).eq(ScheduledTaskEntity::getUserId, userId));
         if (task == null) {
             throw new BusinessException("定时任务不存在");
         }
@@ -214,11 +187,8 @@ public class ScheduledTaskDomainService {
      * @return 定时任务实体
      */
     public ScheduledTaskEntity getTask(String taskId, String userId) {
-        ScheduledTaskEntity task = scheduledTaskRepository.selectOne(
-                Wrappers.<ScheduledTaskEntity>lambdaQuery()
-                        .eq(ScheduledTaskEntity::getId, taskId)
-                        .eq(ScheduledTaskEntity::getUserId, userId)
-        );
+        ScheduledTaskEntity task = scheduledTaskRepository.selectOne(Wrappers.<ScheduledTaskEntity>lambdaQuery()
+                .eq(ScheduledTaskEntity::getId, taskId).eq(ScheduledTaskEntity::getUserId, userId));
         if (task == null) {
             throw new BusinessException("定时任务不存在");
         }
@@ -232,9 +202,8 @@ public class ScheduledTaskDomainService {
      * @return 任务数量
      */
     public long countByUserId(String userId) {
-        return scheduledTaskRepository.selectCount(Wrappers.<ScheduledTaskEntity>lambdaQuery()
-                .eq(ScheduledTaskEntity::getUserId, userId)
-        );
+        return scheduledTaskRepository
+                .selectCount(Wrappers.<ScheduledTaskEntity>lambdaQuery().eq(ScheduledTaskEntity::getUserId, userId));
     }
 
     /**
@@ -246,9 +215,7 @@ public class ScheduledTaskDomainService {
      */
     public long countByUserIdAndStatus(String userId, ScheduleTaskStatus status) {
         return scheduledTaskRepository.selectCount(Wrappers.<ScheduledTaskEntity>lambdaQuery()
-                .eq(ScheduledTaskEntity::getUserId, userId)
-                .eq(ScheduledTaskEntity::getStatus, status)
-        );
+                .eq(ScheduledTaskEntity::getUserId, userId).eq(ScheduledTaskEntity::getStatus, status));
     }
 
     /**
@@ -260,9 +227,7 @@ public class ScheduledTaskDomainService {
      */
     public int deleteTasksBySessionId(String sessionId, String userId) {
         return scheduledTaskRepository.delete(Wrappers.<ScheduledTaskEntity>lambdaQuery()
-                .eq(ScheduledTaskEntity::getSessionId, sessionId)
-                .eq(ScheduledTaskEntity::getUserId, userId)
-        );
+                .eq(ScheduledTaskEntity::getSessionId, sessionId).eq(ScheduledTaskEntity::getUserId, userId));
     }
 
     /**
@@ -274,8 +239,6 @@ public class ScheduledTaskDomainService {
      */
     public int deleteTasksByAgentId(String agentId, String userId) {
         return scheduledTaskRepository.delete(Wrappers.<ScheduledTaskEntity>lambdaQuery()
-                .eq(ScheduledTaskEntity::getAgentId, agentId)
-                .eq(ScheduledTaskEntity::getUserId, userId)
-        );
+                .eq(ScheduledTaskEntity::getAgentId, agentId).eq(ScheduledTaskEntity::getUserId, userId));
     }
 }

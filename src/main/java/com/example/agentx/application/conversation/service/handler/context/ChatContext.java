@@ -6,6 +6,7 @@ import com.example.agentx.domain.conversation.model.ContextEntity;
 import com.example.agentx.domain.conversation.model.MessageEntity;
 import com.example.agentx.domain.llm.model.ModelEntity;
 import com.example.agentx.domain.llm.model.ProviderEntity;
+import com.example.agentx.domain.trace.model.TraceContext;
 
 import java.util.List;
 
@@ -39,9 +40,19 @@ public class ChatContext {
     private ModelEntity model;
 
     /**
+     * 原始模型实体（用于追踪模型切换）
+     */
+    private ModelEntity originalModel;
+
+    /**
      * 服务商实体
      */
     private ProviderEntity provider;
+
+    /**
+     * 原始服务商实体（用于追踪服务商切换）
+     */
+    private ProviderEntity originalProvider;
 
     /**
      * 大模型配置
@@ -77,6 +88,11 @@ public class ChatContext {
      * 是否流式响应
      */
     private boolean streaming = true;
+
+    /**
+     * 追踪上下文
+     */
+    private TraceContext traceContext;
 
     public String getSessionId() {
         return sessionId;
@@ -118,12 +134,28 @@ public class ChatContext {
         this.model = model;
     }
 
+    public ModelEntity getOriginalModel() {
+        return originalModel;
+    }
+
+    public void setOriginalModel(ModelEntity originalModel) {
+        this.originalModel = originalModel;
+    }
+
     public ProviderEntity getProvider() {
         return provider;
     }
 
     public void setProvider(ProviderEntity provider) {
         this.provider = provider;
+    }
+
+    public ProviderEntity getOriginalProvider() {
+        return originalProvider;
+    }
+
+    public void setOriginalProvider(ProviderEntity originalProvider) {
+        this.originalProvider = originalProvider;
     }
 
     public LLMModelConfig getLlmModelConfig() {
@@ -180,5 +212,13 @@ public class ChatContext {
 
     public void setStreaming(boolean streaming) {
         this.streaming = streaming;
+    }
+
+    public TraceContext getTraceContext() {
+        return traceContext;
+    }
+
+    public void setTraceContext(TraceContext traceContext) {
+        this.traceContext = traceContext;
     }
 }

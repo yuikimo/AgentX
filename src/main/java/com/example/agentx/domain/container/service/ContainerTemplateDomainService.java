@@ -1,12 +1,12 @@
 package com.example.agentx.domain.container.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.container.constant.ContainerType;
 import com.example.agentx.domain.container.model.ContainerTemplateEntity;
 import com.example.agentx.domain.container.repository.ContainerTemplateRepository;
 import com.example.agentx.infrastructure.entity.Operator;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -26,9 +26,10 @@ public class ContainerTemplateDomainService {
      * 创建容器模板
      *
      * @param template 模板实体
+     * @param operator 操作者
      * @return 创建的模板
      */
-    public ContainerTemplateEntity createTemplate(ContainerTemplateEntity template) {
+    public ContainerTemplateEntity createTemplate(ContainerTemplateEntity template, Operator operator) {
         // 验证模板有效性
         if (!template.isValid()) {
             throw new BusinessException("模板配置无效");
@@ -61,9 +62,11 @@ public class ContainerTemplateDomainService {
      *
      * @param templateId 模板ID
      * @param updates    更新内容
+     * @param operator   操作者
      * @return 更新后的模板
      */
-    public ContainerTemplateEntity updateTemplate(String templateId, ContainerTemplateEntity updates) {
+    public ContainerTemplateEntity updateTemplate(String templateId, ContainerTemplateEntity updates,
+                                                  Operator operator) {
         ContainerTemplateEntity existingTemplate = templateRepository.selectById(templateId);
         if (existingTemplate == null) {
             throw new BusinessException("模板不存在");
@@ -96,8 +99,9 @@ public class ContainerTemplateDomainService {
      * 删除容器模板
      *
      * @param templateId 模板ID
+     * @param operator   操作者
      */
-    public void deleteTemplate(String templateId) {
+    public void deleteTemplate(String templateId, Operator operator) {
         ContainerTemplateEntity template = templateRepository.selectById(templateId);
         if (template == null) {
             throw new BusinessException("模板不存在");
@@ -114,8 +118,9 @@ public class ContainerTemplateDomainService {
      *
      * @param templateId 模板ID
      * @param enabled    是否启用
+     * @param operator   操作者
      */
-    public void toggleTemplateStatus(String templateId, boolean enabled) {
+    public void toggleTemplateStatus(String templateId, boolean enabled, Operator operator) {
         ContainerTemplateEntity template = templateRepository.selectById(templateId);
         if (template == null) {
             throw new BusinessException("模板不存在");
@@ -135,8 +140,9 @@ public class ContainerTemplateDomainService {
      * 设置默认模板
      *
      * @param templateId 模板ID
+     * @param operator   操作者
      */
-    public void setDefaultTemplate(String templateId) {
+    public void setDefaultTemplate(String templateId, Operator operator) {
         ContainerTemplateEntity template = templateRepository.selectById(templateId);
         if (template == null) {
             throw new BusinessException("模板不存在");

@@ -1,13 +1,13 @@
 package com.example.agentx.domain.agent.service;
 
-import com.example.agentx.domain.agent.constant.SystemPromptTemplates;
-import com.example.agentx.domain.tool.model.ToolEntity;
-import com.example.agentx.infrastructure.exception.BusinessException;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import org.springframework.stereotype.Service;
+import com.example.agentx.domain.agent.constant.SystemPromptTemplates;
+import com.example.agentx.domain.tool.model.ToolEntity;
+import com.example.agentx.infrastructure.exception.BusinessException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -61,7 +61,7 @@ public class SystemPromptGeneratorDomainService {
         }
 
         // 3. 将模板和信息组合成最终的、发往LLM的完整指令
-        return metaPromptTemplate + overview;
+        return metaPromptTemplate + overview.toString();
     }
 
     /**

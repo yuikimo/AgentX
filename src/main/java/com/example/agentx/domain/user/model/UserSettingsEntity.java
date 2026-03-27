@@ -1,10 +1,10 @@
 package com.example.agentx.domain.user.model;
 
 import com.baomidou.mybatisplus.annotation.*;
-import com.example.agentx.domain.user.model.config.UserSettingsConfig;
-import com.example.agentx.infrastructure.converter.UserSettingsConfigConverter;
-import com.example.agentx.infrastructure.entity.BaseEntity;
 import org.apache.ibatis.type.JdbcType;
+import com.example.agentx.infrastructure.entity.BaseEntity;
+import com.example.agentx.infrastructure.converter.UserSettingsConfigConverter;
+import com.example.agentx.domain.user.model.config.UserSettingsConfig;
 
 /**
  * 用户设置领域模型

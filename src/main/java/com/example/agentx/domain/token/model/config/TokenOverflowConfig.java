@@ -1,8 +1,8 @@
 package com.example.agentx.domain.token.model.config;
 
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.shared.enums.TokenOverflowStrategyEnum;
 import com.example.agentx.infrastructure.llm.config.ProviderConfig;
-import org.springframework.stereotype.Service;
 
 /**
  * Token超限处理配置基础类

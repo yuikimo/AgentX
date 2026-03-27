@@ -1,7 +1,7 @@
 package com.example.agentx.interfaces.dto.agent.request;
 
-import com.example.agentx.domain.agent.model.LLMModelConfig;
 import jakarta.validation.constraints.NotBlank;
+import com.example.agentx.domain.agent.model.LLMModelConfig;
 
 import java.util.List;
 import java.util.Map;

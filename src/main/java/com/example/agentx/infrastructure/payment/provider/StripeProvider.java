@@ -1,10 +1,5 @@
 package com.example.agentx.infrastructure.payment.provider;
 
-import com.example.agentx.domain.order.constant.OrderStatus;
-import com.example.agentx.domain.order.constant.PaymentPlatform;
-import com.example.agentx.infrastructure.payment.model.PaymentCallback;
-import com.example.agentx.infrastructure.payment.model.PaymentRequest;
-import com.example.agentx.infrastructure.payment.model.PaymentResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
@@ -19,6 +14,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import com.example.agentx.domain.order.constant.OrderStatus;
+import com.example.agentx.domain.order.constant.PaymentPlatform;
+import com.example.agentx.infrastructure.payment.model.PaymentCallback;
+import com.example.agentx.infrastructure.payment.model.PaymentRequest;
+import com.example.agentx.infrastructure.payment.model.PaymentResult;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -97,30 +97,22 @@ public class StripeProvider extends PaymentProvider {
 
             // 创建Stripe Checkout Session
             SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
-                    .setMode(SessionCreateParams.Mode.PAYMENT) // 设置为一次性付款模式
+                    .setMode(SessionCreateParams.Mode.PAYMENT)
                     .setSuccessUrl(
                             request.getSuccessUrl() != null ? request.getSuccessUrl() : "https://example.com/success")
                     .setCancelUrl(
                             request.getCancelUrl() != null ? request.getCancelUrl() : "https://example.com/cancel")
-                    // 商品详情
                     .addLineItem(SessionCreateParams.LineItem.builder().setQuantity(1L)
                             .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
-                                    // 币种
                                     .setCurrency(request.getCurrency().toLowerCase())
-                                    // 金额
                                     .setUnitAmount(Long.parseLong(formatAmount(request.getAmount().toString())))
-                                    // 设置商品名称和描述
                                     .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                            .setName(request.getTitle())
-                                            .setDescription(request.getDescription())
+                                            .setName(request.getTitle()).setDescription(request.getDescription())
                                             .build())
                                     .build())
                             .build())
-                    // 元数据
-                    .putMetadata("order_id", request.getOrderId())
-                    .putMetadata("order_no", request.getOrderNo())
-                    .putMetadata("user_id", request.getUserId())
-                    .putMetadata("payment_id", request.getPaymentId());
+                    .putMetadata("order_id", request.getOrderId()).putMetadata("order_no", request.getOrderNo())
+                    .putMetadata("user_id", request.getUserId()).putMetadata("payment_id", request.getPaymentId());
 
             // 如果有异步通知URL，设置webhook
             if (StringUtils.hasText(request.getNotifyUrl())) {
@@ -128,7 +120,6 @@ public class StripeProvider extends PaymentProvider {
                 paramsBuilder.putMetadata("notify_url", request.getNotifyUrl());
             }
 
-            // 创建会话并获取支付链接
             Session session = Session.create(paramsBuilder.build());
 
             PaymentResult result = PaymentResult.success();
@@ -238,6 +229,7 @@ public class StripeProvider extends PaymentProvider {
 
             // 直接处理Stripe事件数据，不调用旧方法
             return processStripeEvent(callbackData, callback);
+
         } catch (Exception e) {
             logger.error("Stripe回调处理异常", e);
             callback.setSignatureValid(false);

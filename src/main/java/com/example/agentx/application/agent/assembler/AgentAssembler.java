@@ -1,12 +1,13 @@
 package com.example.agentx.application.agent.assembler;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.example.agentx.application.agent.dto.AgentDTO;
+import org.springframework.beans.BeanUtils;
 import com.example.agentx.domain.agent.model.AgentEntity;
+
+import com.example.agentx.application.agent.dto.AgentDTO;
 import com.example.agentx.interfaces.dto.agent.request.CreateAgentRequest;
 import com.example.agentx.interfaces.dto.agent.request.SearchAgentsRequest;
 import com.example.agentx.interfaces.dto.agent.request.UpdateAgentRequest;
-import org.springframework.beans.BeanUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

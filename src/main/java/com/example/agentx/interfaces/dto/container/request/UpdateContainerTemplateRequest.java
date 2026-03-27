@@ -1,9 +1,12 @@
 package com.example.agentx.interfaces.dto.container.request;
 
 import jakarta.validation.constraints.*;
+
 import java.util.Map;
 
-/** 更新容器模板请求 */
+/**
+ * 更新容器模板请求
+ */
 public class UpdateContainerTemplateRequest {
 
     @Size(max = 100, message = "模板名称长度不能超过100字符")

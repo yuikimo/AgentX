@@ -1,5 +1,6 @@
 package com.example.agentx.application.user.service;
 
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.auth.constant.AuthFeatureKey;
 import com.example.agentx.domain.auth.service.AuthSettingDomainService;
 import com.example.agentx.domain.user.model.UserEntity;
@@ -10,7 +11,6 @@ import com.example.agentx.infrastructure.utils.JwtUtils;
 import com.example.agentx.infrastructure.verification.VerificationCodeService;
 import com.example.agentx.interfaces.dto.user.request.LoginRequest;
 import com.example.agentx.interfaces.dto.user.request.RegisterRequest;
-import org.springframework.stereotype.Service;
 
 import org.springframework.util.StringUtils;
 

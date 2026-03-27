@@ -4,9 +4,9 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import org.apache.ibatis.type.JdbcType;
 import com.example.agentx.infrastructure.converter.LLMModelConfigConverter;
 import com.example.agentx.infrastructure.entity.BaseEntity;
-import org.apache.ibatis.type.JdbcType;
 
 /**
  * Agent工作区实体类 用于记录用户添加到工作区的Agent

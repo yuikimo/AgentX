@@ -15,8 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 上下文处理器
- * 负责处理对话上下文和消息列表的相关业务逻辑
+ * 上下文处理器 负责处理对话上下文和消息列表的相关业务逻辑
  */
 @Service
 public class ContextProcessor {
@@ -25,10 +24,8 @@ public class ContextProcessor {
     private final MessageDomainService messageDomainService;
     private final TokenDomainService tokenDomainService;
 
-    public ContextProcessor(
-            ContextDomainService contextDomainService,
-            MessageDomainService messageDomainService,
-            TokenDomainService tokenDomainService) {
+    public ContextProcessor(ContextDomainService contextDomainService, MessageDomainService messageDomainService,
+                            TokenDomainService tokenDomainService) {
         this.contextDomainService = contextDomainService;
         this.messageDomainService = messageDomainService;
         this.tokenDomainService = tokenDomainService;
@@ -44,12 +41,8 @@ public class ContextProcessor {
      * @param providerConfig   提供商配置
      * @return 处理后的上下文和消息信息
      */
-    public ContextResult processContext(
-            String sessionId,
-            int maxTokens,
-            TokenOverflowStrategyEnum strategyType,
-            int summaryThreshold,
-            ProviderConfig providerConfig) {
+    public ContextResult processContext(String sessionId, int maxTokens, TokenOverflowStrategyEnum strategyType,
+                                        int summaryThreshold, ProviderConfig providerConfig) {
 
         ContextEntity contextEntity = contextDomainService.findBySessionId(sessionId);
         List<MessageEntity> messageEntities = new ArrayList<>();
@@ -73,8 +66,7 @@ public class ContextProcessor {
             if (tokenProcessResult.isProcessed()) {
                 // 保留后的消息列表
                 List<TokenMessage> retainedMessages = tokenProcessResult.getRetainedMessages();
-                List<String> retainedMessageIds = retainedMessages.stream()
-                        .map(TokenMessage::getId)
+                List<String> retainedMessageIds = retainedMessages.stream().map(TokenMessage::getId)
                         .collect(Collectors.toList());
 
                 if (strategyType == TokenOverflowStrategyEnum.SUMMARIZE) {
@@ -127,4 +119,4 @@ public class ContextProcessor {
             return messageEntities;
         }
     }
-} 
+}

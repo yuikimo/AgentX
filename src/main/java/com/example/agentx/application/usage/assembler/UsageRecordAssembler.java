@@ -1,8 +1,8 @@
 package com.example.agentx.application.usage.assembler;
 
+import org.springframework.beans.BeanUtils;
 import com.example.agentx.application.usage.dto.UsageRecordDTO;
 import com.example.agentx.domain.user.model.UsageRecordEntity;
-import org.springframework.beans.BeanUtils;
 
 import java.util.Collections;
 import java.util.List;

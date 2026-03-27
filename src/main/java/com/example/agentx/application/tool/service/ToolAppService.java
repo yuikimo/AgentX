@@ -7,6 +7,11 @@ import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.example.agentx.application.tool.assembler.ToolAssembler;
 import com.example.agentx.application.tool.dto.ToolDTO;
 import com.example.agentx.application.tool.dto.ToolVersionDTO;
@@ -26,11 +31,6 @@ import com.example.agentx.interfaces.dto.tool.request.CreateToolRequest;
 import com.example.agentx.interfaces.dto.tool.request.MarketToolRequest;
 import com.example.agentx.interfaces.dto.tool.request.QueryToolRequest;
 import com.example.agentx.interfaces.dto.tool.request.UpdateToolRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 工具应用服务
@@ -175,7 +175,8 @@ public class ToolAppService {
     }
 
     public ToolVersionDTO getToolVersionDetail(String toolId, String version, String userId) {
-        ToolVersionEntity toolVersionEntity = toolVersionDomainService.getToolVersion(toolId, version);
+        // 使用带权限验证的方法获取工具版本详情
+        ToolVersionEntity toolVersionEntity = toolVersionDomainService.getToolVersion(toolId, version, userId);
         ToolVersionDTO toolVersionDTO = ToolAssembler.toDTO(toolVersionEntity);
         // 设置创建者昵称
         UserEntity userInfo = userDomainService.getUserInfo(toolVersionDTO.getUserId());
@@ -192,7 +193,8 @@ public class ToolAppService {
 
     public void installTool(String toolId, String version, String userId) {
         UserToolEntity userToolEntity = userToolDomainService.findByToolIdAndUserId(toolId, userId);
-        ToolVersionEntity toolVersionEntity = toolVersionDomainService.getToolVersion(toolId, version);
+        // 使用带权限验证的方法获取工具版本
+        ToolVersionEntity toolVersionEntity = toolVersionDomainService.getToolVersion(toolId, version, userId);
 
         if (userToolEntity == null) {
             userToolEntity = new UserToolEntity();
@@ -220,8 +222,7 @@ public class ToolAppService {
         ArrayList<String> toolIds = new ArrayList<>();
 
         Map<String, ToolEntity> toolMap = toolDomainService
-                .getByIds(userToolEntityPage.getRecords().stream().map(UserToolEntity::getToolId).toList())
-                .stream()
+                .getByIds(userToolEntityPage.getRecords().stream().map(UserToolEntity::getToolId).toList()).stream()
                 .collect(Collectors.toMap(ToolEntity::getId, Function.identity()));
 
         List<ToolVersionDTO> list = userToolEntityPage.getRecords().stream().map(userToolEntity -> {

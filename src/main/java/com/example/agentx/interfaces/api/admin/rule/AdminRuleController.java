@@ -1,14 +1,14 @@
 package com.example.agentx.interfaces.api.admin.rule;
 
+import com.example.agentx.interfaces.dto.PageResult;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 import com.example.agentx.application.rule.dto.RuleDTO;
 import com.example.agentx.application.rule.service.RuleAppService;
 import com.example.agentx.interfaces.api.common.Result;
-import com.example.agentx.interfaces.dto.PageResult;
 import com.example.agentx.interfaces.dto.rule.request.CreateRuleRequest;
 import com.example.agentx.interfaces.dto.rule.request.QueryRuleRequest;
 import com.example.agentx.interfaces.dto.rule.request.UpdateRuleRequest;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 

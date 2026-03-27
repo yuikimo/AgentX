@@ -1,5 +1,7 @@
 package com.example.agentx.application.scheduledtask.service;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.example.agentx.application.scheduledtask.assembler.ScheduledTaskAssembler;
 import com.example.agentx.application.scheduledtask.dto.ScheduledTaskDTO;
 import com.example.agentx.domain.scheduledtask.model.ScheduledTaskEntity;
@@ -8,18 +10,13 @@ import com.example.agentx.domain.scheduledtask.service.ScheduledTaskExecutionSer
 import com.example.agentx.domain.scheduledtask.service.TaskScheduleService;
 import com.example.agentx.interfaces.dto.scheduledtask.request.CreateScheduledTaskRequest;
 import com.example.agentx.interfaces.dto.scheduledtask.request.UpdateScheduledTaskRequest;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * 定时任务应用服务 职责：
- * 1. 接收和验证来自接口层的请求
- * 2. 将请求转换为领域对象或参数
- * 3. 调用领域服务执行业务逻辑
- * 4. 转换和返回结果给接口层
+ * 定时任务应用服务 职责： 1. 接收和验证来自接口层的请求 2. 将请求转换为领域对象或参数 3. 调用领域服务执行业务逻辑 4. 转换和返回结果给接口层
  */
 @Service
 public class ScheduledTaskAppService {
@@ -73,6 +70,12 @@ public class ScheduledTaskAppService {
         // 使用组装器创建更新实体
         ScheduledTaskEntity updateEntity = ScheduledTaskAssembler.toEntity(request, userId);
 
+        ScheduledTaskEntity task = scheduledTaskDomainService.getTask(request.getId(), userId);
+        updateEntity.setStatus(task.getStatus());
+        updateEntity.setSessionId(task.getSessionId());
+        updateEntity.setAgentId(task.getAgentId());
+        updateEntity.setLastExecuteTime(task.getLastExecuteTime());
+
         // 如果更新了重复配置，重新计算下次执行时间
         if (updateEntity.getRepeatConfig() != null) {
             LocalDateTime nextExecuteTime = taskScheduleService.calculateNextExecuteTime(updateEntity,
@@ -121,7 +124,7 @@ public class ScheduledTaskAppService {
      */
     public List<ScheduledTaskDTO> getUserTasks(String userId) {
         List<ScheduledTaskEntity> entities = scheduledTaskDomainService.getTasksByUserId(userId);
-        return entities.stream().map(ScheduledTaskAssembler::toDTO).collect(java.util.stream.Collectors.toList());
+        return entities.stream().map(ScheduledTaskAssembler::toDTO).collect(Collectors.toList());
     }
 
     /**
@@ -135,7 +138,7 @@ public class ScheduledTaskAppService {
         List<ScheduledTaskEntity> entities = scheduledTaskDomainService.getTasksBySessionId(sessionId);
         // 过滤出属于当前用户的任务
         return entities.stream().filter(entity -> userId.equals(entity.getUserId())).map(ScheduledTaskAssembler::toDTO)
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
     }
 
     /**
@@ -149,7 +152,7 @@ public class ScheduledTaskAppService {
         List<ScheduledTaskEntity> entities = scheduledTaskDomainService.getTasksByAgentId(agentId);
         // 过滤出属于当前用户的任务
         return entities.stream().filter(entity -> userId.equals(entity.getUserId())).map(ScheduledTaskAssembler::toDTO)
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
     }
 
     /**

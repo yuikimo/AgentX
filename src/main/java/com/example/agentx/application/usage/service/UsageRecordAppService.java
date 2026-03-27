@@ -1,13 +1,13 @@
 package com.example.agentx.application.usage.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.stereotype.Service;
 import com.example.agentx.application.usage.assembler.UsageRecordAssembler;
 import com.example.agentx.application.usage.dto.UsageRecordDTO;
 import com.example.agentx.domain.user.model.UsageRecordEntity;
 import com.example.agentx.domain.user.service.UsageRecordDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.interfaces.dto.usage.request.QueryUsageRecordRequest;
-import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -67,6 +67,7 @@ public class UsageRecordAppService {
      */
     public Page<UsageRecordDTO> queryUsageRecords(QueryUsageRecordRequest request) {
         // 构建查询条件
+
         Page<UsageRecordEntity> usageRecordEntityPage = usageRecordDomainService.queryUsageRecords(request);
 
         // 转换结果
@@ -170,4 +171,5 @@ public class UsageRecordAppService {
 
         return entities.stream().map(UsageRecordEntity::getCost).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
 }

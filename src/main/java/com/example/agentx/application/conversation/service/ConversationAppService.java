@@ -1,20 +1,29 @@
 package com.example.agentx.application.conversation.service;
 
+import cn.hutool.core.bean.BeanUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import com.example.agentx.application.conversation.assembler.MessageAssembler;
 import com.example.agentx.application.conversation.dto.AgentPreviewRequest;
 import com.example.agentx.application.conversation.dto.ChatRequest;
 import com.example.agentx.application.conversation.dto.ChatResponse;
 import com.example.agentx.application.conversation.dto.MessageDTO;
-import com.example.agentx.application.conversation.service.handler.MessageHandlerFactory;
-import com.example.agentx.application.conversation.service.handler.context.ChatContext;
 import com.example.agentx.application.conversation.service.message.AbstractMessageHandler;
 import com.example.agentx.application.conversation.service.message.preview.PreviewMessageHandler;
+import com.example.agentx.domain.conversation.constant.MessageType;
+import com.example.agentx.domain.user.service.UserSettingsDomainService;
+
 import com.example.agentx.domain.agent.model.AgentEntity;
 import com.example.agentx.domain.agent.model.AgentVersionEntity;
 import com.example.agentx.domain.agent.model.AgentWorkspaceEntity;
 import com.example.agentx.domain.agent.model.LLMModelConfig;
 import com.example.agentx.domain.agent.service.AgentDomainService;
 import com.example.agentx.domain.agent.service.AgentWorkspaceDomainService;
+import com.example.agentx.application.conversation.service.handler.context.ChatContext;
+import com.example.agentx.application.conversation.service.handler.MessageHandlerFactory;
 import com.example.agentx.domain.conversation.constant.Role;
 import com.example.agentx.domain.conversation.model.ContextEntity;
 import com.example.agentx.domain.conversation.model.MessageEntity;
@@ -23,9 +32,9 @@ import com.example.agentx.domain.conversation.service.ContextDomainService;
 import com.example.agentx.domain.conversation.service.ConversationDomainService;
 import com.example.agentx.domain.conversation.service.MessageDomainService;
 import com.example.agentx.domain.conversation.service.SessionDomainService;
-import com.example.agentx.domain.llm.model.HighAvailabilityResult;
 import com.example.agentx.domain.llm.model.ModelEntity;
 import com.example.agentx.domain.llm.model.ProviderEntity;
+import com.example.agentx.domain.llm.model.HighAvailabilityResult;
 import com.example.agentx.domain.llm.service.HighAvailabilityDomainService;
 import com.example.agentx.domain.llm.service.LLMDomainService;
 import com.example.agentx.domain.shared.enums.TokenOverflowStrategyEnum;
@@ -34,21 +43,18 @@ import com.example.agentx.domain.token.model.TokenProcessResult;
 import com.example.agentx.domain.token.model.config.TokenOverflowConfig;
 import com.example.agentx.domain.token.service.TokenDomainService;
 import com.example.agentx.domain.tool.model.UserToolEntity;
+import com.example.agentx.domain.tool.service.ToolDomainService;
 import com.example.agentx.domain.tool.service.UserToolDomainService;
-import com.example.agentx.domain.user.service.UserSettingsDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.infrastructure.llm.config.ProviderConfig;
 import com.example.agentx.infrastructure.transport.MessageTransport;
 import com.example.agentx.infrastructure.transport.MessageTransportFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -203,10 +209,11 @@ public class ConversationAppService {
     }
 
     /**
-     * 准备对话环境
+     * 准备对话环境（支持指定模型）- 用于外部API
      *
      * @param chatRequest 聊天请求
      * @param userId      用户ID
+     * @param modelId     指定的模型ID（可选，为null时使用Agent绑定的模型）
      * @return 对话环境
      */
     private ChatContext prepareEnvironmentWithModel(ChatRequest chatRequest, String userId, String modelId) {
@@ -228,14 +235,15 @@ public class ConversationAppService {
         List<String> fallbackChain = userSettingsDomainService.getUserFallbackChain(userId);
         HighAvailabilityResult result = highAvailabilityDomainService.selectBestProvider(model, userId, sessionId,
                 fallbackChain);
+        ProviderEntity originalProvider = llmDomainService.getProvider(model.getProviderId());
         ProviderEntity provider = result.getProvider();
         ModelEntity selectedModel = result.getModel();
         String instanceId = result.getInstanceId();
         provider.isActive();
 
         // 5. 创建并配置环境对象
-        ChatContext chatContext = createChatContext(chatRequest, userId, agent, selectedModel, provider, llmModelConfig,
-                mcpServerNames, instanceId);
+        ChatContext chatContext = createChatContext(chatRequest, userId, agent, model, selectedModel, originalProvider,
+                provider, llmModelConfig, mcpServerNames, instanceId);
         setupContextAndHistory(chatContext, chatRequest);
 
         return chatContext;
@@ -295,8 +303,9 @@ public class ConversationAppService {
     /**
      * 创建ChatContext对象
      */
-    private ChatContext createChatContext(ChatRequest chatRequest, String userId, AgentEntity agent, ModelEntity
-                                                  model,
+    private ChatContext createChatContext(ChatRequest chatRequest, String userId, AgentEntity agent,
+                                          ModelEntity originalModel, ModelEntity selectedModel,
+                                          ProviderEntity originalProvider,
                                           ProviderEntity provider, LLMModelConfig llmModelConfig,
                                           List<String> mcpServerNames, String instanceId) {
         ChatContext chatContext = new ChatContext();
@@ -304,7 +313,9 @@ public class ConversationAppService {
         chatContext.setUserId(userId);
         chatContext.setUserMessage(chatRequest.getMessage());
         chatContext.setAgent(agent);
-        chatContext.setModel(model);
+        chatContext.setOriginalModel(originalModel);
+        chatContext.setModel(selectedModel);
+        chatContext.setOriginalProvider(originalProvider);
         chatContext.setProvider(provider);
         chatContext.setLlmModelConfig(llmModelConfig);
         chatContext.setMcpServerNames(mcpServerNames);
@@ -326,12 +337,12 @@ public class ConversationAppService {
         List<MessageEntity> messageEntities = new ArrayList<>();
 
         if (contextEntity != null) {
-            // 获取活跃消息
+            // 获取活跃消息(包括摘要)
             List<String> activeMessageIds = contextEntity.getActiveMessages();
             messageEntities = messageDomainService.listByIds(activeMessageIds);
 
-            // 应用Token溢出策略
-            applyTokenOverflowStrategy(environment, contextEntity, messageEntities);
+            // 应用Token溢出策略, 上下文历史消息以token策略返回的为准
+            messageEntities = applyTokenOverflowStrategy(environment, contextEntity, messageEntities);
         } else {
             contextEntity = new ContextEntity();
             contextEntity.setSessionId(sessionId);
@@ -351,14 +362,14 @@ public class ConversationAppService {
     }
 
     /**
-     * 应用Token溢出策略
+     * 应用Token溢出策略，返回处理后的历史消息
      *
      * @param environment     对话环境
      * @param contextEntity   上下文实体
      * @param messageEntities 消息实体列表
      */
-    private void applyTokenOverflowStrategy(ChatContext environment, ContextEntity contextEntity,
-                                            List<MessageEntity> messageEntities) {
+    private List<MessageEntity> applyTokenOverflowStrategy(ChatContext environment, ContextEntity contextEntity,
+                                                           List<MessageEntity> messageEntities) {
 
         LLMModelConfig llmModelConfig = environment.getLlmModelConfig();
         ProviderEntity provider = environment.getProvider();
@@ -374,6 +385,7 @@ public class ConversationAppService {
         tokenOverflowConfig.setStrategyType(strategyType);
         tokenOverflowConfig.setMaxTokens(llmModelConfig.getMaxTokens());
         tokenOverflowConfig.setSummaryThreshold(llmModelConfig.getSummaryThreshold());
+        tokenOverflowConfig.setReserveRatio(llmModelConfig.getReserveRatio());
 
         // 设置提供商配置
         com.example.agentx.domain.llm.model.config.ProviderConfig providerConfig = provider.getConfig();
@@ -382,21 +394,37 @@ public class ConversationAppService {
 
         // 处理Token
         TokenProcessResult result = tokenDomainService.processMessages(tokenMessages, tokenOverflowConfig);
-
+        List<TokenMessage> retainedMessages = new ArrayList<>(tokenMessages);
+        TokenMessage newSummaryMessage = null;
         // 更新上下文
         if (result.isProcessed()) {
-            List<TokenMessage> retainedMessages = result.getRetainedMessages();
-            List<String> retainedMessageIds = retainedMessages.stream().map(TokenMessage::getId)
+            retainedMessages = result.getRetainedMessages();
+            // 统一对 活跃消息进行时间升序排序
+            List<String> retainedMessageIds = retainedMessages.stream()
+                    .sorted(Comparator.comparing(TokenMessage::getCreatedAt))
+                    .map(TokenMessage::getId)
                     .collect(Collectors.toList());
 
-            if (strategyType == TokenOverflowStrategyEnum.SUMMARIZE) {
-                String newSummary = result.getSummary();
-                String oldSummary = contextEntity.getSummary();
-                contextEntity.setSummary(oldSummary + newSummary);
+            if (strategyType == TokenOverflowStrategyEnum.SUMMARIZE
+                    && retainedMessages.get(0).getRole().equals(Role.SUMMARY.name())) {
+                newSummaryMessage = retainedMessages.get(0);
+                contextEntity.setSummary(newSummaryMessage.getContent());
             }
 
             contextEntity.setActiveMessages(retainedMessageIds);
         }
+        Set<String> retainedMessageIdSet = retainedMessages.stream()
+                .map(TokenMessage::getId)
+                .collect(Collectors.toSet());
+
+        // 从messageEntity中过滤出保留的消息，防止Entity字段丢失
+        List<MessageEntity> newHistoryMessages = messageEntities.stream()
+                .filter(message -> retainedMessageIdSet.contains(message.getId()) && !message.isSummaryMessage())
+                .collect(Collectors.toList());
+        if (newSummaryMessage != null) {
+            newHistoryMessages.add(0, this.summaryMessageToEntity(newSummaryMessage, environment.getSessionId()));
+        }
+        return newHistoryMessages;
     }
 
     /**
@@ -409,9 +437,19 @@ public class ConversationAppService {
             tokenMessage.setRole(message.getRole().name());
             tokenMessage.setContent(message.getContent());
             tokenMessage.setTokenCount(message.getTokenCount());
+            tokenMessage.setBodyTokenCount(message.getBodyTokenCount());
             tokenMessage.setCreatedAt(message.getCreatedAt());
             return tokenMessage;
         }).collect(Collectors.toList());
+    }
+
+    private MessageEntity summaryMessageToEntity(TokenMessage tokenMessage, String sessionId) {
+        MessageEntity messageEntity = new MessageEntity();
+        BeanUtil.copyProperties(tokenMessage, messageEntity);
+        messageEntity.setRole(Role.fromCode(tokenMessage.getRole()));
+        messageEntity.setSessionId(sessionId);
+        messageEntity.setMessageType(MessageType.TEXT);
+        return messageEntity;
     }
 
     /**
@@ -447,9 +485,9 @@ public class ConversationAppService {
         ModelEntity model = getModelForChat(null, modelId, userId);
 
         // 2. 获取服务商信息（预览不使用高可用）
-        ProviderEntity provider = llmDomainService.getProvider(model.getProviderId(), userId);
+        ProviderEntity provider = llmDomainService.getProvider(model.getProviderId());
         provider.isActive();
-
+        provider.isAvailable(provider.getUserId());
         // 3. 获取工具配置
         List<String> mcpServerNames = getMcpServerNames(previewRequest.getToolIds(), userId);
 
@@ -457,8 +495,8 @@ public class ConversationAppService {
         LLMModelConfig llmModelConfig = createDefaultLLMModelConfig(modelId);
 
         // 5. 创建并配置环境对象
-        ChatContext chatContext = createPreviewChatContext(previewRequest, userId,
-                virtualAgent, model, provider, llmModelConfig, mcpServerNames);
+        ChatContext chatContext = createPreviewChatContext(previewRequest, userId, virtualAgent, model, provider,
+                llmModelConfig, mcpServerNames);
         setupPreviewContextAndHistory(chatContext, previewRequest);
 
         return chatContext;
@@ -481,8 +519,7 @@ public class ConversationAppService {
     /**
      * 创建预览ChatContext对象
      */
-    private ChatContext createPreviewChatContext(AgentPreviewRequest previewRequest, String userId, AgentEntity
-                                                         agent,
+    private ChatContext createPreviewChatContext(AgentPreviewRequest previewRequest, String userId, AgentEntity agent,
                                                  ModelEntity model, ProviderEntity provider,
                                                  LLMModelConfig llmModelConfig, List<String> mcpServerNames) {
         ChatContext chatContext = new ChatContext();
@@ -509,6 +546,7 @@ public class ConversationAppService {
         virtualAgent.setSystemPrompt(previewRequest.getSystemPrompt());
         virtualAgent.setToolIds(previewRequest.getToolIds());
         virtualAgent.setToolPresetParams(previewRequest.getToolPresetParams());
+        virtualAgent.setKnowledgeBaseIds(previewRequest.getKnowledgeBaseIds()); // 设置知识库IDs用于RAG功能
 
         virtualAgent.setEnabled(true);
         virtualAgent.setCreatedAt(LocalDateTime.now());
@@ -555,7 +593,6 @@ public class ConversationAppService {
                 messageEntities.add(messageEntity);
             }
         }
-
         // 特殊处理当前对话的文件，因为在后续的对话中无法发送文件
         List<String> fileUrls = previewRequest.getFileUrls();
         if (!fileUrls.isEmpty()) {
@@ -569,4 +606,5 @@ public class ConversationAppService {
         environment.setContextEntity(contextEntity);
         environment.setMessageHistory(messageEntities);
     }
+
 }

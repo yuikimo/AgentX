@@ -2,22 +2,22 @@ package com.example.agentx.infrastructure.payment.provider;
 
 import com.alipay.easysdk.factory.Factory;
 import com.alipay.easysdk.kernel.Config;
-import com.alipay.easysdk.kernel.util.ResponseChecker;
+import com.alipay.easysdk.payment.page.models.AlipayTradePagePayResponse;
 import com.alipay.easysdk.payment.common.models.AlipayTradeQueryResponse;
 import com.alipay.easysdk.payment.common.models.AlipayTradeRefundResponse;
 import com.alipay.easysdk.payment.facetoface.models.AlipayTradePrecreateResponse;
-import com.alipay.easysdk.payment.page.models.AlipayTradePagePayResponse;
+import com.alipay.easysdk.kernel.util.ResponseChecker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import com.example.agentx.domain.order.constant.OrderStatus;
 import com.example.agentx.domain.order.constant.PaymentPlatform;
 import com.example.agentx.infrastructure.payment.constant.AlipayPaymentType;
 import com.example.agentx.infrastructure.payment.model.PaymentCallback;
 import com.example.agentx.infrastructure.payment.model.PaymentRequest;
 import com.example.agentx.infrastructure.payment.model.PaymentResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -33,22 +33,15 @@ public class AlipayProvider extends PaymentProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(AlipayProvider.class);
 
-    @Value("${payment.alipay.app-id:}")
-    private String appId;
+    @Override
+    protected boolean supportsRefund() {
+        return true;
+    }
 
-    @Value("${payment.alipay.private-key:}")
-    private String privateKey;
-
-    @Value("${payment.alipay.public-key:}")
-    private String alipayPublicKey;
-
-    @Value("${payment.alipay.gateway-host:openapi-sandbox.dl.alipaydev.com}")
-    private String gatewayHost;
-
-    @Value("${payment.alipay.sign-type:RSA2}")
-    private String signType;
-
-    private volatile boolean initialized = false;
+    @Override
+    protected boolean supportsCancellation() {
+        return false;
+    }
 
     private void initializeConfig() throws Exception {
         if (!initialized && isConfigured()) {
@@ -73,15 +66,22 @@ public class AlipayProvider extends PaymentProvider {
         }
     }
 
-    @Override
-    protected boolean supportsRefund() {
-        return true;
-    }
+    @Value("${payment.alipay.app-id:}")
+    private String appId;
 
-    @Override
-    protected boolean supportsCancellation() {
-        return false;
-    }
+    @Value("${payment.alipay.private-key:}")
+    private String privateKey;
+
+    @Value("${payment.alipay.public-key:}")
+    private String alipayPublicKey;
+
+    @Value("${payment.alipay.gateway-host:openapi-sandbox.dl.alipaydev.com}")
+    private String gatewayHost;
+
+    @Value("${payment.alipay.sign-type:RSA2}")
+    private String signType;
+
+    private volatile boolean initialized = false;
 
     @Override
     public PaymentPlatform getPaymentPlatform() {
@@ -110,8 +110,8 @@ public class AlipayProvider extends PaymentProvider {
                 paymentType = AlipayPaymentType.getDefault();
             }
 
-            logger.info("创建支付宝支付请求: orderId={}, amount={}, paymentType={}",
-                    request.getOrderId(), request.getAmount(), paymentType);
+            logger.info("创建支付宝支付请求: orderId={}, amount={}, paymentType={}", request.getOrderId(), request.getAmount(),
+                    paymentType);
 
             PaymentResult result;
             switch (paymentType) {
@@ -247,6 +247,7 @@ public class AlipayProvider extends PaymentProvider {
 
             // 调用原有的处理逻辑
             return handleCallbackData(callbackData);
+
         } catch (Exception e) {
             logger.error("支付宝回调处理异常", e);
             PaymentCallback callback = new PaymentCallback();
@@ -375,8 +376,8 @@ public class AlipayProvider extends PaymentProvider {
                 extraData.put("refundReason", refundReason);
                 result.setExtraData(extraData);
 
-                logger.info("支付宝退款成功: providerOrderId={}, refundAmount={}, tradeNo={}",
-                        providerOrderId, response.refundFee, response.tradeNo);
+                logger.info("支付宝退款成功: providerOrderId={}, refundAmount={}, tradeNo={}", providerOrderId,
+                        response.refundFee, response.tradeNo);
                 return result;
             } else {
                 logger.error("支付宝退款失败: providerOrderId={}", providerOrderId);

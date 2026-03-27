@@ -1,14 +1,16 @@
 package com.example.agentx.interfaces.api.portal.agent;
 
-import com.example.agentx.application.rag.dto.RagQaDatasetDTO;
+import org.springframework.web.bind.annotation.*;
 import com.example.agentx.application.rag.service.RagQaDatasetAppService;
+import com.example.agentx.application.rag.dto.RagQaDatasetDTO;
 import com.example.agentx.infrastructure.auth.UserContext;
 import com.example.agentx.interfaces.api.common.Result;
-import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/** Agent知识库管理控制器 用于Agent配置中的知识库选择和管理 */
+/**
+ * Agent知识库管理控制器 用于Agent配置中的知识库选择和管理
+ */
 @RestController
 @RequestMapping("/agents/knowledge-bases")
 public class AgentKnowledgeBaseController {
@@ -19,8 +21,11 @@ public class AgentKnowledgeBaseController {
         this.ragQaDatasetAppService = ragQaDatasetAppService;
     }
 
-    /** 获取用户可用的知识库列表（用于Agent配置） 只返回已安装的知识库（用户创建的知识库会自动安装）
-     * @return 知识库列表 */
+    /**
+     * 获取用户可用的知识库列表（用于Agent配置） 只返回已安装的知识库（用户创建的知识库会自动安装）
+     *
+     * @return 知识库列表
+     */
     @GetMapping("/available")
     public Result<List<RagQaDatasetDTO>> getAvailableKnowledgeBases() {
         String userId = UserContext.getCurrentUserId();
@@ -28,9 +33,12 @@ public class AgentKnowledgeBaseController {
         return Result.success(datasets);
     }
 
-    /** 获取知识库详情（用于Agent配置时显示知识库信息） 优先查找用户已安装的知识库快照，如果没有则查找原始知识库
+    /**
+     * 获取知识库详情（用于Agent配置时显示知识库信息） 优先查找用户已安装的知识库快照，如果没有则查找原始知识库
+     *
      * @param knowledgeBaseId 知识库ID（可能是originalRagId或userRagId）
-     * @return 知识库详情 */
+     * @return 知识库详情
+     */
     @GetMapping("/{knowledgeBaseId}")
     public Result<RagQaDatasetDTO> getKnowledgeBaseDetail(@PathVariable String knowledgeBaseId) {
         String userId = UserContext.getCurrentUserId();
@@ -38,9 +46,12 @@ public class AgentKnowledgeBaseController {
         return Result.success(dataset);
     }
 
-    /** 批量获取知识库详情（用于Agent编辑时回显已选择的知识库）
+    /**
+     * 批量获取知识库详情（用于Agent编辑时回显已选择的知识库）
+     *
      * @param knowledgeBaseIds 知识库ID列表，用逗号分隔
-     * @return 知识库详情列表 */
+     * @return 知识库详情列表
+     */
     @GetMapping("/batch")
     public Result<List<RagQaDatasetDTO>> getKnowledgeBasesBatch(@RequestParam String knowledgeBaseIds) {
         String userId = UserContext.getCurrentUserId();

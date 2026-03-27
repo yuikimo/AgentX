@@ -1,5 +1,6 @@
 package com.example.agentx.application.tool.assembler;
 
+import org.springframework.beans.BeanUtils;
 import com.example.agentx.application.tool.dto.ToolDTO;
 import com.example.agentx.application.tool.dto.ToolVersionDTO;
 import com.example.agentx.application.tool.dto.ToolWithUserDTO;
@@ -10,7 +11,6 @@ import com.example.agentx.domain.user.model.UserEntity;
 import com.example.agentx.infrastructure.utils.JsonUtils;
 import com.example.agentx.interfaces.dto.tool.request.CreateToolRequest;
 import com.example.agentx.interfaces.dto.tool.request.UpdateToolRequest;
-import org.springframework.beans.BeanUtils;
 
 import java.util.Collections;
 import java.util.List;

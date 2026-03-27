@@ -5,9 +5,8 @@ import com.example.agentx.domain.order.constant.PaymentPlatform;
 import com.example.agentx.infrastructure.payment.model.PaymentCallback;
 import com.example.agentx.infrastructure.payment.model.PaymentRequest;
 import com.example.agentx.infrastructure.payment.model.PaymentResult;
-import jakarta.servlet.http.HttpServletRequest;
 
-import java.util.Objects;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * 支付提供商抽象类
@@ -183,6 +182,6 @@ public abstract class PaymentProvider {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getPaymentPlatform(), getProviderCode());
+        return java.util.Objects.hash(getPaymentPlatform(), getProviderCode());
     }
 }

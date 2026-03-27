@@ -5,7 +5,7 @@ public enum Operator {
     USER,
     ADMIN;
 
-    public boolean needCheckUserId(){
+    public boolean needCheckUserId() {
         return this == Operator.USER;
     }
 }

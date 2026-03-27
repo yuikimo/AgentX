@@ -1,8 +1,8 @@
 package com.example.agentx.interfaces.dto.container.request;
 
-import com.example.agentx.domain.container.constant.ContainerType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import com.example.agentx.domain.container.constant.ContainerType;
 
 /**
  * 创建容器请求

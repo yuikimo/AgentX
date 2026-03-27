@@ -1,7 +1,7 @@
 package com.example.agentx.interfaces.dto.llm.request;
 
-import com.example.agentx.domain.llm.model.enums.ModelType;
 import jakarta.validation.constraints.NotBlank;
+import com.example.agentx.domain.llm.model.enums.ModelType;
 
 /**
  * 模型创建请求

@@ -1,5 +1,6 @@
 package com.example.agentx.application.user.service;
 
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.sso.model.SsoProvider;
 import com.example.agentx.domain.sso.model.SsoUserInfo;
 import com.example.agentx.domain.sso.service.SsoService;
@@ -8,7 +9,6 @@ import com.example.agentx.domain.user.service.UserDomainService;
 import com.example.agentx.infrastructure.sso.SsoServiceFactory;
 import com.example.agentx.infrastructure.utils.JwtUtils;
 import com.example.agentx.infrastructure.utils.PasswordUtils;
-import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 

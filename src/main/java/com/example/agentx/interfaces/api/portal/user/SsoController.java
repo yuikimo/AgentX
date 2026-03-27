@@ -1,12 +1,12 @@
 package com.example.agentx.interfaces.api.portal.user;
 
-import com.example.agentx.application.user.service.SsoAppService;
-import com.example.agentx.interfaces.api.common.Result;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.agentx.application.user.service.SsoAppService;
+import com.example.agentx.interfaces.api.common.Result;
 
 import java.util.Map;
 

@@ -7,10 +7,10 @@ import java.util.List;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.user.model.UserSettingsEntity;
 import com.example.agentx.domain.user.model.config.FallbackConfig;
 import com.example.agentx.domain.user.repository.UserSettingsRepository;
-import org.springframework.stereotype.Service;
 
 /**
  * 用户设置领域服务

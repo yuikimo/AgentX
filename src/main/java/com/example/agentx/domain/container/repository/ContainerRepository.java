@@ -5,14 +5,12 @@ import com.example.agentx.domain.container.constant.ContainerStatus;
 import com.example.agentx.domain.container.constant.ContainerType;
 import com.example.agentx.domain.container.model.ContainerEntity;
 import com.example.agentx.infrastructure.repository.MyBatisPlusExtRepository;
-import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
 /**
  * 容器仓储接口
  */
-@Mapper
 public interface ContainerRepository extends MyBatisPlusExtRepository<ContainerEntity> {
 
     /**

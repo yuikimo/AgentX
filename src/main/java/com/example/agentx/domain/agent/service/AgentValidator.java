@@ -1,10 +1,10 @@
 package com.example.agentx.domain.agent.service;
 
+import org.springframework.stereotype.Component;
 import com.example.agentx.domain.agent.model.AgentEntity;
 import com.example.agentx.domain.conversation.model.SessionEntity;
 import com.example.agentx.domain.conversation.service.SessionDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import org.springframework.stereotype.Component;
 
 /**
  * Agent验证器 负责验证Agent的可用性

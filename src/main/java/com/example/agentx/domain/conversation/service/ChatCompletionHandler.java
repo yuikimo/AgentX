@@ -4,8 +4,7 @@ import com.example.agentx.domain.conversation.model.ContextEntity;
 import com.example.agentx.domain.conversation.model.MessageEntity;
 
 /**
- * 聊天完成处理器接口
- * 负责处理聊天完成后的业务逻辑，如保存消息和更新上下文
+ * 聊天完成处理器接口 负责处理聊天完成后的业务逻辑，如保存消息和更新上下文
  */
 public interface ChatCompletionHandler {
 
@@ -19,11 +18,6 @@ public interface ChatCompletionHandler {
      * @param outputTokenCount 输出token数量
      * @param llmContent       LLM回复内容
      */
-    void handleCompletion(
-            MessageEntity userMessage,
-            MessageEntity llmMessage,
-            ContextEntity contextEntity,
-            Integer inputTokenCount,
-            Integer outputTokenCount,
-            String llmContent);
-} 
+    void handleCompletion(MessageEntity userMessage, MessageEntity llmMessage, ContextEntity contextEntity,
+                          Integer inputTokenCount, Integer outputTokenCount, String llmContent);
+}

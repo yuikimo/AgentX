@@ -1,8 +1,5 @@
 package com.example.agentx.infrastructure.auth;
 
-import com.example.agentx.application.apikey.dto.ApiKeyValidationResult;
-import com.example.agentx.application.apikey.service.ApiKeyAppService;
-import com.example.agentx.interfaces.api.common.Result;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,27 +8,29 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
+import com.example.agentx.domain.apikey.service.ApiKeyDomainService;
+import com.example.agentx.domain.apikey.model.ApiKeyEntity;
+import com.example.agentx.infrastructure.exception.BusinessException;
+import com.example.agentx.interfaces.api.common.Result;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-/**
- * 外部API Key拦截器 用于验证外部API请求的API Key
- */
+/** 外部API Key拦截器 用于验证外部API请求的API Key */
 @Component
 public class ExternalApiKeyInterceptor implements HandlerInterceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(ExternalApiKeyInterceptor.class);
 
-    private final ApiKeyAppService apiKeyAppService;
+    private final ApiKeyDomainService apiKeyDomainService;
     private final ObjectMapper objectMapper;
 
     // API Key 请求头名称
     private static final String API_KEY_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
 
-    public ExternalApiKeyInterceptor(ApiKeyAppService apiKeyAppService, ObjectMapper objectMapper) {
-        this.apiKeyAppService = apiKeyAppService;
+    public ExternalApiKeyInterceptor(ApiKeyDomainService apiKeyDomainService, ObjectMapper objectMapper) {
+        this.apiKeyDomainService = apiKeyDomainService;
         this.objectMapper = objectMapper;
     }
 
@@ -58,20 +57,23 @@ public class ExternalApiKeyInterceptor implements HandlerInterceptor {
         }
 
         // 验证API Key
-        ApiKeyValidationResult result = apiKeyAppService.validateExternalApiKey(apiKey);
+        try {
+            ApiKeyEntity apiKeyEntity = apiKeyDomainService.validateApiKey(apiKey);
 
-        // 异常分支：验证失败
-        if (!result.isValid()) {
-            logger.warn("外部API Key验证失败: {}, URI: {} {}", result.getMessage(), method, requestURI);
-            writeErrorResponse(response, 401, result.getMessage());
+            // 更新使用统计
+            apiKeyDomainService.updateUsage(apiKey);
+
+            // 主流程：验证成功，设置上下文
+            ExternalApiContext.setUserId(apiKeyEntity.getUserId());
+            ExternalApiContext.setAgentId(apiKeyEntity.getAgentId());
+
+            logger.debug("外部API Key验证通过: userId={}, agentId={}", apiKeyEntity.getUserId(), apiKeyEntity.getAgentId());
+        } catch (BusinessException e) {
+            // 异常分支：验证失败
+            logger.warn("外部API Key验证失败: {}, URI: {} {}", e.getMessage(), method, requestURI);
+            writeErrorResponse(response, 401, e.getMessage());
             return false;
         }
-
-        // 主流程：验证成功，设置上下文
-        ExternalApiContext.setUserId(result.getUserId());
-        ExternalApiContext.setAgentId(result.getAgentId());
-
-        logger.debug("外部API Key验证通过: userId={}, agentId={}", result.getUserId(), result.getAgentId());
         return true;
     }
 
@@ -83,9 +85,7 @@ public class ExternalApiKeyInterceptor implements HandlerInterceptor {
         logger.debug("外部API上下文已清理");
     }
 
-    /**
-     * 从请求中提取API Key
-     */
+    /** 从请求中提取API Key */
     private String extractApiKey(HttpServletRequest request) {
         String authHeader = request.getHeader(API_KEY_HEADER);
         if (StringUtils.hasText(authHeader) && authHeader.startsWith(BEARER_PREFIX)) {
@@ -94,9 +94,7 @@ public class ExternalApiKeyInterceptor implements HandlerInterceptor {
         return null;
     }
 
-    /**
-     * 写入错误响应
-     */
+    /** 写入错误响应 */
     private void writeErrorResponse(HttpServletResponse response, int statusCode, String message) throws IOException {
         response.setStatus(statusCode);
         response.setContentType("application/json");

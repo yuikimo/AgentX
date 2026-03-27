@@ -1,13 +1,13 @@
 package com.example.agentx.infrastructure.llm.factory;
 
-import com.example.agentx.infrastructure.llm.config.ProviderConfig;
-import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 import dev.langchain4j.model.anthropic.AnthropicChatModel;
 import dev.langchain4j.model.anthropic.AnthropicStreamingChatModel;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
+import com.example.agentx.infrastructure.llm.config.ProviderConfig;
+import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 
 import java.time.Duration;
 
@@ -21,7 +21,7 @@ public class LLMProviderFactory {
      */
     public static ChatModel getLLMProvider(ProviderProtocol protocol, ProviderConfig providerConfig) {
         ChatModel model = null;
-        if (protocol == ProviderProtocol.OpenAI) {
+        if (protocol == ProviderProtocol.OPENAI) {
             OpenAiChatModel.OpenAiChatModelBuilder openAiChatModelBuilder =
                     new OpenAiChatModel.OpenAiChatModelBuilder();
             openAiChatModelBuilder.apiKey(providerConfig.getApiKey());
@@ -31,35 +31,22 @@ public class LLMProviderFactory {
             openAiChatModelBuilder.timeout(Duration.ofHours(1));
             model = new OpenAiChatModel(openAiChatModelBuilder);
         } else if (protocol == ProviderProtocol.ANTHROPIC) {
-            model = AnthropicChatModel.builder()
-                    .apiKey(providerConfig.getApiKey())
-                    .baseUrl(providerConfig.getBaseUrl())
-                    .modelName(providerConfig.getModel())
-                    .version("2023-06-01")
-                    .timeout(Duration.ofHours(1))
-                    .build();
+            model = AnthropicChatModel.builder().apiKey(providerConfig.getApiKey()).baseUrl(providerConfig.getBaseUrl())
+                    .modelName(providerConfig.getModel()).version("2023-06-01").timeout(Duration.ofHours(1)).build();
         }
         return model;
     }
 
     public static StreamingChatModel getLLMProviderByStream(ProviderProtocol protocol, ProviderConfig providerConfig) {
         StreamingChatModel model = null;
-        if (protocol == ProviderProtocol.OpenAI) {
-            model = new OpenAiStreamingChatModel.OpenAiStreamingChatModelBuilder()
-                    .apiKey(providerConfig.getApiKey())
-                    .baseUrl(providerConfig.getBaseUrl())
-                    .customHeaders(providerConfig.getCustomHeaders())
-                    .modelName(providerConfig.getModel())
-                    .timeout(Duration.ofHours(1))
-                    .build();
+        if (protocol == ProviderProtocol.OPENAI) {
+            model = new OpenAiStreamingChatModel.OpenAiStreamingChatModelBuilder().apiKey(providerConfig.getApiKey())
+                    .baseUrl(providerConfig.getBaseUrl()).customHeaders(providerConfig.getCustomHeaders())
+                    .modelName(providerConfig.getModel()).timeout(Duration.ofHours(1)).build();
         } else if (protocol == ProviderProtocol.ANTHROPIC) {
-            model = AnthropicStreamingChatModel.builder()
-                    .apiKey(providerConfig.getApiKey())
-                    .baseUrl(providerConfig.getBaseUrl())
-                    .version("2023-06-01")
-                    .modelName(providerConfig.getModel())
-                    .timeout(Duration.ofHours(1))
-                    .build();
+            model = AnthropicStreamingChatModel.builder().apiKey(providerConfig.getApiKey())
+                    .baseUrl(providerConfig.getBaseUrl()).version("2023-06-01").modelName(providerConfig.getModel())
+                    .timeout(Duration.ofHours(1)).build();
         }
 
         return model;

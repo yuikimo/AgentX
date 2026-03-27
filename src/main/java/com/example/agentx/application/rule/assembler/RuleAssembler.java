@@ -1,11 +1,11 @@
 package com.example.agentx.application.rule.assembler;
 
+import org.springframework.beans.BeanUtils;
 import com.example.agentx.application.rule.dto.RuleDTO;
 import com.example.agentx.domain.rule.constant.RuleHandlerKey;
 import com.example.agentx.domain.rule.model.RuleEntity;
 import com.example.agentx.interfaces.dto.rule.request.CreateRuleRequest;
 import com.example.agentx.interfaces.dto.rule.request.UpdateRuleRequest;
-import org.springframework.beans.BeanUtils;
 
 import java.util.Collections;
 import java.util.List;

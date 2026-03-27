@@ -66,7 +66,7 @@ public class AgentEntity extends BaseEntity {
     /**
      * 关联的知识库ID列表
      */
-    @TableField(value = "knowledge_base_ids", exist = false)
+    @TableField(value = "knowledge_base_ids", typeHandler = ListStringConverter.class)
     private List<String> knowledgeBaseIds;
 
     /**

@@ -1,5 +1,7 @@
 package com.example.agentx.application.tool.service.state.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.example.agentx.application.tool.service.state.AppToolStateProcessor;
 import com.example.agentx.domain.tool.constant.ToolStatus;
 import com.example.agentx.domain.tool.model.ToolEntity;
@@ -7,17 +9,13 @@ import com.example.agentx.domain.tool.model.dto.GitHubRepoInfo;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.infrastructure.github.GitHubService;
 import com.example.agentx.infrastructure.github.GitHubUrlParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 /**
  * 应用层GitHub URL验证处理器
  * <p>
- * 职责：
- * 1. 验证上传的GitHub URL是否合法
- * 2. 调用基础设施层GitHubService进行API验证 3. 转换到下一个状态（部署）
+ * 职责： 1. 验证上传的GitHub URL是否合法 2. 调用基础设施层GitHubService进行API验证 3. 转换到下一个状态（部署）
  */
 public class AppGithubUrlValidateProcessor implements AppToolStateProcessor {
 

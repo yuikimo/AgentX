@@ -1,11 +1,11 @@
 package com.example.agentx.interfaces.api.portal.auth;
 
-import com.example.agentx.application.auth.dto.AuthConfigDTO;
-import com.example.agentx.application.auth.service.AuthSettingAppService;
-import com.example.agentx.interfaces.api.common.Result;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.agentx.application.auth.dto.AuthConfigDTO;
+import com.example.agentx.application.auth.service.AuthSettingAppService;
+import com.example.agentx.interfaces.api.common.Result;
 
 /**
  * 认证配置控制器（用户端）

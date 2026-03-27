@@ -1,8 +1,8 @@
 package com.example.agentx.application.task.service;
 
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.task.model.TaskAggregate;
 import com.example.agentx.domain.task.service.TaskDomainService;
-import org.springframework.stereotype.Service;
 
 /**
  * 任务应用服务

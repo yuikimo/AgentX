@@ -1,5 +1,8 @@
 package com.example.agentx.application.agent.service;
 
+import org.springframework.boot.autoconfigure.info.ProjectInfoProperties;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.example.agentx.application.agent.assembler.AgentAssembler;
 import com.example.agentx.application.agent.assembler.AgentWorkspaceAssembler;
 import com.example.agentx.application.agent.dto.AgentDTO;
@@ -18,9 +21,6 @@ import com.example.agentx.domain.llm.model.ProviderEntity;
 import com.example.agentx.domain.llm.service.LLMDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.interfaces.dto.agent.request.UpdateModelConfigRequest;
-import org.springframework.boot.autoconfigure.info.ProjectInfoProperties;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -83,9 +83,8 @@ public class AgentWorkspaceAppService {
         if (!deleteAgent) {
             throw new BusinessException("删除助理失败");
         }
-        List<String> sessionIds = sessionDomainService.getSessionsByAgentId(agentId).stream()
-                .map(SessionEntity::getId)
-                .collect(Collectors.toList());
+        List<String> sessionIds = sessionDomainService.getSessionsByAgentId(agentId, userId).stream()
+                .map(SessionEntity::getId).collect(Collectors.toList());
         if (sessionIds.isEmpty()) {
             return;
         }

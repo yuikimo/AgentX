@@ -1,7 +1,5 @@
 package com.example.agentx.infrastructure.docker;
 
-import com.example.agentx.domain.container.model.ContainerTemplate;
-import com.example.agentx.infrastructure.exception.BusinessException;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
@@ -16,6 +14,8 @@ import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import com.example.agentx.domain.container.model.ContainerTemplate;
+import com.example.agentx.infrastructure.exception.BusinessException;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -37,13 +37,9 @@ public class DockerService {
             DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
                     .withDockerHost("unix:///var/run/docker.sock").build();
 
-            ApacheDockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
-                    .dockerHost(config.getDockerHost())
-                    .sslConfig(config.getSSLConfig())
-                    .maxConnections(100)
-                    .connectionTimeout(Duration.ofSeconds(30))
-                    .responseTimeout(Duration.ofSeconds(45))
-                    .build();
+            ApacheDockerHttpClient httpClient = new ApacheDockerHttpClient.Builder().dockerHost(config.getDockerHost())
+                    .sslConfig(config.getSSLConfig()).maxConnections(100).connectionTimeout(Duration.ofSeconds(30))
+                    .responseTimeout(Duration.ofSeconds(45)).build();
 
             dockerClient = DockerClientImpl.getInstance(config, httpClient);
 
@@ -92,20 +88,14 @@ public class DockerService {
             // 检查网络模式，host模式不需要端口绑定
             boolean isHostNetwork = "host".equals(template.getNetworkMode());
 
-            CreateContainerCmd createCmd = dockerClient
-                    .createContainerCmd(template.getImage())
-                    .withName(containerName)
-                    .withEnv(envVars)
-                    .withBinds(bind)
-                    .withRestartPolicy(RestartPolicy.unlessStoppedRestart())
+            CreateContainerCmd createCmd = dockerClient.createContainerCmd(template.getImage()).withName(containerName)
+                    .withEnv(envVars).withBinds(bind).withRestartPolicy(RestartPolicy.unlessStoppedRestart())
                     .withNetworkMode(template.getNetworkMode());
 
-            HostConfig hostConfig = HostConfig.newHostConfig()
-                    .withBinds(bind)
+            HostConfig hostConfig = HostConfig.newHostConfig().withBinds(bind)
                     .withMemory(template.getMemoryLimit() * 1024L * 1024L) // MB to bytes
                     .withCpuQuota(Math.round(template.getCpuLimit() * 100000L)) // CPU限制
-                    .withRestartPolicy(RestartPolicy.unlessStoppedRestart())
-                    .withNetworkMode(template.getNetworkMode());
+                    .withRestartPolicy(RestartPolicy.unlessStoppedRestart()).withNetworkMode(template.getNetworkMode());
 
             if (!isHostNetwork) {
                 // 非host网络模式才需要端口绑定
@@ -146,13 +136,11 @@ public class DockerService {
      */
     public void stopContainer(String containerId) {
         try {
-            dockerClient.stopContainerCmd(containerId)
-                    .withTimeout(10) // 10秒超时
+            dockerClient.stopContainerCmd(containerId).withTimeout(10) // 10秒超时
                     .exec();
             logger.info("容器已停止: {}", containerId);
-        } catch (DockerException e) {
+        } catch (Exception e) {
             logger.error("停止容器失败: {}", containerId, e);
-            throw new BusinessException("停止容器失败: " + e.getMessage());
         }
     }
 
@@ -163,6 +151,15 @@ public class DockerService {
      */
     public void startContainer(String containerId) {
         try {
+            // 检查容器当前状态
+            String currentStatus = getContainerStatus(containerId);
+
+            if ("running".equalsIgnoreCase(currentStatus)) {
+                logger.info("容器已经在运行中，无需重复启动: {}", containerId);
+                return;
+            }
+
+            // 只有在容器未运行时才启动
             dockerClient.startContainerCmd(containerId).exec();
             logger.info("容器已启动: {}", containerId);
         } catch (DockerException e) {
@@ -192,7 +189,6 @@ public class DockerService {
             logger.info("容器已删除: {}", containerId);
         } catch (DockerException e) {
             logger.error("删除容器失败: {}", containerId, e);
-            throw new BusinessException("删除容器失败: " + e.getMessage());
         }
     }
 
@@ -261,8 +257,7 @@ public class DockerService {
             // 使用同步方式获取统计信息
             final Statistics[] result = new Statistics[1];
             try {
-                dockerClient.statsCmd(containerId)
-                        .withNoStream(true)
+                dockerClient.statsCmd(containerId).withNoStream(true)
                         .exec(new com.github.dockerjava.api.async.ResultCallback.Adapter<Statistics>() {
                             @Override
                             public void onNext(Statistics stats) {
@@ -428,12 +423,8 @@ public class DockerService {
         try {
             StringBuilder logs = new StringBuilder();
 
-            dockerClient.logContainerCmd(containerId)
-                    .withStdOut(true)
-                    .withStdErr(true)
-                    .withTimestamps(true)
-                    .withTail(lines)
-                    .withFollowStream(follow)
+            dockerClient.logContainerCmd(containerId).withStdOut(true).withStdErr(true).withTimestamps(true)
+                    .withTail(lines).withFollowStream(follow)
                     .exec(new com.github.dockerjava.api.async.ResultCallback.Adapter<Frame>() {
                         @Override
                         public void onNext(Frame frame) {
@@ -459,12 +450,8 @@ public class DockerService {
      */
     public String executeCommand(String containerId, String[] command) {
         try {
-            String execId = dockerClient.execCreateCmd(containerId)
-                    .withAttachStdout(true)
-                    .withAttachStderr(true)
-                    .withCmd(command)
-                    .exec()
-                    .getId();
+            String execId = dockerClient.execCreateCmd(containerId).withAttachStdout(true).withAttachStderr(true)
+                    .withCmd(command).exec().getId();
 
             StringBuilder output = new StringBuilder();
 

@@ -1,7 +1,7 @@
 package com.example.agentx.domain.agent.model;
 
-import com.example.agentx.domain.shared.enums.TokenOverflowStrategyEnum;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.example.agentx.domain.shared.enums.TokenOverflowStrategyEnum;
 
 /**
  * Agent模型配置类，用于表示大语言模型的相关配置参数

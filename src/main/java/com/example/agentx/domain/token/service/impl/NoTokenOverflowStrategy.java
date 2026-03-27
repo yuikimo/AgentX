@@ -1,17 +1,16 @@
 package com.example.agentx.domain.token.service.impl;
 
-import com.example.agentx.domain.shared.enums.TokenOverflowStrategyEnum;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.token.model.TokenMessage;
 import com.example.agentx.domain.token.model.TokenProcessResult;
 import com.example.agentx.domain.token.model.config.TokenOverflowConfig;
+import com.example.agentx.domain.shared.enums.TokenOverflowStrategyEnum;
 import com.example.agentx.domain.token.service.TokenOverflowStrategy;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
- * 无策略的Token超限处理实现
- * 不对消息进行任何处理，保留所有消息
+ * 无策略的Token超限处理实现 不对消息进行任何处理，保留所有消息
  */
 @Service
 public class NoTokenOverflowStrategy implements TokenOverflowStrategy {
@@ -20,23 +19,23 @@ public class NoTokenOverflowStrategy implements TokenOverflowStrategy {
      * 策略配置，无策略实现不使用配置参数，但保留字段以统一接口
      */
     private final TokenOverflowConfig config;
-    
+
     /**
      * 构造函数
      */
     public NoTokenOverflowStrategy() {
         this.config = TokenOverflowConfig.createDefault();
     }
-    
+
     /**
      * 带配置的构造函数
-     * 
+     *
      * @param config 策略配置
      */
     public NoTokenOverflowStrategy(TokenOverflowConfig config) {
         this.config = config != null ? config : TokenOverflowConfig.createDefault();
     }
-    
+
     /**
      * 处理消息列表，无策略实现不做任何处理，返回原消息列表
      *
@@ -64,8 +63,7 @@ public class NoTokenOverflowStrategy implements TokenOverflowStrategy {
     }
 
     /**
-     * 是否需要进行Token超限处理
-     * 无策略实现始终返回false，表示不需要处理
+     * 是否需要进行Token超限处理 无策略实现始终返回false，表示不需要处理
      *
      * @param messages 待处理的消息列表
      * @return 始终返回false，表示不处理
@@ -75,13 +73,11 @@ public class NoTokenOverflowStrategy implements TokenOverflowStrategy {
         // 无策略实现，始终返回false，表示不需要处理
         return false;
     }
-    
+
     /**
      * 计算消息列表的总token数
      */
     private int calculateTotalTokens(List<TokenMessage> messages) {
-        return messages.stream()
-                .mapToInt(m -> m.getTokenCount() != null ? m.getTokenCount() : 0)
-                .sum();
+        return messages.stream().mapToInt(m -> m.getTokenCount() != null ? m.getTokenCount() : 0).sum();
     }
-} 
+}

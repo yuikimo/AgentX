@@ -2,10 +2,10 @@ package com.example.agentx.domain.user.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.user.model.AccountEntity;
 import com.example.agentx.domain.user.repository.AccountRepository;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,8 +49,9 @@ public class AccountDomainService {
             return null;
         }
 
-        LambdaQueryWrapper<AccountEntity> wrapper = Wrappers.<AccountEntity>lambdaQuery()
-                .eq(AccountEntity::getUserId, userId);
+        LambdaQueryWrapper<AccountEntity> wrapper = Wrappers.<AccountEntity>lambdaQuery().eq(AccountEntity::getUserId,
+                userId);
+
         return accountRepository.selectOne(wrapper);
     }
 
@@ -183,6 +184,7 @@ public class AccountDomainService {
 
             // 更新数据库
             accountRepository.checkedUpdateById(account);
+
         } finally {
             lock.unlock();
         }
@@ -278,6 +280,7 @@ public class AccountDomainService {
         if (account == null) {
             throw new BusinessException("账户信息不能为空");
         }
+
         account.validate();
 
         ReentrantLock lock = getUserLock(account.getUserId());
@@ -288,6 +291,7 @@ public class AccountDomainService {
             if (existing != null) {
                 throw new BusinessException("用户账户已存在");
             }
+
             accountRepository.insert(account);
             return account;
         } finally {

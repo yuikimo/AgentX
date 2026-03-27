@@ -1,9 +1,9 @@
 package com.example.agentx.application.user.assembler;
 
+import org.springframework.beans.BeanUtils;
 import com.example.agentx.application.user.dto.UserSettingsDTO;
 import com.example.agentx.domain.user.model.UserSettingsEntity;
 import com.example.agentx.interfaces.dto.user.request.UserSettingsUpdateRequest;
-import org.springframework.beans.BeanUtils;
 
 /**
  * 用户设置转换器
@@ -34,4 +34,4 @@ public class UserSettingsAssembler {
         entity.setUserId(userId);
         return entity;
     }
-} 
+}

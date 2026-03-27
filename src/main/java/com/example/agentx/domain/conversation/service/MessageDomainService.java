@@ -7,6 +7,7 @@ import com.example.agentx.domain.conversation.repository.ContextRepository;
 import com.example.agentx.domain.conversation.repository.MessageRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -34,6 +35,7 @@ public class MessageDomainService {
         }
         for (MessageEntity messageEntity : messageEntities) {
             messageEntity.setId(null);
+            messageEntity.setCreatedAt(LocalDateTime.now());
         }
         messageRepository.insert(messageEntities);
         contextEntity.getActiveMessages().addAll(messageEntities.stream().map(MessageEntity::getId).toList());
@@ -53,7 +55,6 @@ public class MessageDomainService {
 
     public boolean isFirstConversation(String sessionId) {
         return messageRepository
-                .selectCount(Wrappers.<MessageEntity>lambdaQuery()
-                        .eq(MessageEntity::getSessionId, sessionId)) <= 3;
+                .selectCount(Wrappers.<MessageEntity>lambdaQuery().eq(MessageEntity::getSessionId, sessionId)) <= 3;
     }
 }

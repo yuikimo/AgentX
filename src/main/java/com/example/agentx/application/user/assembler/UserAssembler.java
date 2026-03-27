@@ -1,10 +1,10 @@
 package com.example.agentx.application.user.assembler;
 
+import org.springframework.beans.BeanUtils;
 import com.example.agentx.application.user.dto.UserDTO;
 import com.example.agentx.domain.user.model.UserEntity;
 import com.example.agentx.interfaces.dto.user.request.RegisterRequest;
 import com.example.agentx.interfaces.dto.user.request.UserUpdateRequest;
-import org.springframework.beans.BeanUtils;
 
 public class UserAssembler {
 

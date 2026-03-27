@@ -1,9 +1,9 @@
 package com.example.agentx.interfaces.dto.llm.request;
 
-import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import com.example.agentx.domain.llm.model.config.ProviderConfig;
+import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 
 /**
  * 服务提供商更新请求

@@ -7,14 +7,12 @@ import com.example.agentx.domain.conversation.service.ContextDomainService;
 import com.example.agentx.domain.conversation.service.ConversationDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * 聊天完成处理器实现
- * 负责处理聊天完成后的业务逻辑，如保存消息和更新上下文
+ * 聊天完成处理器实现 负责处理聊天完成后的业务逻辑，如保存消息和更新上下文
  */
 @Service
 public class ChatCompletionHandlerImpl implements ChatCompletionHandler {
@@ -22,16 +20,14 @@ public class ChatCompletionHandlerImpl implements ChatCompletionHandler {
     private final ConversationDomainService conversationDomainService;
     private final ContextDomainService contextDomainService;
 
-    public ChatCompletionHandlerImpl(
-            ConversationDomainService conversationDomainService,
-            ContextDomainService contextDomainService) {
+    public ChatCompletionHandlerImpl(ConversationDomainService conversationDomainService,
+                                     ContextDomainService contextDomainService) {
         this.conversationDomainService = conversationDomainService;
         this.contextDomainService = contextDomainService;
     }
 
     /**
-     * 处理聊天完成后的业务逻辑
-     * 使用事务确保数据一致性
+     * 处理聊天完成后的业务逻辑 使用事务确保数据一致性
      *
      * @param userMessage      用户消息实体
      * @param llmMessage       LLM回复消息实体
@@ -41,14 +37,8 @@ public class ChatCompletionHandlerImpl implements ChatCompletionHandler {
      * @param llmContent       LLM回复内容
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void handleCompletion(
-            MessageEntity userMessage,
-            MessageEntity llmMessage,
-            ContextEntity contextEntity,
-            Integer inputTokenCount,
-            Integer outputTokenCount,
-            String llmContent) {
+    public void handleCompletion(MessageEntity userMessage, MessageEntity llmMessage, ContextEntity contextEntity,
+                                 Integer inputTokenCount, Integer outputTokenCount, String llmContent) {
         try {
             // 设置消息的token信息
             userMessage.setTokenCount(inputTokenCount);
@@ -70,4 +60,4 @@ public class ChatCompletionHandlerImpl implements ChatCompletionHandler {
             throw new BusinessException("处理聊天完成逻辑失败: " + e.getMessage(), e);
         }
     }
-} 
+}

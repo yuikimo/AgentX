@@ -1,39 +1,27 @@
 package com.example.agentx.interfaces.dto.scheduledtask.request;
 
+import jakarta.validation.constraints.NotBlank;
 import com.example.agentx.domain.scheduledtask.constant.RepeatType;
 import com.example.agentx.domain.scheduledtask.constant.ScheduleTaskStatus;
 import com.example.agentx.domain.scheduledtask.model.RepeatConfig;
-import jakarta.validation.constraints.NotBlank;
 
-/**
- * 更新定时任务请求
- */
+/** 更新定时任务请求 */
 public class UpdateScheduledTaskRequest {
 
-    /**
-     * 任务ID
-     */
+    /** 任务ID */
     @NotBlank(message = "任务ID不能为空")
     private String id;
 
-    /**
-     * 任务内容
-     */
+    /** 任务内容 */
     private String content;
 
-    /**
-     * 重复类型
-     */
+    /** 重复类型 */
     private RepeatType repeatType;
 
-    /**
-     * 重复配置
-     */
+    /** 重复配置 */
     private RepeatConfig repeatConfig;
 
-    /**
-     * 任务状态
-     */
+    /** 任务状态 */
     private ScheduleTaskStatus status;
 
     // Getters and Setters

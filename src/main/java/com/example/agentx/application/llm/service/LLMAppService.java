@@ -1,5 +1,6 @@
 package com.example.agentx.application.llm.service;
 
+import org.springframework.stereotype.Service;
 import com.example.agentx.application.llm.assembler.ModelAssembler;
 import com.example.agentx.application.llm.assembler.ProviderAssembler;
 import com.example.agentx.application.llm.dto.ModelDTO;
@@ -8,16 +9,15 @@ import com.example.agentx.domain.llm.model.ModelEntity;
 import com.example.agentx.domain.llm.model.ProviderAggregate;
 import com.example.agentx.domain.llm.model.ProviderEntity;
 import com.example.agentx.domain.llm.model.enums.ModelType;
-import com.example.agentx.domain.llm.model.enums.ProviderType;
-import com.example.agentx.domain.llm.service.LLMDomainService;
 import com.example.agentx.domain.user.service.UserSettingsDomainService;
 import com.example.agentx.infrastructure.entity.Operator;
 import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
+import com.example.agentx.domain.llm.model.enums.ProviderType;
+import com.example.agentx.domain.llm.service.LLMDomainService;
 import com.example.agentx.interfaces.dto.llm.request.ModelCreateRequest;
 import com.example.agentx.interfaces.dto.llm.request.ModelUpdateRequest;
 import com.example.agentx.interfaces.dto.llm.request.ProviderCreateRequest;
 import com.example.agentx.interfaces.dto.llm.request.ProviderUpdateRequest;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -219,6 +219,7 @@ public class LLMAppService {
      */
     public List<ProviderDTO> getProvidersByType(ProviderType providerType, String userId) {
         // 使用枚举常量ProviderType代替硬编码字符串
+
         List<ProviderAggregate> providers = llmDomainService.getProvidersByType(providerType, userId);
 
         return providers.stream().map(ProviderAssembler::toDTO).collect(Collectors.toList());
@@ -243,13 +244,10 @@ public class LLMAppService {
      * @return 模型列表
      */
     public List<ModelDTO> getActiveModelsByType(ProviderType providerType, String userId, ModelType modelType) {
-        return llmDomainService.getProvidersByType(providerType, userId).stream()
-                .filter(ProviderAggregate::getStatus)
+        return llmDomainService.getProvidersByType(providerType, userId).stream().filter(ProviderAggregate::getStatus)
                 .flatMap(provider -> provider.getModels().stream()
-                        // 如果没传 modelType 就全要，传了就按需过滤
                         .filter(model -> modelType == null || model.getType() == modelType)
-                        .map(model -> ModelAssembler.toDTO(model, provider.getName()))
-                )
+                        .map(model -> ModelAssembler.toDTO(model, provider.getName())))
                 .collect(Collectors.toList());
     }
 
@@ -293,5 +291,4 @@ public class LLMAppService {
         // 获取用户可用的模型：用户激活的 + 官方激活的聊天模型
         return getActiveModelsByType(ProviderType.ALL, userId, ModelType.CHAT);
     }
-
 }

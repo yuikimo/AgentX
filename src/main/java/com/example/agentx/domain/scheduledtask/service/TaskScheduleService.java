@@ -1,9 +1,9 @@
 package com.example.agentx.domain.scheduledtask.service;
 
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.scheduledtask.constant.RepeatType;
 import com.example.agentx.domain.scheduledtask.model.RepeatConfig;
 import com.example.agentx.domain.scheduledtask.model.ScheduledTaskEntity;
-import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;

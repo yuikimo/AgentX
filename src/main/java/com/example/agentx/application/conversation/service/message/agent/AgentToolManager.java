@@ -1,8 +1,5 @@
 package com.example.agentx.application.conversation.service.message.agent;
 
-import com.example.agentx.application.conversation.service.McpUrlProviderService;
-import com.example.agentx.application.conversation.service.handler.context.ChatContext;
-import com.example.agentx.infrastructure.utils.JsonUtils;
 import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
@@ -11,6 +8,11 @@ import dev.langchain4j.mcp.client.transport.PresetParameter;
 import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.service.tool.ToolProvider;
 import org.springframework.stereotype.Component;
+import com.example.agentx.application.conversation.service.handler.context.ChatContext;
+import com.example.agentx.application.conversation.service.McpUrlProviderService;
+import com.example.agentx.application.conversation.service.message.agent.tool.RagToolManager;
+import com.example.agentx.domain.agent.model.AgentEntity;
+import com.example.agentx.infrastructure.utils.JsonUtils;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -24,9 +26,11 @@ import java.util.Map;
 public class AgentToolManager {
 
     private final McpUrlProviderService mcpUrlProviderService;
+    private final RagToolManager ragToolManager;
 
-    public AgentToolManager(McpUrlProviderService mcpUrlProviderService) {
+    public AgentToolManager(McpUrlProviderService mcpUrlProviderService, RagToolManager ragToolManager) {
         this.mcpUrlProviderService = mcpUrlProviderService;
+        this.ragToolManager = ragToolManager;
     }
 
     /**
@@ -71,18 +75,6 @@ public class AgentToolManager {
         }
 
         return McpToolProvider.builder().mcpClients(mcpClients).build();
-    }
-
-    /**
-     * 兼容性方法：保持向后兼容
-     *
-     * @param mcpServerNames   工具服务名列表
-     * @param toolPresetParams 工具预设参数
-     * @return 工具提供者实例，如果工具列表为空则返回null
-     */
-    public ToolProvider createToolProvider(List<String> mcpServerNames,
-                                           Map<String, Map<String, Map<String, String>>> toolPresetParams) {
-        return createToolProvider(mcpServerNames, toolPresetParams, null);
     }
 
     /**

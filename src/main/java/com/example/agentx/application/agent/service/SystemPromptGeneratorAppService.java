@@ -1,5 +1,7 @@
 package com.example.agentx.application.agent.service;
 
+import dev.langchain4j.model.chat.ChatModel;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.agent.service.SystemPromptGeneratorDomainService;
 import com.example.agentx.domain.llm.model.ModelEntity;
 import com.example.agentx.domain.llm.model.ProviderEntity;
@@ -10,8 +12,6 @@ import com.example.agentx.domain.user.service.UserSettingsDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.infrastructure.llm.LLMServiceFactory;
 import com.example.agentx.interfaces.dto.agent.request.SystemPromptGenerateRequest;
-import dev.langchain4j.model.chat.ChatModel;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +51,7 @@ public class SystemPromptGeneratorAppService {
 
         // 2. 获取模型和提供商信息
         ModelEntity model = llmDomainService.getModelById(defaultModelId);
-        ProviderEntity provider = llmDomainService.getProvider(model.getProviderId(), userId);
+        ProviderEntity provider = llmDomainService.getProvider(model.getProviderId());
 
         // 3. 获取工具详细信息
         List<ToolEntity> tools = new ArrayList<>();

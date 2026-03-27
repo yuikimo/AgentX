@@ -1,5 +1,7 @@
 package com.example.agentx.interfaces.api.external;
 
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 import com.example.agentx.application.agent.service.AgentSessionAppService;
 import com.example.agentx.application.conversation.dto.ChatRequest;
 import com.example.agentx.application.conversation.dto.ChatResponse;
@@ -12,8 +14,6 @@ import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.interfaces.api.common.Result;
 import com.example.agentx.interfaces.dto.external.request.ExternalChatRequest;
 import com.example.agentx.interfaces.dto.external.request.ExternalCreateSessionRequest;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 

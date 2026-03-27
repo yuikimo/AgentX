@@ -2,18 +2,15 @@ package com.example.agentx.domain.tool.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.tool.model.UserToolEntity;
 import com.example.agentx.domain.tool.repository.UserToolRepository;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.interfaces.dto.tool.request.QueryToolRequest;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -36,26 +33,24 @@ public class UserToolDomainService {
     public Page<UserToolEntity> listByUserId(String userId, QueryToolRequest queryToolRequest) {
         LambdaQueryWrapper<UserToolEntity> wrapper = Wrappers.<UserToolEntity>lambdaQuery()
                 .eq(UserToolEntity::getUserId, userId);
-        return userToolRepository.selectPage(
-                new Page<>(queryToolRequest.getPage(), queryToolRequest.getPageSize()), wrapper
-        );
+        return userToolRepository.selectPage(new Page<>(queryToolRequest.getPage(), queryToolRequest.getPageSize()),
+                wrapper);
     }
 
     public UserToolEntity findByToolIdAndUserId(String toolId, String userId) {
         LambdaQueryWrapper<UserToolEntity> wrapper = Wrappers.<UserToolEntity>lambdaQuery()
-                .eq(UserToolEntity::getToolId, toolId)
-                .eq(UserToolEntity::getUserId, userId);
+                .eq(UserToolEntity::getToolId, toolId).eq(UserToolEntity::getUserId, userId);
         return userToolRepository.selectOne(wrapper);
     }
 
     public void update(UserToolEntity userToolEntity) {
+
         userToolRepository.checkedUpdateById(userToolEntity);
     }
 
     public void delete(String toolId, String userId) {
         LambdaQueryWrapper<UserToolEntity> wrapper = Wrappers.<UserToolEntity>lambdaQuery()
-                .eq(UserToolEntity::getToolId, toolId)
-                .eq(UserToolEntity::getUserId, userId);
+                .eq(UserToolEntity::getToolId, toolId).eq(UserToolEntity::getUserId, userId);
         userToolRepository.checkedDelete(wrapper);
     }
 
@@ -87,9 +82,7 @@ public class UserToolDomainService {
         }
 
         List<UserToolEntity> userToolEntities = userToolRepository.selectList(Wrappers.<UserToolEntity>lambdaQuery()
-                .in(UserToolEntity::getToolId, toolIds)
-                .eq(UserToolEntity::getUserId, userId)
-        );
+                .in(UserToolEntity::getToolId, toolIds).eq(UserToolEntity::getUserId, userId));
 
         Map<String, UserToolEntity> userToolMap = userToolEntities.stream()
                 .collect(Collectors.toMap(UserToolEntity::getToolId, Function.identity()));
@@ -116,8 +109,7 @@ public class UserToolDomainService {
         }
 
         LambdaQueryWrapper<UserToolEntity> wrapper = Wrappers.<UserToolEntity>lambdaQuery()
-                .eq(UserToolEntity::getUserId, userId)
-                .in(UserToolEntity::getToolId, toolIds);
+                .eq(UserToolEntity::getUserId, userId).in(UserToolEntity::getToolId, toolIds);
 
         return userToolRepository.selectList(wrapper);
     }

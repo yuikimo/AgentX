@@ -1,15 +1,15 @@
 package com.example.agentx.interfaces.api.portal.agent;
 
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 import com.example.agentx.application.agent.service.AgentSessionAppService;
 import com.example.agentx.application.conversation.dto.AgentPreviewRequest;
 import com.example.agentx.application.conversation.dto.ChatRequest;
+import com.example.agentx.application.conversation.service.ConversationAppService;
 import com.example.agentx.application.conversation.dto.MessageDTO;
 import com.example.agentx.application.conversation.dto.SessionDTO;
-import com.example.agentx.application.conversation.service.ConversationAppService;
 import com.example.agentx.infrastructure.auth.UserContext;
 import com.example.agentx.interfaces.api.common.Result;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;

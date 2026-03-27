@@ -1,14 +1,14 @@
 package com.example.agentx.interfaces.api.admin;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 import com.example.agentx.application.product.dto.ProductDTO;
 import com.example.agentx.application.product.service.ProductAppService;
 import com.example.agentx.interfaces.api.common.Result;
 import com.example.agentx.interfaces.dto.product.request.CreateProductRequest;
 import com.example.agentx.interfaces.dto.product.request.QueryProductRequest;
 import com.example.agentx.interfaces.dto.product.request.UpdateProductRequest;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 

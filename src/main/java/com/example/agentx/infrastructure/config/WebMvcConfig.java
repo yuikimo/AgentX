@@ -1,10 +1,10 @@
 package com.example.agentx.infrastructure.config;
 
-import com.example.agentx.infrastructure.auth.UserAuthInterceptor;
-import com.example.agentx.infrastructure.interceptor.AdminAuthInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import com.example.agentx.infrastructure.auth.UserAuthInterceptor;
+import com.example.agentx.infrastructure.interceptor.AdminAuthInterceptor;
 
 /**
  * Web MVC 配置类 用于配置拦截器、跨域等
@@ -29,7 +29,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/register", // 注册接口
                         "/auth/config", // 认证配置接口
                         "/send-email-code", "/verify-email-code", "/get-captcha", "/reset-password",
-                        "/send-reset-password-code", "/oauth/github/authorize", "/oauth/github/callback", "/sso/**",
+                        "/send-reset-password-code", "/oauth/github/authorize", "/oauth/github/callback", "/sso/**", 
                         // SSO相关接口
                         "/v1/**", "/payments/callback/**"); // 外部API接口，使用专门的API
         // Key拦截器

@@ -3,6 +3,7 @@ package com.example.agentx.domain.user.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.user.model.UserEntity;
 import com.example.agentx.domain.user.model.UserSettingsEntity;
 import com.example.agentx.domain.user.repository.UserRepository;
@@ -10,7 +11,6 @@ import com.example.agentx.domain.user.repository.UserSettingsRepository;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.infrastructure.utils.PasswordUtils;
 import com.example.agentx.interfaces.dto.user.request.QueryUserRequest;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,10 +43,8 @@ public class UserDomainService {
      * @return 用户实体，如果不存在则返回null
      */
     public UserEntity findUserByAccount(String account) {
-        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.<UserEntity>lambdaQuery()
-                .eq(UserEntity::getEmail, account)
-                .or()
-                .eq(UserEntity::getPhone, account);
+        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.<UserEntity>lambdaQuery().eq(UserEntity::getEmail, account)
+                .or().eq(UserEntity::getPhone, account);
 
         return userRepository.selectOne(wrapper);
     }
@@ -58,8 +56,8 @@ public class UserDomainService {
      * @return 用户实体，如果不存在则返回null
      */
     public UserEntity findUserByGithubId(String githubId) {
-        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.<UserEntity>lambdaQuery()
-                .eq(UserEntity::getGithubId, githubId);
+        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.<UserEntity>lambdaQuery().eq(UserEntity::getGithubId,
+                githubId);
         return userRepository.selectOne(wrapper);
     }
 
@@ -81,10 +79,10 @@ public class UserDomainService {
         // 设置普通登录平台
         userEntity.setLoginPlatform("normal");
 
-        userRepository.checkInsert(userEntity);
+        // userRepository.checkInsert(userEntity);
         UserSettingsEntity userSettingsEntity = new UserSettingsEntity();
         userSettingsEntity.setUserId(userEntity.getId());
-        settingsRepository.insert(userSettingsEntity);
+        // settingsRepository.insert(userSettingsEntity);
         return userEntity;
     }
 
@@ -99,10 +97,8 @@ public class UserDomainService {
     }
 
     public UserEntity login(String account, String password) {
-        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.<UserEntity>lambdaQuery()
-                .eq(UserEntity::getEmail, account)
-                .or()
-                .eq(UserEntity::getPhone, account);
+        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.<UserEntity>lambdaQuery().eq(UserEntity::getEmail, account)
+                .or().eq(UserEntity::getPhone, account);
 
         UserEntity userEntity = userRepository.selectOne(wrapper);
 
@@ -113,13 +109,13 @@ public class UserDomainService {
     }
 
     /**
-     * 检查账号是否存在，邮箱
+     * 检查账号是否存在，邮箱 or 手机号任意值
      *
      * @param email 邮箱账号
      */
     public void checkAccountExist(String email) {
-        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.<UserEntity>lambdaQuery()
-                .eq(UserEntity::getEmail, email);
+        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.<UserEntity>lambdaQuery().eq(UserEntity::getEmail, email)
+                .or();
         if (userRepository.exists(wrapper)) {
             throw new BusinessException("账号已存在,不可重复账注册");
         }
@@ -219,16 +215,15 @@ public class UserDomainService {
      * @return 用户分页数据
      */
     public Page<UserEntity> getUsers(QueryUserRequest queryUserRequest) {
-        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.<UserEntity>lambdaQuery();
 
         // 关键词搜索：昵称、邮箱、手机号
         if (queryUserRequest.getKeyword() != null && !queryUserRequest.getKeyword().trim().isEmpty()) {
             String keyword = queryUserRequest.getKeyword().trim();
-            wrapper.and(w -> w
-                    .like(UserEntity::getNickname, keyword).or()
-                    .like(UserEntity::getEmail, keyword).or()
+            wrapper.and(w -> w.like(UserEntity::getNickname, keyword).or().like(UserEntity::getEmail, keyword).or()
                     .like(UserEntity::getPhone, keyword));
         }
+
         // 按创建时间倒序排列
         wrapper.orderByDesc(UserEntity::getCreatedAt);
 

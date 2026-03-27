@@ -4,14 +4,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.agentx.domain.container.constant.ContainerType;
 import com.example.agentx.domain.container.model.ContainerTemplateEntity;
 import com.example.agentx.infrastructure.repository.MyBatisPlusExtRepository;
-import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
 /**
  * 容器模板仓储接口
  */
-@Mapper
 public interface ContainerTemplateRepository extends MyBatisPlusExtRepository<ContainerTemplateEntity> {
 
     /**
