@@ -1,7 +1,7 @@
 package com.example.agentx.application.rag.dto;
 
-import com.example.agentx.interfaces.dto.Page;
 import jakarta.validation.constraints.NotBlank;
+import com.example.agentx.interfaces.dto.Page;
 
 /**
  * 查询文件语料请求

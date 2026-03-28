@@ -3,11 +3,13 @@ package com.example.agentx.domain.rag.model;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.example.agentx.infrastructure.entity.BaseEntity;
 
 import java.io.Serial;
 import java.io.Serializable;
+
+import com.example.agentx.infrastructure.entity.BaseEntity;
+
+import com.baomidou.mybatisplus.annotation.TableName;
 
 @TableName("document_unit")
 public class DocumentUnitEntity extends BaseEntity implements Serializable {

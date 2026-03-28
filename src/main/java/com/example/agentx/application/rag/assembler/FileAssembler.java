@@ -1,6 +1,7 @@
 package com.example.agentx.application.rag.assembler;
 
 import com.example.agentx.domain.rag.model.FileDetailEntity;
+import com.example.agentx.interfaces.dto.rag.RagUploadRequest;
 
 public class FileAssembler {
 

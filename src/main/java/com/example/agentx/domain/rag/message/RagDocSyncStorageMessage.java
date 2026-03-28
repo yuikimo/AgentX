@@ -1,9 +1,9 @@
 package com.example.agentx.domain.rag.message;
 
-import com.example.agentx.domain.rag.model.ModelConfig;
-
 import java.io.Serial;
 import java.io.Serializable;
+
+import com.example.agentx.domain.rag.model.ModelConfig;
 
 public class RagDocSyncStorageMessage implements Serializable {
 
@@ -123,4 +123,3 @@ public class RagDocSyncStorageMessage implements Serializable {
         this.embeddingModelConfig = embeddingModelConfig;
     }
 }
-

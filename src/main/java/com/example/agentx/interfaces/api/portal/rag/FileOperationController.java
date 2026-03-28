@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import com.example.agentx.application.rag.dto.*;
-import com.example.agentx.application.rag.service.FileOperationAppService;
+import com.example.agentx.application.rag.service.manager.FileOperationAppService;
 import com.example.agentx.infrastructure.auth.UserContext;
 import com.example.agentx.interfaces.api.common.Result;
 
@@ -84,5 +84,18 @@ public class FileOperationController {
         String userId = UserContext.getCurrentUserId();
         fileOperationAppService.deleteDocumentUnit(documentUnitId, userId);
         return Result.success();
+    }
+
+    /**
+     * 根据语料ID获取单个语料详情
+     *
+     * @param documentUnitId 语料ID
+     * @return 语料详情
+     */
+    @GetMapping("/document-units/{documentUnitId}")
+    public Result<DocumentUnitDTO> getDocumentUnit(@PathVariable String documentUnitId) {
+        String userId = UserContext.getCurrentUserId();
+        DocumentUnitDTO documentUnit = fileOperationAppService.getDocumentUnit(documentUnitId, userId);
+        return Result.success(documentUnit);
     }
 }

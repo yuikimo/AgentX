@@ -1,9 +1,9 @@
 package com.example.agentx.application.rag.assembler;
 
+import org.springframework.beans.BeanUtils;
 import com.example.agentx.application.rag.dto.DocumentUnitDTO;
 import com.example.agentx.application.rag.dto.UpdateDocumentUnitRequest;
 import com.example.agentx.domain.rag.model.DocumentUnitEntity;
-import org.springframework.beans.BeanUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 
 /**
  * 文档单元转换器
+ *
+ * @author shilong.zang
  */
 public class DocumentUnitAssembler {
 

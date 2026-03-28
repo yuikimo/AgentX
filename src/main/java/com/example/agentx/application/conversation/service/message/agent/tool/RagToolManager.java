@@ -1,14 +1,13 @@
 package com.example.agentx.application.conversation.service.message.agent.tool;
 
-import com.example.agentx.application.rag.service.RagQaDatasetAppService;
-import com.example.agentx.domain.agent.model.AgentEntity;
-import com.example.agentx.domain.rag.service.RagQaDatasetDomainService;
-import com.example.agentx.domain.rag.service.UserRagDomainService;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.service.tool.ToolExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import com.example.agentx.application.rag.service.search.RAGSearchAppService;
+import com.example.agentx.domain.agent.model.AgentEntity;
+import com.example.agentx.domain.rag.service.management.UserRagDomainService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,15 +23,11 @@ public class RagToolManager {
 
     private static final Logger log = LoggerFactory.getLogger(RagToolManager.class);
 
-    private final RagQaDatasetAppService ragQaDatasetAppService;
-    private final RagQaDatasetDomainService ragQaDatasetDomainService;
+    private final RAGSearchAppService ragSearchAppService;
     private final UserRagDomainService userRagDomainService;
 
-    public RagToolManager(RagQaDatasetAppService ragQaDatasetAppService,
-                          RagQaDatasetDomainService ragQaDatasetDomainService,
-                          UserRagDomainService userRagDomainService) {
-        this.ragQaDatasetAppService = ragQaDatasetAppService;
-        this.ragQaDatasetDomainService = ragQaDatasetDomainService;
+    public RagToolManager(RAGSearchAppService ragSearchAppService, UserRagDomainService userRagDomainService) {
+        this.ragSearchAppService = ragSearchAppService;
         this.userRagDomainService = userRagDomainService;
     }
 
@@ -67,7 +62,7 @@ public class RagToolManager {
 
             // 创建RAG工具执行器
             RagToolExecutor ragToolExecutor = new RagToolExecutor(validKnowledgeBaseIds, agent.getUserId(),
-                    ragQaDatasetAppService);
+                    ragSearchAppService);
 
             Map<ToolSpecification, ToolExecutor> ragTools = new HashMap<>();
             ragTools.put(ragToolSpec, ragToolExecutor);
@@ -75,6 +70,7 @@ public class RagToolManager {
             log.info("为Agent {} 创建RAG工具成功，关联知识库数量: {}", agent.getId(), validKnowledgeBaseIds.size());
 
             return ragTools;
+
         } catch (Exception e) {
             log.error("为Agent {} 创建RAG工具失败: {}", agent.getId(), e.getMessage(), e);
             return null;

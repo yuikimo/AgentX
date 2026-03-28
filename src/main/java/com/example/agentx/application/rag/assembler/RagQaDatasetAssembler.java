@@ -1,11 +1,11 @@
 package com.example.agentx.application.rag.assembler;
 
+import org.springframework.beans.BeanUtils;
 import com.example.agentx.application.rag.dto.CreateDatasetRequest;
 import com.example.agentx.application.rag.dto.RagQaDatasetDTO;
 import com.example.agentx.application.rag.dto.UpdateDatasetRequest;
 import com.example.agentx.domain.rag.model.RagQaDatasetEntity;
 import com.example.agentx.domain.rag.model.UserRagEntity;
-import org.springframework.beans.BeanUtils;
 
 import java.util.Collections;
 import java.util.List;

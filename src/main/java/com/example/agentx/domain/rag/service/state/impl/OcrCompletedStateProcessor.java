@@ -1,11 +1,11 @@
 package com.example.agentx.domain.rag.service.state.impl;
 
-import com.example.agentx.domain.rag.constant.FileProcessingStatusEnum;
-import com.example.agentx.domain.rag.model.FileDetailEntity;
-import com.example.agentx.domain.rag.service.state.FileProcessingStateProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import com.example.agentx.domain.rag.constant.FileProcessingStatusEnum;
+import com.example.agentx.domain.rag.model.FileDetailEntity;
+import com.example.agentx.domain.rag.service.state.FileProcessingStateProcessor;
 
 /**
  * OCR处理完成状态处理器

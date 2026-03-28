@@ -1,12 +1,12 @@
 package com.example.agentx.domain.rag.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.rag.constant.FileProcessingEventEnum;
 import com.example.agentx.domain.rag.constant.FileProcessingStatusEnum;
 import com.example.agentx.domain.rag.model.FileDetailEntity;
 import com.example.agentx.domain.rag.service.state.FileProcessingStateProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.List;
@@ -74,10 +74,13 @@ public class FileProcessingStateMachineService {
         Integer targetStatus = getTargetStatus(currentStatusEnum, event);
 
         if (targetStatus == null) {
+            logger.warn("文件[{}]当前状态[{}]不支持事件[{}]", fileEntity.getId(), currentStatusEnum.getDescription(), event);
             return false;
         }
 
         if (!canTransition(currentStatus, targetStatus)) {
+            logger.warn("文件[{}]不能从状态[{}]转换到状态[{}]", fileEntity.getId(), currentStatusEnum.getDescription(),
+                    FileProcessingStatusEnum.fromCode(targetStatus).getDescription());
             return false;
         }
 
@@ -145,9 +148,8 @@ public class FileProcessingStateMachineService {
      * @return 是否可以转换
      */
     private boolean canTransition(Integer currentStatus, Integer targetStatus) {
-        // 状态相同，允许（用于进度更新等）
         if (currentStatus.equals(targetStatus)) {
-            return true;
+            return true; // 状态相同，允许（用于进度更新等）
         }
 
         FileProcessingStateProcessor processor = processorMap.get(currentStatus);

@@ -4,13 +4,14 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.example.agentx.infrastructure.converter.ListStringConverter;
-import com.example.agentx.infrastructure.entity.BaseEntity;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.example.agentx.infrastructure.converter.ListStringConverter;
+import com.example.agentx.infrastructure.entity.BaseEntity;
 
 /**
  * RAG版本实体（完整快照）

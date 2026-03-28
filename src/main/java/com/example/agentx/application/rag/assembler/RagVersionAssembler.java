@@ -1,11 +1,11 @@
 package com.example.agentx.application.rag.assembler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.BeanUtils;
 import com.example.agentx.application.rag.dto.RagMarketDTO;
 import com.example.agentx.application.rag.dto.RagVersionDTO;
 import com.example.agentx.domain.rag.constant.RagPublishStatus;
 import com.example.agentx.domain.rag.model.RagVersionEntity;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.BeanUtils;
 
 import java.text.DecimalFormat;
 import java.util.Collections;

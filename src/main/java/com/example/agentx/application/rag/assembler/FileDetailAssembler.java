@@ -1,9 +1,9 @@
 package com.example.agentx.application.rag.assembler;
 
+import org.springframework.beans.BeanUtils;
 import com.example.agentx.application.rag.dto.FileDetailDTO;
 import com.example.agentx.application.rag.dto.UploadFileRequest;
 import com.example.agentx.domain.rag.model.FileDetailEntity;
-import org.springframework.beans.BeanUtils;
 
 import java.util.Collections;
 import java.util.List;

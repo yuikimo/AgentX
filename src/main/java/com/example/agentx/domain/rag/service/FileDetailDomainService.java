@@ -8,21 +8,20 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+import org.dromara.x.file.storage.core.FileInfo;
+import org.dromara.x.file.storage.core.FileStorageService;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.rag.constant.FileProcessingEventEnum;
 import com.example.agentx.domain.rag.constant.FileProcessingStatusEnum;
 import com.example.agentx.domain.rag.model.FileDetailEntity;
 import com.example.agentx.domain.rag.repository.FileDetailRepository;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import org.apache.commons.lang3.StringUtils;
-import org.dromara.x.file.storage.core.FileInfo;
-import org.dromara.x.file.storage.core.FileStorageService;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
  * 文件详情领域服务
- *
  */
 @Service
 public class FileDetailDomainService {
@@ -88,8 +87,7 @@ public class FileDetailDomainService {
      */
     public FileDetailEntity getFile(String fileId, String userId) {
         LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
-                .eq(FileDetailEntity::getId, fileId)
-                .eq(FileDetailEntity::getUserId, userId);
+                .eq(FileDetailEntity::getId, fileId).eq(FileDetailEntity::getUserId, userId);
         FileDetailEntity file = fileDetailRepository.selectOne(wrapper);
         if (file == null) {
             throw new BusinessException("文件不存在");
@@ -526,4 +524,13 @@ public class FileDetailDomainService {
 
         return fileEntity;
     }
+
+    public FileDetailEntity getFileById(String fileId) {
+        FileDetailEntity fileEntity = fileDetailRepository.selectById(fileId);
+        if (fileEntity == null) {
+            throw new BusinessException("文件不存在");
+        }
+        return fileEntity;
+    }
+
 }

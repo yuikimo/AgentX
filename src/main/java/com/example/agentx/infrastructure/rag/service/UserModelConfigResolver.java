@@ -1,18 +1,19 @@
 package com.example.agentx.infrastructure.rag.service;
 
-import com.example.agentx.application.user.dto.UserSettingsDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 import com.example.agentx.application.user.service.UserSettingsAppService;
+import com.example.agentx.application.user.dto.UserSettingsDTO;
 import com.example.agentx.domain.llm.model.ModelEntity;
 import com.example.agentx.domain.llm.model.ProviderEntity;
 import com.example.agentx.domain.llm.service.LLMDomainService;
 import com.example.agentx.domain.rag.model.ModelConfig;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
 /**
  * 用户模型配置解析器 - Infrastructure层服务
+ * <p>
  * 解决Domain层需要获取用户模型配置的问题
  */
 @Service
@@ -65,6 +66,73 @@ public class UserModelConfigResolver {
     }
 
     /**
+     * 获取用户的聊天模型配置
+     *
+     * @param userId 用户ID
+     * @return 聊天模型配置
+     * @throws BusinessException 如果用户未配置聊天模型或配置无效
+     */
+    public ModelConfig getUserChatModelConfig(String userId) {
+        try {
+            UserSettingsDTO userSettingsDTO = userSettingsAppService.getUserSettings(userId);
+
+            // 检查用户是否配置了聊天模型
+            if (userSettingsDTO == null || userSettingsDTO.getSettingConfig() == null || userSettingsDTO.getSettingConfig().getDefaultModel() == null) {
+                String errorMsg = String.format("用户 %s 未配置默认聊天模型，无法进行LLM处理", userId);
+                log.error(errorMsg);
+                throw new BusinessException(errorMsg);
+            }
+
+            String modelId = userSettingsDTO.getSettingConfig().getDefaultModel();
+            log.info("Getting chat model config for user {}, modelId: {}", userId, modelId);
+
+            // 根据模型ID从数据库获取真实的模型配置
+            return getModelConfigFromDatabase(modelId, userId, "CHAT");
+        } catch (BusinessException e) {
+            // 重新抛出业务异常
+            throw e;
+        } catch (Exception e) {
+            String errorMsg = String.format("用户 %s 获取聊天模型配置失败: %s", userId, e.getMessage());
+            log.error(errorMsg, e);
+            throw new BusinessException(errorMsg, e);
+        }
+    }
+
+    /**
+     * 获取用户的OCR模型配置（可用作视觉模型）
+     *
+     * @param userId 用户ID
+     * @return OCR/视觉模型配置
+     * @throws BusinessException 如果用户未配置OCR模型或配置无效
+     */
+    public ModelConfig getUserOcrModelConfig(String userId) {
+        try {
+            UserSettingsDTO userSettingsDTO = userSettingsAppService.getUserSettings(userId);
+
+            // 检查用户是否配置了OCR模型
+            if (userSettingsDTO == null || userSettingsDTO.getSettingConfig() == null || userSettingsDTO.getSettingConfig().getDefaultOcrModel() == null) {
+                String errorMsg = String.format("用户 %s 未配置默认OCR模型，无法进行视觉处理", userId);
+                log.error(errorMsg);
+                throw new BusinessException(errorMsg);
+            }
+
+            String modelId = userSettingsDTO.getSettingConfig().getDefaultOcrModel();
+            log.info("Getting OCR model config for user {}, modelId: {}", userId, modelId);
+
+            // 根据模型ID从数据库获取真实的模型配置
+            return getModelConfigFromDatabase(modelId, userId, "OCR");
+
+        } catch (BusinessException e) {
+            // 重新抛出业务异常
+            throw e;
+        } catch (Exception e) {
+            String errorMsg = String.format("用户 %s 获取OCR模型配置失败: %s", userId, e.getMessage());
+            log.error(errorMsg, e);
+            throw new BusinessException(errorMsg, e);
+        }
+    }
+
+    /**
      * 从数据库获取模型配置
      *
      * @param modelId      模型ID
@@ -83,14 +151,6 @@ public class UserModelConfigResolver {
                 throw new BusinessException(errorMsg);
             }
 
-            // 验证模型类型
-            if (!expectedType.equals(modelEntity.getType().getCode())) {
-                String errorMsg = String.format("用户 %s 配置的模型 %s 类型不匹配，期望: %s，实际: %s", userId, modelId, expectedType,
-                        modelEntity.getType().getCode());
-                log.error(errorMsg);
-                throw new BusinessException(errorMsg);
-            }
-
             // 检查模型是否激活
             if (!modelEntity.getStatus()) {
                 String errorMsg = String.format("用户 %s 配置的模型 %s 已禁用", userId, modelId);
@@ -100,12 +160,14 @@ public class UserModelConfigResolver {
 
             // 获取服务商配置
             ProviderEntity providerEntity = llmDomainService.getProvider(modelEntity.getProviderId());
+
             // 检查服务商是否激活
             if (!providerEntity.getStatus()) {
                 String errorMsg = String.format("用户 %s 的模型 %s 关联的服务商已禁用", userId, modelId);
                 log.error(errorMsg);
                 throw new BusinessException(errorMsg);
             }
+
             providerEntity.isAvailable(providerEntity.getUserId());
 
             // 构建模型配置
@@ -116,6 +178,7 @@ public class UserModelConfigResolver {
                     modelEntity.getModelId(), providerEntity.getConfig().getBaseUrl());
 
             return modelConfig;
+
         } catch (BusinessException e) {
             // 重新抛出业务异常
             throw e;

@@ -2,10 +2,11 @@ package com.example.agentx.domain.rag.model;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.example.agentx.infrastructure.entity.BaseEntity;
 
 import java.io.Serial;
 import java.io.Serializable;
+
+import com.example.agentx.infrastructure.entity.BaseEntity;
 
 /**
  * 此类为文档分片实体类，映射数据库表，不进行任何操作传参使用
@@ -56,4 +57,3 @@ public class DocumentChunkEntity extends BaseEntity implements Serializable {
     }
 
 }
-

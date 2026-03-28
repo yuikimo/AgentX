@@ -1,8 +1,5 @@
 package com.example.agentx.application.conversation.service.message.agent.tool;
 
-import com.example.agentx.application.rag.dto.DocumentUnitDTO;
-import com.example.agentx.application.rag.dto.RagSearchRequest;
-import com.example.agentx.application.rag.service.RagQaDatasetAppService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
@@ -10,6 +7,9 @@ import dev.langchain4j.service.tool.ToolExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
+import com.example.agentx.application.rag.dto.DocumentUnitDTO;
+import com.example.agentx.application.rag.dto.RagSearchRequest;
+import com.example.agentx.application.rag.service.search.RAGSearchAppService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,21 +23,21 @@ public class RagToolExecutor implements ToolExecutor {
 
     private final List<String> knowledgeBaseIds;
     private final String userId;
-    private final RagQaDatasetAppService ragQaDatasetAppService;
+    private final RAGSearchAppService ragSearchAppService;
     private final ObjectMapper objectMapper;
 
     /**
      * 构造函数
      *
-     * @param knowledgeBaseIds       RAG知识库ID列表
-     * @param userId                 用户ID
-     * @param ragQaDatasetAppService RAG服务
+     * @param knowledgeBaseIds    RAG知识库ID列表
+     * @param userId              用户ID
+     * @param ragSearchAppService RAG服务
      */
     public RagToolExecutor(List<String> knowledgeBaseIds, String userId,
-                           RagQaDatasetAppService ragQaDatasetAppService) {
+                           RAGSearchAppService ragSearchAppService) {
         this.knowledgeBaseIds = knowledgeBaseIds != null ? new ArrayList<>(knowledgeBaseIds) : new ArrayList<>();
         this.userId = userId;
-        this.ragQaDatasetAppService = ragQaDatasetAppService;
+        this.ragSearchAppService = ragSearchAppService;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -71,8 +71,9 @@ public class RagToolExecutor implements ToolExecutor {
                 return "错误：搜索查询内容为空";
             }
 
-            log.debug("RAG搜索参数 - query: {}, maxResults: {}, minScore: {}, enableRerank: {}, enableQueryExpansion: {}," +
-                            " knowledgeBaseCount: {}",
+            log.debug(
+                    "RAG搜索参数 - query: {}, maxResults: {}, minScore: {}, enableRerank: {}, enableQueryExpansion: {}, " +
+                            "knowledgeBaseCount: {}",
                     query, maxResults, minScore, enableRerank, enableQueryExpansion, knowledgeBaseIds.size());
 
             // 构建RAG搜索请求，支持多个知识库
@@ -85,7 +86,7 @@ public class RagToolExecutor implements ToolExecutor {
             searchRequest.setEnableQueryExpansion(enableQueryExpansion);
 
             // 执行RAG搜索
-            List<DocumentUnitDTO> searchResults = ragQaDatasetAppService.ragSearch(searchRequest, userId);
+            List<DocumentUnitDTO> searchResults = ragSearchAppService.ragSearch(searchRequest, userId);
 
             if (searchResults == null || searchResults.isEmpty()) {
                 log.info("RAG搜索未找到相关文档，knowledgeBaseIds: {}, query: {}", knowledgeBaseIds, query);

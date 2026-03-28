@@ -34,7 +34,8 @@ public class EmbeddingConfig {
     public EmbeddingStore<TextSegment> initEmbeddingStore() {
         EmbeddingProperties.VectorStore vectorStoreConfig = embeddingProperties.getVectorStore();
 
-        return PgVectorEmbeddingStore.builder().table(vectorStoreConfig.getTable())
+        return PgVectorEmbeddingStore.builder()
+                .table(vectorStoreConfig.getTable())
                 .dropTableFirst(vectorStoreConfig.isDropTableFirst())
                 .createTable(vectorStoreConfig.isCreateTable())
                 .host(vectorStoreConfig.getHost())

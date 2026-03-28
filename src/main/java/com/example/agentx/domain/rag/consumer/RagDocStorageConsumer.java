@@ -1,17 +1,10 @@
 package com.example.agentx.domain.rag.consumer;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.example.agentx.domain.rag.message.RagDocSyncStorageMessage;
-import com.example.agentx.domain.rag.model.DocumentUnitEntity;
-import com.example.agentx.domain.rag.repository.DocumentUnitRepository;
-import com.example.agentx.domain.rag.service.EmbeddingDomainService;
-import com.example.agentx.domain.rag.service.FileDetailDomainService;
-import com.example.agentx.infrastructure.mq.events.RagDocSyncStorageEvent;
-import com.example.agentx.infrastructure.mq.model.MqMessage;
-import com.rabbitmq.client.Channel;
+import static com.example.agentx.infrastructure.mq.model.MQSendEventModel.HEADER_NAME_TRACE_ID;
+
+import java.io.IOException;
+import java.util.Objects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -24,15 +17,23 @@ import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+import com.example.agentx.domain.rag.message.RagDocSyncStorageMessage;
+import com.example.agentx.domain.rag.model.DocumentUnitEntity;
+import com.example.agentx.domain.rag.repository.DocumentUnitRepository;
+import com.example.agentx.domain.rag.service.EmbeddingDomainService;
+import com.example.agentx.domain.rag.service.FileDetailDomainService;
+import com.example.agentx.infrastructure.mq.events.RagDocSyncStorageEvent;
+import com.example.agentx.infrastructure.mq.model.MqMessage;
 
-import java.io.IOException;
-import java.util.Objects;
-
-import static com.example.agentx.infrastructure.mq.model.MQSendEventModel.HEADER_NAME_TRACE_ID;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.rabbitmq.client.Channel;
 
 @RabbitListener(bindings = @QueueBinding(value = @Queue(RagDocSyncStorageEvent.QUEUE_NAME), exchange =
-@Exchange(value = RagDocSyncStorageEvent.EXCHANGE_NAME, type = ExchangeTypes.TOPIC), key =
-        RagDocSyncStorageEvent.ROUTE_KEY))
+@Exchange(value = RagDocSyncStorageEvent.EXCHANGE_NAME, type = ExchangeTypes.TOPIC),
+        key = RagDocSyncStorageEvent.ROUTE_KEY))
 @Component
 public class RagDocStorageConsumer {
 
@@ -54,14 +55,10 @@ public class RagDocStorageConsumer {
     public void receiveMessage(Message message, String msg, Channel channel) throws IOException {
         MqMessage mqMessageBody = JSONObject.parseObject(msg, MqMessage.class);
 
-        MDC.put(HEADER_NAME_TRACE_ID, Objects.nonNull(mqMessageBody.getTraceId())
-                ? mqMessageBody.getTraceId()
-                : IdWorker.getTimeId()
-        );
-
+        MDC.put(HEADER_NAME_TRACE_ID,
+                Objects.nonNull(mqMessageBody.getTraceId()) ? mqMessageBody.getTraceId() : IdWorker.getTimeId());
         MessageProperties messageProperties = message.getMessageProperties();
         long deliveryTag = messageProperties.getDeliveryTag();
-
         RagDocSyncStorageMessage mqRecordReqDTO = JSON.parseObject(JSON.toJSONString(mqMessageBody.getData()),
                 RagDocSyncStorageMessage.class);
         try {
@@ -74,13 +71,11 @@ public class RagDocStorageConsumer {
             // 更新向量化进度（假设每个页面向量化完成后更新）
             updateEmbeddingProgress(mqRecordReqDTO);
 
-            log.info("Current file {} Page {} ———— Vectorization finished",
-                    mqRecordReqDTO.getFileName(), mqRecordReqDTO.getPage()
-            );
+            log.info("Current file {} Page {} ———— Vectorization finished", mqRecordReqDTO.getFileName(),
+                    mqRecordReqDTO.getPage());
         } catch (Exception e) {
             log.error("Exception occurred during vectorization", e);
         } finally {
-            // 无论处理成功还是失败，都要删掉这条消息
             channel.basicAck(deliveryTag, false);
         }
     }
@@ -101,11 +96,9 @@ public class RagDocStorageConsumer {
 
             if (totalPages != null && totalPages > 0) {
                 // 查询已完成向量化的页面数量
-                long completedVectorPages = documentUnitRepository.selectCount(
-                        Wrappers.<DocumentUnitEntity>lambdaQuery()
-                                .eq(DocumentUnitEntity::getFileId, fileId)
-                                .eq(DocumentUnitEntity::getIsVector, true)
-                );
+                long completedVectorPages = documentUnitRepository
+                        .selectCount(Wrappers.<DocumentUnitEntity>lambdaQuery()
+                                .eq(DocumentUnitEntity::getFileId, fileId).eq(DocumentUnitEntity::getIsVector, true));
 
                 // 当前页面完成后的总完成页数
                 int currentCompletedPages = (int) (completedVectorPages + 1);

@@ -1,11 +1,11 @@
 package com.example.agentx.domain.rag.service.state.impl;
 
-import com.example.agentx.domain.rag.constant.FileProcessingStatusEnum;
-import com.example.agentx.domain.rag.model.FileDetailEntity;
-import com.example.agentx.domain.rag.service.state.FileProcessingStateProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import com.example.agentx.domain.rag.constant.FileProcessingStatusEnum;
+import com.example.agentx.domain.rag.model.FileDetailEntity;
+import com.example.agentx.domain.rag.service.state.FileProcessingStateProcessor;
 
 /**
  * 处理完成状态处理器
@@ -37,9 +37,7 @@ public class CompletedStateProcessor implements FileProcessingStateProcessor {
     @Override
     public Integer[] getNextPossibleStatuses() {
         // 完成状态一般不再转换到其他状态，除非重置
-        return new Integer[]{
-                // 只允许重置
-                FileProcessingStatusEnum.UPLOADED.getCode()
+        return new Integer[]{FileProcessingStatusEnum.UPLOADED.getCode() // 只允许重置
         };
     }
 }

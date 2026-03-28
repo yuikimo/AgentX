@@ -4,9 +4,9 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
+import org.springframework.web.multipart.MultipartFile;
 import com.example.agentx.domain.rag.constant.FileProcessingStatusEnum;
 import com.example.agentx.infrastructure.entity.BaseEntity;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
