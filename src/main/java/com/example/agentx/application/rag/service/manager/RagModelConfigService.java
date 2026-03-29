@@ -13,7 +13,6 @@ import com.example.agentx.infrastructure.exception.BusinessException;
 
 /**
  * RAG模型配置应用服务
- * <p>
  * 负责获取用户设置并转换为具体的模型配置
  */
 @Service
@@ -50,7 +49,7 @@ public class RagModelConfigService {
             }
 
             String modelId = userSettingsDTO.getSettingConfig().getDefaultOcrModel();
-            log.info("Getting OCR model config for user {}, modelId: {}", userId, modelId);
+            log.info("获取用户 {} 的OCR模型配置，modelId: {}", userId, modelId);
 
             // 根据模型ID从数据库获取真实的模型配置
             return getModelConfigFromDatabase(modelId, userId, "CHAT");
@@ -85,7 +84,7 @@ public class RagModelConfigService {
             }
 
             String modelId = userSettingsDTO.getSettingConfig().getDefaultEmbeddingModel();
-            log.info("Getting embedding model config for user {}, modelId: {}", userId, modelId);
+            log.info("获取用户 {} 的嵌入模型配置，modelId: {}", userId, modelId);
 
             // 根据模型ID从数据库获取真实的模型配置
             return getModelConfigFromDatabase(modelId, userId, "EMBEDDING");
@@ -121,8 +120,8 @@ public class RagModelConfigService {
 
             // 验证模型类型
             if (!expectedType.equals(modelEntity.getType().getCode())) {
-                String errorMsg = String.format("用户 %s 配置的模型 %s 类型不匹配，期望: %s，实际: %s", userId, modelId, expectedType,
-                        modelEntity.getType().getCode());
+                String errorMsg = String.format("用户 %s 配置的模型 %s 类型不匹配，期望: %s，实际: %s",
+                        userId, modelId, expectedType, modelEntity.getType().getCode());
                 log.error(errorMsg);
                 throw new BusinessException(errorMsg);
             }
@@ -153,11 +152,10 @@ public class RagModelConfigService {
             ModelConfig modelConfig = new ModelConfig(modelEntity.getModelId(), providerEntity.getConfig().getApiKey(),
                     providerEntity.getConfig().getBaseUrl(), expectedType);
 
-            log.info("Successfully retrieved model config for user {}: modelId={}, baseUrl={}", userId,
-                    modelEntity.getModelId(), providerEntity.getConfig().getBaseUrl());
+            log.info("成功获取用户 {} 的模型配置: modelId={}, baseUrl={}", userId, modelEntity.getModelId(),
+                    providerEntity.getConfig().getBaseUrl());
 
             return modelConfig;
-
         } catch (BusinessException e) {
             // 重新抛出业务异常
             throw e;

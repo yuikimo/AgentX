@@ -32,9 +32,7 @@ public class OcrProcessingStateProcessor implements FileProcessingStateProcessor
 
     @Override
     public Integer[] getNextPossibleStatuses() {
-        return new Integer[]{
-                FileProcessingStatusEnum.OCR_COMPLETED.getCode(),
-                FileProcessingStatusEnum.OCR_FAILED.getCode()
-        };
+        return new Integer[]{FileProcessingStatusEnum.OCR_COMPLETED.getCode(),
+                FileProcessingStatusEnum.OCR_FAILED.getCode()};
     }
 }

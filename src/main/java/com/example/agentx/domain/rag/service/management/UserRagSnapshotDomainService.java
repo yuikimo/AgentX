@@ -213,8 +213,8 @@ public class UserRagSnapshotDomainService {
         if (userRagFileId == null) {
             logger.warn("未找到版本文件 [{}] 对应的用户文件ID", versionDoc.getRagVersionFileId());
         }
-
         userDoc.setUserRagFileId(userRagFileId);
+
         userDoc.setOriginalDocumentId(versionDoc.getOriginalDocumentId());
         userDoc.setContent(versionDoc.getContent());
         userDoc.setPage(versionDoc.getPage());

@@ -32,9 +32,7 @@ public class EmbeddingProcessingStateProcessor implements FileProcessingStatePro
 
     @Override
     public Integer[] getNextPossibleStatuses() {
-        return new Integer[]{
-                FileProcessingStatusEnum.COMPLETED.getCode(),
-                FileProcessingStatusEnum.EMBEDDING_FAILED.getCode()
-        };
+        return new Integer[]{FileProcessingStatusEnum.COMPLETED.getCode(),
+                FileProcessingStatusEnum.EMBEDDING_FAILED.getCode()};
     }
 }

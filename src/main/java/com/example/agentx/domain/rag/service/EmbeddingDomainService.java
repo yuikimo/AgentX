@@ -4,12 +4,11 @@ import static dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metad
 
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import com.example.agentx.domain.rag.constant.SearchType;
+import com.example.agentx.domain.rag.model.VectorStoreResult;
 
 import org.dromara.streamquery.stream.core.stream.Steam;
 import org.slf4j.Logger;
@@ -62,52 +61,46 @@ public class EmbeddingDomainService implements MetadataConstant {
 
     private final DocumentUnitRepository documentUnitRepository;
 
-    private final RerankDomainService rerankService;
-
     public EmbeddingDomainService(EmbeddingModelFactory embeddingModelFactory,
-                                  EmbeddingStore<TextSegment> embeddingStore, FileDetailRepository fileDetailRepository,
-                                  ApplicationContext applicationContext, DocumentUnitRepository documentUnitRepository,
-                                  RerankDomainService rerankService) {
+                                  EmbeddingStore<TextSegment> embeddingStore,
+                                  FileDetailRepository fileDetailRepository, ApplicationContext applicationContext,
+                                  DocumentUnitRepository documentUnitRepository) {
         this.embeddingModelFactory = embeddingModelFactory;
         this.embeddingStore = embeddingStore;
         this.fileDetailRepository = fileDetailRepository;
         this.applicationContext = applicationContext;
         this.documentUnitRepository = documentUnitRepository;
-        this.rerankService = rerankService;
     }
 
     /**
-     * RAG文档检索（支持高级参数和缓存优化）
+     * 纯向量检索方法 专门负责向量检索算法，返回统一的VectorStoreResult格式
      *
-     * @param dataSetId            知识库ids
-     * @param question             查询问题
-     * @param maxResults           最大返回结果数量
-     * @param minScore             最小相似度阈值
-     * @param enableRerank         是否启用重排序
-     * @param candidateMultiplier  候选结果倍数
-     * @param embeddingConfig      嵌入模型配置
-     * @param enableQueryExpansion 是否启用查询扩展（相邻片段）
-     * @return 相关文档列表
+     * @param dataSetIds          数据集ID列表
+     * @param question            查询问题
+     * @param maxResults          最大返回结果数量
+     * @param minScore            最小相似度阈值
+     * @param enableRerank        是否启用重排序
+     * @param candidateMultiplier 候选结果倍数
+     * @param embeddingConfig     嵌入模型配置
+     * @return 向量检索结果列表，失败时返回空集合
      */
-    public List<DocumentUnitEntity> ragDoc(List<String> dataSetId, String question, Integer maxResults, Double minScore,
-                                           Boolean enableRerank, Integer candidateMultiplier,
-                                           EmbeddingModelFactory.EmbeddingConfig embeddingConfig,
-                                           Boolean enableQueryExpansion) {
-        // 参数验证和日志
-        if (dataSetId == null || dataSetId.isEmpty()) {
-            log.warn("Dataset IDs list is empty");
-            return new ArrayList<>();
+    public List<VectorStoreResult> vectorSearch(List<String> dataSetIds, String question, Integer maxResults,
+                                                Double minScore, Boolean enableRerank, Integer candidateMultiplier,
+                                                EmbeddingModelFactory.EmbeddingConfig embeddingConfig) {
+        // 参数验证
+        if (dataSetIds == null || dataSetIds.isEmpty()) {
+            log.warn("数据集ID列表为空，无法进行向量搜索");
+            return Collections.emptyList();
         }
 
         if (!StringUtils.hasText(question)) {
-            log.warn("Query question is empty");
-            return new ArrayList<>();
+            log.warn("查询问题为空，无法进行向量搜索");
+            return Collections.emptyList();
         }
 
-        // 验证嵌入模型配置
         if (embeddingConfig == null) {
-            log.warn("Embedding model config is null");
-            return new ArrayList<>();
+            log.warn("嵌入模型配置为空，无法进行向量搜索");
+            return Collections.emptyList();
         }
 
         // 设置默认值和合理上限
@@ -116,136 +109,58 @@ public class EmbeddingDomainService implements MetadataConstant {
         boolean finalEnableRerank = enableRerank != null ? enableRerank : true;
         int finalCandidateMultiplier = candidateMultiplier != null ? Math.max(1, Math.min(candidateMultiplier, 5)) : 2;
 
-        // 记录搜索开始时间
         long startTime = System.currentTimeMillis();
 
         try {
             // 创建嵌入模型实例
             OpenAiEmbeddingModel embeddingModel = embeddingModelFactory.createEmbeddingModel(embeddingConfig);
 
-            // 向量搜索 - 根据是否启用重排序决定搜索数量
+            // 计算搜索数量
             int searchLimit = finalEnableRerank
                     ? Math.max(finalMaxResults * finalCandidateMultiplier, 30)
                     : finalMaxResults;
 
-            log.debug(
-                    "Starting RAG search with params: datasets={}, question='{}', maxResults={}, minScore={}, " +
-                            "rerank={}, searchLimit={}",
-                    dataSetId, question, finalMaxResults, finalMinScore, finalEnableRerank, searchLimit);
+            log.debug("开始向量搜索 参数: datasets={}, question='{}', maxResults={}, minScore={}, searchLimit={}", dataSetIds,
+                    question, finalMaxResults, finalMinScore, searchLimit);
 
-            // 向量查询
-            final EmbeddingSearchResult<TextSegment> textSegmentList = embeddingStore.search(EmbeddingSearchRequest
-                    .builder().filter(new IsIn(DATA_SET_ID, dataSetId)).maxResults(searchLimit).minScore(finalMinScore) // 使用可配置的相似度阈值
+            // 执行向量查询
+            final EmbeddingSearchResult<TextSegment> searchResult = embeddingStore.search(EmbeddingSearchRequest
+                    .builder().filter(new IsIn(DATA_SET_ID, dataSetIds)).maxResults(searchLimit).minScore(finalMinScore)
                     .queryEmbedding(Embedding.from(embeddingModel.embed(question).content().vector())).build());
 
-            List<EmbeddingMatch<TextSegment>> embeddingMatches;
+            List<EmbeddingMatch<TextSegment>> embeddingMatches = searchResult.matches();
 
-            // 根据配置决定是否进行重排序
-            if (finalEnableRerank && !textSegmentList.matches().isEmpty()) {
-                long rerankStartTime = System.currentTimeMillis();
-                embeddingMatches = rerankService.rerankDocument(textSegmentList, question);
-                long rerankTime = System.currentTimeMillis() - rerankStartTime;
-                log.debug("Applied reranking for query: '{}', got {} matches, took {}ms", question,
-                        embeddingMatches.size(), rerankTime);
-            } else {
-                embeddingMatches = textSegmentList.matches();
-                log.debug("Skipped reranking for query: '{}', using {} vector matches", question,
-                        embeddingMatches.size());
-            }
-
-            // 如果没有找到相关文档，尝试降低相似度阈值再次搜索
+            // 回退搜索（降低阈值）
             if (embeddingMatches.isEmpty() && finalMinScore > 0.3) {
-                log.info("No results found with minScore: {}, retrying with lower threshold", finalMinScore);
-
+                log.info("在最小分数{}下没有找到向量结果，尝试使用较低阈值重试", finalMinScore);
                 final EmbeddingSearchResult<TextSegment> fallbackResult = embeddingStore.search(EmbeddingSearchRequest
-                        .builder().filter(new IsIn(DATA_SET_ID, dataSetId)).maxResults(searchLimit).minScore(0.3) //
-                        // 降低阈值进行回退搜索
+                        .builder().filter(new IsIn(DATA_SET_ID, dataSetIds)).maxResults(searchLimit).minScore(0.3)
                         .queryEmbedding(Embedding.from(embeddingModel.embed(question).content().vector())).build());
-
                 embeddingMatches = fallbackResult.matches();
-                log.debug("Fallback search found {} matches with lower threshold", embeddingMatches.size());
+                log.debug("回退向量搜索找到{}个匹配结果", embeddingMatches.size());
             }
 
-            // 提取文档ID并创建ID到分数的映射
-            final Map<String, Double> documentScores = new HashMap<>();
-            final List<String> documentIds = embeddingMatches.stream().limit(finalMaxResults) // 在重排序后限制数量
-                    .map(match -> {
-                        if (match.embedded().metadata().containsKey(DOCUMENT_ID)) {
-                            String documentId = match.embedded().metadata().getString(DOCUMENT_ID);
-                            documentScores.put(documentId, match.score());
-                            log.debug("Found document: {} with score: {:.4f}", documentId, match.score());
-                            return documentId;
-                        }
-                        return null;
-                    }).filter(StrUtil::isNotBlank).toList();
+            // 转换为VectorStoreResult格式
+            List<VectorStoreResult> results = embeddingMatches.stream().limit(finalMaxResults).map(match -> {
+                VectorStoreResult result = new VectorStoreResult();
+                result.setEmbeddingId(match.embeddingId());
+                result.setText(match.embedded().text());
+                result.setMetadata(match.embedded().metadata().toMap());
+                result.setScore(match.score());
+                result.setSearchType(SearchType.VECTOR);
+                return result;
+            }).toList();
 
-            if (documentIds.isEmpty()) {
-                log.info("No relevant documents found for query: '{}' with minScore: {}", question, finalMinScore);
-                return new ArrayList<>();
-            }
-
-            // 查询扩展：如果启用了查询扩展，添加相邻片段
-            List<String> finalDocumentIds = new ArrayList<>(documentIds);
-            if (Boolean.TRUE.equals(enableQueryExpansion)) {
-                // 获取初始匹配片段的详细信息
-                List<DocumentUnitEntity> initialDocs = documentUnitRepository.selectList(
-                        Wrappers.lambdaQuery(DocumentUnitEntity.class).in(DocumentUnitEntity::getId, documentIds));
-
-                // 收集所有需要的片段ID（使用LinkedHashSet保持顺序并去重）
-                Set<String> expandedIds = new LinkedHashSet<>(documentIds);
-
-                for (DocumentUnitEntity doc : initialDocs) {
-                    // 查询相邻页面片段（前一页、当前页、后一页）
-                    List<DocumentUnitEntity> adjacentChunks =
-                            documentUnitRepository.selectList(Wrappers.<DocumentUnitEntity>lambdaQuery()
-                            .eq(DocumentUnitEntity::getFileId, doc.getFileId())
-                            .between(DocumentUnitEntity::getPage, Math.max(1, doc.getPage() - 1), doc.getPage() + 1)
-                            .eq(DocumentUnitEntity::getIsVector, true));
-
-                    adjacentChunks.forEach(chunk -> expandedIds.add(chunk.getId()));
-                }
-
-                finalDocumentIds = new ArrayList<>(expandedIds);
-                log.info("Query expansion enabled: original {} chunks expanded to {} chunks for query: '{}'",
-                        documentIds.size(), finalDocumentIds.size(), question);
-            }
-
-            // 查询所有文档（包括扩展的）
-            List<DocumentUnitEntity> allDocuments = documentUnitRepository.selectList(
-                    Wrappers.lambdaQuery(DocumentUnitEntity.class).in(DocumentUnitEntity::getId, finalDocumentIds));
-
-            // 按照检索相关性顺序重新排列结果，并设置相似度分数
-            // 使用LinkedHashSet去重，保持顺序
-            Set<String> uniqueDocumentIds = new LinkedHashSet<>(finalDocumentIds);
-            List<DocumentUnitEntity> sortedResults = uniqueDocumentIds.stream().map(id -> {
-                DocumentUnitEntity doc = allDocuments.stream().filter(d -> id.equals(d.getId())).findFirst()
-                        .orElse(null);
-                if (doc != null) {
-                    // 设置相似度分数：原始匹配使用向量搜索分数，扩展片段使用默认分数
-                    Double score = documentScores.get(id);
-                    if (score != null) {
-                        doc.setSimilarityScore(score);
-                    } else {
-                        // 扩展片段设置较低的默认分数
-                        doc.setSimilarityScore(finalMinScore * 0.8);
-                    }
-                }
-                return doc;
-            }).filter(java.util.Objects::nonNull).toList();
-
-            // 记录搜索性能统计
             long totalTime = System.currentTimeMillis() - startTime;
-            double avgScore = embeddingMatches.stream().mapToDouble(EmbeddingMatch::score).average().orElse(0.0);
+            log.info("向量搜索完成，查询：'{}'，返回{}个文档，耗时{}ms", question, results.size(), totalTime);
 
-            log.info("RAG search completed for query: '{}', returned {} documents, avgScore: {:.4f}, totalTime: {}ms",
-                    question, sortedResults.size(), avgScore, totalTime);
-
-            return sortedResults;
+            return results;
 
         } catch (Exception e) {
-            log.error("Error during RAG document retrieval for question: '{}', time: {}ms",
-                    question, System.currentTimeMillis() - startTime, e);
-            return new ArrayList<>();
+            long totalTime = System.currentTimeMillis() - startTime;
+            log.error("向量搜索过程中出现错误，问题：'{}'，耗时：{}ms", question, totalTime, e);
+            // 向量检索失败时返回空集合，不影响关键词检索结果
+            return Collections.emptyList();
         }
     }
 
@@ -287,11 +202,11 @@ public class EmbeddingDomainService implements MetadataConstant {
         final String vectorId = ragDocSyncStorageMessage.getId();
         final FileDetailEntity fileDetailEntity = fileDetailRepository.selectById(ragDocSyncStorageMessage.getFileId());
 
-        // 🎯 核心修复：使用消息中的翻译后内容，而不是从数据库读取原文
+        // 使用消息中的翻译后内容，而不是从数据库读取原文
         final String content = ragDocSyncStorageMessage.getContent();
 
         if (content == null || content.trim().isEmpty()) {
-            log.warn("Empty content in storage message {}, skipping vectorization", vectorId);
+            log.warn("存储消息{}中内容为空，跳过向量化", vectorId);
             return;
         }
 
@@ -305,14 +220,13 @@ public class EmbeddingDomainService implements MetadataConstant {
 
         embeddingStore.add(embeddings, textSegment);
 
-        // 🎯 提取原始DocumentUnit ID（移除segment后缀）
+        // 提取原始DocumentUnit ID（移除segment后缀）
         String originalDocId = extractOriginalDocId(vectorId);
 
         // 更新原始DocumentUnit的向量化状态
         if (originalDocId != null) {
             documentUnitRepository.update(Wrappers.lambdaUpdate(DocumentUnitEntity.class)
-                    .eq(DocumentUnitEntity::getId, originalDocId)
-                    .set(DocumentUnitEntity::getIsVector, true));
+                    .eq(DocumentUnitEntity::getId, originalDocId).set(DocumentUnitEntity::getIsVector, true));
         }
 
         // 修改文件状态
@@ -326,10 +240,9 @@ public class EmbeddingDomainService implements MetadataConstant {
 
         if (anInt >= pageSize) {
             // 使用状态机设置完成状态
-            fileDetailRepository.update(Wrappers.lambdaUpdate(FileDetailEntity.class)
-                    .eq(FileDetailEntity::getId, fileDetailEntity.getId())
-                    .set(FileDetailEntity::getProcessingStatus, FileProcessingStatusEnum.COMPLETED.getCode())
-            );
+            fileDetailRepository.update(
+                    Wrappers.lambdaUpdate(FileDetailEntity.class).eq(FileDetailEntity::getId, fileDetailEntity.getId())
+                            .set(FileDetailEntity::getProcessingStatus, FileProcessingStatusEnum.COMPLETED.getCode()));
         }
 
     }
@@ -381,7 +294,8 @@ public class EmbeddingDomainService implements MetadataConstant {
             var modelConfig = ragDocSyncStorageMessage.getEmbeddingModelConfig();
 
             // 验证模型配置的完整性
-            if (modelConfig.getModelId() == null || modelConfig.getApiKey() == null || modelConfig.getBaseUrl() == null) {
+            if (modelConfig.getModelId() == null || modelConfig.getApiKey() == null
+                    || modelConfig.getBaseUrl() == null) {
                 String errorMsg = String.format("用户 %s 的嵌入模型配置不完整: modelId=%s, apiKey=%s, baseUrl=%s",
                         ragDocSyncStorageMessage.getUserId(), modelConfig.getModelId(),
                         modelConfig.getApiKey() != null ? "已配置" : "未配置", modelConfig.getBaseUrl());
@@ -394,8 +308,7 @@ public class EmbeddingDomainService implements MetadataConstant {
                     modelConfig.getApiKey(), modelConfig.getBaseUrl(), modelConfig.getModelId());
             OpenAiEmbeddingModel embeddingModel = embeddingModelFactory.createEmbeddingModel(config);
 
-            log.info("Successfully created embedding model for user {}: {}", ragDocSyncStorageMessage.getUserId(),
-                    modelConfig.getModelId());
+            log.info("成功为用户{}创建嵌入模型: {}", ragDocSyncStorageMessage.getUserId(), modelConfig.getModelId());
             return embeddingModel;
 
         } catch (RuntimeException e) {

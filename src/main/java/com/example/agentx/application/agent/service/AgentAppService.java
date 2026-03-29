@@ -1,6 +1,8 @@
 package com.example.agentx.application.agent.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.agentx.domain.rag.service.management.RagVersionDomainService;
+import com.example.agentx.domain.rag.service.management.UserRagDomainService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -27,8 +29,6 @@ import com.example.agentx.domain.product.constant.BillingType;
 import com.example.agentx.domain.product.constant.UsageDataKeys;
 import com.example.agentx.infrastructure.exception.InsufficientBalanceException;
 import com.example.agentx.domain.tool.service.UserToolDomainService;
-import com.example.agentx.domain.rag.service.UserRagDomainService;
-import com.example.agentx.domain.rag.service.RagVersionDomainService;
 import com.example.agentx.domain.rag.constant.RagPublishStatus;
 import com.example.agentx.domain.rag.model.UserRagEntity;
 import com.example.agentx.domain.rag.model.RagVersionEntity;

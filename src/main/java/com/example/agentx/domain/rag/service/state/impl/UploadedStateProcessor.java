@@ -41,8 +41,6 @@ public class UploadedStateProcessor implements FileProcessingStateProcessor {
 
     @Override
     public Integer[] getNextPossibleStatuses() {
-        return new Integer[]{
-                FileProcessingStatusEnum.OCR_PROCESSING.getCode()
-        };
+        return new Integer[]{FileProcessingStatusEnum.OCR_PROCESSING.getCode()};
     }
 }

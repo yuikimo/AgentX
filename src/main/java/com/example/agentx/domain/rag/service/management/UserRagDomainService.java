@@ -12,6 +12,7 @@ import com.example.agentx.domain.rag.constant.RagPublishStatus;
 import com.example.agentx.domain.rag.model.RagQaDatasetEntity;
 import com.example.agentx.domain.rag.model.RagVersionEntity;
 import com.example.agentx.domain.rag.model.UserRagEntity;
+import com.example.agentx.domain.rag.model.UserRagFileEntity;
 import com.example.agentx.domain.rag.repository.UserRagRepository;
 import com.example.agentx.domain.rag.service.RagQaDatasetDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
@@ -218,7 +219,8 @@ public class UserRagDomainService {
         }
 
         LambdaUpdateWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaUpdate()
-                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getRagVersionId, ragVersionId);
+                .eq(UserRagEntity::getUserId, userId)
+                .eq(UserRagEntity::getRagVersionId, ragVersionId);
 
         userRagRepository.delete(wrapper);
     }
@@ -232,7 +234,8 @@ public class UserRagDomainService {
      */
     public boolean isRagInstalled(String userId, String ragVersionId) {
         LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery()
-                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getRagVersionId, ragVersionId);
+                .eq(UserRagEntity::getUserId, userId)
+                .eq(UserRagEntity::getRagVersionId, ragVersionId);
 
         return userRagRepository.exists(wrapper);
     }
@@ -326,7 +329,8 @@ public class UserRagDomainService {
      */
     public UserRagEntity getUserRag(String userId, String userRagId) {
         LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery()
-                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getId, userRagId);
+                .eq(UserRagEntity::getUserId, userId)
+                .eq(UserRagEntity::getId, userRagId);
 
         UserRagEntity userRag = userRagRepository.selectOne(wrapper);
         if (userRag == null) {
@@ -382,11 +386,9 @@ public class UserRagDomainService {
     public void updateUserRagBasicInfo(String userId, String originalRagId, String name, String description,
                                        String icon) {
         LambdaUpdateWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaUpdate()
-                .eq(UserRagEntity::getUserId, userId)
-                .eq(UserRagEntity::getOriginalRagId, originalRagId)
+                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getOriginalRagId, originalRagId)
                 .eq(UserRagEntity::getInstallType, InstallType.REFERENCE) // 只更新REFERENCE类型的安装
-                .set(UserRagEntity::getName, name)
-                .set(UserRagEntity::getDescription, description)
+                .set(UserRagEntity::getName, name).set(UserRagEntity::getDescription, description)
                 .set(UserRagEntity::getIcon, icon);
 
         userRagRepository.update(null, wrapper);
@@ -400,8 +402,7 @@ public class UserRagDomainService {
      */
     public void forceUninstallRagByOriginalId(String userId, String originalRagId) {
         LambdaUpdateWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaUpdate()
-                .eq(UserRagEntity::getUserId, userId)
-                .eq(UserRagEntity::getOriginalRagId, originalRagId);
+                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getOriginalRagId, originalRagId);
 
         userRagRepository.checkedDelete(wrapper);
     }

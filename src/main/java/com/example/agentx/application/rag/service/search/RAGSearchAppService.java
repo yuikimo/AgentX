@@ -26,7 +26,6 @@ import com.example.agentx.domain.llm.model.ProviderEntity;
 import com.example.agentx.domain.llm.service.HighAvailabilityDomainService;
 import com.example.agentx.domain.llm.service.LLMDomainService;
 import com.example.agentx.domain.rag.service.DocumentUnitDomainService;
-import com.example.agentx.domain.rag.service.EmbeddingDomainService;
 import com.example.agentx.domain.rag.service.FileDetailDomainService;
 import com.example.agentx.domain.rag.service.RagQaDatasetDomainService;
 import com.example.agentx.domain.rag.service.management.RagDataAccessDomainService;
@@ -43,6 +42,14 @@ import com.example.agentx.domain.rag.model.UserRagFileEntity;
 import com.example.agentx.domain.rag.model.ModelConfig;
 import com.example.agentx.domain.rag.model.DocumentUnitEntity;
 import com.example.agentx.domain.rag.model.FileDetailEntity;
+import com.example.agentx.domain.rag.model.RagQaDatasetEntity;
+import com.example.agentx.domain.rag.model.RagVersionEntity;
+import com.example.agentx.domain.rag.repository.DocumentUnitRepository;
+import com.example.agentx.domain.rag.repository.FileDetailRepository;
+import com.example.agentx.domain.rag.repository.UserRagFileRepository;
+import com.example.agentx.domain.rag.dto.HybridSearchConfig;
+import com.example.agentx.domain.rag.service.*;
+import com.example.agentx.infrastructure.rag.service.UserModelConfigResolver;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -58,7 +65,6 @@ public class RAGSearchAppService {
     private final RagQaDatasetDomainService ragQaDatasetDomainService;
     private final FileDetailDomainService fileDetailDomainService;
     private final DocumentUnitDomainService documentUnitDomainService;
-    private final EmbeddingDomainService embeddingDomainService;
     private final ObjectMapper objectMapper;
     private final LLMServiceFactory llmServiceFactory;
     private final LLMDomainService llmDomainService;
@@ -69,24 +75,24 @@ public class RAGSearchAppService {
     private final RagDataAccessDomainService ragDataAccessService;
     private final RagModelConfigService ragModelConfigService;
     private final EmbeddingModelFactory embeddingModelFactory;
+    private final HybridSearchDomainService hybridSearchDomainService;
     private final UserRagFileDomainService userRagFileDomainService;
 
     public RAGSearchAppService(RagQaDatasetDomainService ragQaDatasetDomainService,
                                FileDetailDomainService fileDetailDomainService,
                                DocumentUnitDomainService documentUnitDomainService,
-                               EmbeddingDomainService embeddingDomainService, ObjectMapper objectMapper,
+                               ObjectMapper objectMapper,
                                LLMServiceFactory llmServiceFactory, LLMDomainService llmDomainService,
                                UserSettingsDomainService userSettingsDomainService,
                                HighAvailabilityDomainService highAvailabilityDomainService,
                                UserRagDomainService userRagDomainService,
                                RagDataAccessDomainService ragDataAccessService,
-                               RagModelConfigService ragModelConfigService,
-                               EmbeddingModelFactory embeddingModelFactory,
+                               RagModelConfigService ragModelConfigService, EmbeddingModelFactory embeddingModelFactory,
+                               HybridSearchDomainService hybridSearchDomainService,
                                UserRagFileDomainService userRagFileDomainService) {
         this.ragQaDatasetDomainService = ragQaDatasetDomainService;
         this.fileDetailDomainService = fileDetailDomainService;
         this.documentUnitDomainService = documentUnitDomainService;
-        this.embeddingDomainService = embeddingDomainService;
         this.objectMapper = objectMapper;
         this.llmServiceFactory = llmServiceFactory;
         this.llmDomainService = llmDomainService;
@@ -96,6 +102,7 @@ public class RAGSearchAppService {
         this.ragDataAccessService = ragDataAccessService;
         this.ragModelConfigService = ragModelConfigService;
         this.embeddingModelFactory = embeddingModelFactory;
+        this.hybridSearchDomainService = hybridSearchDomainService;
         this.userRagFileDomainService = userRagFileDomainService;
     }
 
@@ -131,7 +138,7 @@ public class RAGSearchAppService {
             return new ArrayList<>();
         }
 
-        // 使用智能调整后的参数进行RAG搜索
+        // 使用智能调整后的参数进行混合检索
         Double adjustedMinScore = request.getAdjustedMinScore();
         Integer adjustedCandidateMultiplier = request.getAdjustedCandidateMultiplier();
 
@@ -139,12 +146,17 @@ public class RAGSearchAppService {
         ModelConfig embeddingModelConfig = ragModelConfigService.getUserEmbeddingModelConfig(userId);
         EmbeddingModelFactory.EmbeddingConfig embeddingConfig = toEmbeddingConfig(embeddingModelConfig);
 
-        // 调用领域服务进行RAG搜索，使用智能优化的参数
-        List<DocumentUnitEntity> entities = embeddingDomainService.ragDoc(validDatasetIds, request.getQuestion(),
-                request.getMaxResults(), adjustedMinScore, // 使用智能调整的相似度阈值
-                request.getEnableRerank(), adjustedCandidateMultiplier, // 使用智能调整的候选结果倍数
-                embeddingConfig, // 传入嵌入模型配置
-                request.getEnableQueryExpansion()); // 传递查询扩展参数
+        // 使用HybridSearchConfig配置对象调用混合检索服务
+        HybridSearchConfig config = HybridSearchConfig.builder(validDatasetIds, request.getQuestion())
+                .maxResults(request.getMaxResults())
+                .minScore(adjustedMinScore) // 使用智能调整的相似度阈值
+                .enableRerank(request.getEnableRerank())
+                // 使用智能调整的候选结果倍数
+                .candidateMultiplier(adjustedCandidateMultiplier)
+                .embeddingConfig(embeddingConfig) // 传入嵌入模型配置
+                .enableQueryExpansion(request.getEnableQueryExpansion()) // 传递查询扩展参数
+                .build();
+        List<DocumentUnitEntity> entities = hybridSearchDomainService.hybridSearch(config);
 
         // 转换为DTO并返回
         return DocumentUnitAssembler.toDTOs(entities);
@@ -190,17 +202,29 @@ public class RAGSearchAppService {
 
         List<DocumentUnitEntity> entities;
         if (sourceInfo.getIsRealTime()) {
-            // REFERENCE类型：搜索实时数据
-            entities = embeddingDomainService.ragDoc(List.of(actualDatasetId), request.getQuestion(),
-                    request.getMaxResults(), adjustedMinScore, request.getEnableRerank(), adjustedCandidateMultiplier,
-                    embeddingConfig, request.getEnableQueryExpansion());
+            // REFERENCE类型：使用混合检索搜索实时数据
+            HybridSearchConfig config = HybridSearchConfig.builder(List.of(actualDatasetId), request.getQuestion())
+                    .maxResults(request.getMaxResults())
+                    .minScore(adjustedMinScore)
+                    .enableRerank(request.getEnableRerank())
+                    .candidateMultiplier(adjustedCandidateMultiplier)
+                    .embeddingConfig(embeddingConfig)
+                    .enableQueryExpansion(request.getEnableQueryExpansion())
+                    .build();
+            entities = hybridSearchDomainService.hybridSearch(config);
         } else {
-            // SNAPSHOT类型：搜索版本快照数据
+            // SNAPSHOT类型：搜索版本快照数据，使用混合检索
             List<DocumentUnitEntity> snapshotDocuments = ragDataAccessService.getRagDocuments(userId, userRagId);
-            // 对快照数据进行向量搜索（这里可能需要特殊处理，暂时使用相同逻辑）
-            entities = embeddingDomainService.ragDoc(List.of(actualDatasetId), request.getQuestion(),
-                    request.getMaxResults(), adjustedMinScore, request.getEnableRerank(), adjustedCandidateMultiplier,
-                    embeddingConfig, request.getEnableQueryExpansion());
+            // 对快照数据进行混合检索（这里可能需要特殊处理，暂时使用相同逻辑）
+            HybridSearchConfig config = HybridSearchConfig.builder(List.of(actualDatasetId), request.getQuestion())
+                    .maxResults(request.getMaxResults())
+                    .minScore(adjustedMinScore)
+                    .enableRerank(request.getEnableRerank())
+                    .candidateMultiplier(adjustedCandidateMultiplier)
+                    .embeddingConfig(embeddingConfig)
+                    .enableQueryExpansion(request.getEnableQueryExpansion())
+                    .build();
+            entities = hybridSearchDomainService.hybridSearch(config);
         }
 
         // 转换为DTO并返回
@@ -221,15 +245,15 @@ public class RAGSearchAppService {
         // 设置连接关闭回调
         emitter.onCompletion(() -> {
             completed.set(true);
-            log.info("RAG stream chat completed for user: {}", userId);
+            log.info("用户 {} 的RAG流式对话完成", userId);
         });
         emitter.onTimeout(() -> {
-            log.warn("RAG stream chat timeout for user: {}", userId);
+            log.warn("用户 {} 的RAG流式对话超时", userId);
             sendSseData(emitter, createErrorResponse("连接超时"), completed);
             safeCompleteEmitter(emitter, completed);
         });
         emitter.onError((ex) -> {
-            log.error("RAG stream chat connection error for user: {}", userId, ex);
+            log.error("用户 {} 的RAG流式对话连接错误", userId, ex);
             safeCompleteEmitter(emitter, completed);
         });
 
@@ -238,7 +262,7 @@ public class RAGSearchAppService {
             try {
                 processRagStreamChat(request, userId, emitter, completed);
             } catch (Exception e) {
-                log.error("RAG stream chat error", e);
+                log.error("RAG流式对话错误", e);
                 sendSseData(emitter, createErrorResponse("处理过程中发生错误: " + e.getMessage()), completed);
             } finally {
                 // 确保连接被正确关闭
@@ -256,7 +280,7 @@ public class RAGSearchAppService {
                                       AtomicBoolean completed) {
         try {
             // 第一阶段：检索文档
-            log.info("Starting RAG stream chat for user: {}, question: '{}'", userId, request.getQuestion());
+            log.info("开始RAG流式对话 用户: {}, 问题: '{}'", userId, request.getQuestion());
 
             // 发送检索开始信号
             sendSseData(emitter, AgentChatResponse.build("开始检索相关文档...", MessageType.RAG_RETRIEVAL_START), completed);
@@ -293,9 +317,15 @@ public class RAGSearchAppService {
                 retrievedDocuments = retrieveFromFile(request.getFileId(), request.getQuestion(),
                         request.getMaxResults(), embeddingConfig);
             } else {
-                retrievedDocuments = embeddingDomainService.ragDoc(searchDatasetIds, request.getQuestion(),
-                        request.getMaxResults(), request.getMinScore(), request.getEnableRerank(), 2, embeddingConfig,
-                        false); // 流式问答中暂时不启用查询扩展，保持现有行为
+                HybridSearchConfig config = HybridSearchConfig.builder(searchDatasetIds, request.getQuestion())
+                        .maxResults(request.getMaxResults())
+                        .minScore(request.getMinScore())
+                        .enableRerank(request.getEnableRerank())
+                        .candidateMultiplier(2)
+                        .embeddingConfig(embeddingConfig)
+                        .enableQueryExpansion(false) // 流式问答中暂时不启用查询扩展，保持现有行为
+                        .build();
+                retrievedDocuments = hybridSearchDomainService.hybridSearch(config);
             }
 
             // 构建检索结果
@@ -314,7 +344,7 @@ public class RAGSearchAppService {
             try {
                 retrievalEndResponse.setPayload(objectMapper.writeValueAsString(retrievedDocs));
             } catch (Exception e) {
-                log.error("Failed to serialize retrieved documents", e);
+                log.error("失败：序列化检索到的文档", e);
             }
             sendSseData(emitter, retrievalEndResponse, completed);
             Thread.sleep(1000);
@@ -334,7 +364,7 @@ public class RAGSearchAppService {
             sendSseData(emitter, AgentChatResponse.buildEndMessage("回答生成完成", MessageType.RAG_ANSWER_END), completed);
 
         } catch (Exception e) {
-            log.error("Error in RAG stream chat processing", e);
+            log.error("RAG流式对话处理错误", e);
             sendSseData(emitter, createErrorResponse("处理过程中发生错误: " + e.getMessage()), completed);
         } finally {
             safeCompleteEmitter(emitter, completed);
@@ -357,7 +387,15 @@ public class RAGSearchAppService {
         FileDetailEntity fileEntity = fileDetailDomainService.getFileById(fileId);
         List<String> datasetIds = List.of(fileEntity.getDataSetId());
 
-        return embeddingDomainService.ragDoc(datasetIds, question, maxResults, 0.5, true, 2, embeddingConfig, false); // 文件内检索暂时不启用查询扩展，保持现有行为
+        HybridSearchConfig config = HybridSearchConfig.builder(datasetIds, question)
+                .maxResults(maxResults)
+                .minScore(0.5)
+                .enableRerank(true)
+                .candidateMultiplier(2)
+                .embeddingConfig(embeddingConfig)
+                .enableQueryExpansion(false) // 文件内检索暂时不启用查询扩展，保持现有行为
+                .build();
+        return hybridSearchDomainService.hybridSearch(config);
     }
 
     /**
@@ -485,7 +523,7 @@ public class RAGSearchAppService {
 
                 streamComplete.complete(null);
             }).onError(throwable -> {
-                log.error("RAG stream answer generation error for user: {}", userId, throwable);
+                log.error("用户 {} 的RAG流式答案生成错误", userId, throwable);
                 sendSseData(emitter, createErrorResponse("回答生成失败: " + throwable.getMessage()), completed);
 
                 long latency = System.currentTimeMillis() - startTime;
@@ -509,7 +547,7 @@ public class RAGSearchAppService {
             }
 
         } catch (Exception e) {
-            log.error("Error in RAG stream answer generation for user: {}", userId, e);
+            log.error("用户 {} 的RAG流式答案生成错误", userId, e);
             sendSseData(emitter, createErrorResponse("回答生成失败: " + e.getMessage()), completed);
         }
     }
@@ -535,7 +573,7 @@ public class RAGSearchAppService {
             log.info("完整模拟RAG回答内容:\n{}", fullMockAnswer);
 
         } catch (Exception e) {
-            log.error("Error generating mock stream answer", e);
+            log.error("生成模拟流式答案错误", e);
             sendSseData(emitter, createErrorResponse("回答生成失败: " + e.getMessage()), completed);
         }
     }
@@ -574,12 +612,12 @@ public class RAGSearchAppService {
         if (completed.compareAndSet(false, true)) {
             try {
                 emitter.complete();
-                log.debug("SSE emitter completed successfully");
+                log.debug("SSE发射器成功完成");
             } catch (Exception e) {
-                log.debug("Error completing SSE emitter (may be already completed): {}", e.getMessage());
+                log.debug("SSE发射器完成错误（可能已经完成）: {}", e.getMessage());
             }
         } else {
-            log.debug("SSE emitter already completed, skipping");
+            log.debug("SSE发射器已经完成，跳过");
         }
     }
 
@@ -700,15 +738,15 @@ public class RAGSearchAppService {
         // 设置连接关闭回调
         emitter.onCompletion(() -> {
             completed.set(true);
-            log.info("RAG stream chat by userRag completed for user: {}, userRagId: {}", userId, userRagId);
+            log.info("用户 {} 通过userRag {} 的RAG流式对话完成", userId, userRagId);
         });
         emitter.onTimeout(() -> {
-            log.warn("RAG stream chat by userRag timeout for user: {}, userRagId: {}", userId, userRagId);
+            log.warn("用户 {} 通过userRag {} 的RAG流式对话超时", userId, userRagId);
             sendSseData(emitter, createErrorResponse("连接超时"), completed);
             safeCompleteEmitter(emitter, completed);
         });
         emitter.onError((ex) -> {
-            log.error("RAG stream chat by userRag connection error for user: {}, userRagId: {}", userId, userRagId, ex);
+            log.error("用户 {} 通过userRag {} 的RAG流式对话连接错误", userId, userRagId, ex);
             safeCompleteEmitter(emitter, completed);
         });
 
@@ -717,7 +755,7 @@ public class RAGSearchAppService {
             try {
                 processRagStreamChatByUserRag(request, userRagId, userId, emitter, completed);
             } catch (Exception e) {
-                log.error("RAG stream chat by userRag error", e);
+                log.error("通过userRag的RAG流式对话错误", e);
                 sendSseData(emitter, createErrorResponse("处理过程中发生错误: " + e.getMessage()), completed);
             } finally {
                 // 确保连接被正确关闭
@@ -742,8 +780,8 @@ public class RAGSearchAppService {
 
             // 获取RAG数据源信息
             var dataSourceInfo = ragDataAccessService.getRagDataSourceInfo(userId, userRagId);
-            log.info("Starting RAG stream chat by userRag: {}, user: {}, question: '{}', install type: {}", userRagId,
-                    userId, request.getQuestion(), dataSourceInfo.getInstallType());
+            log.info("开始RAG流式对话 通过userRag: {}, 用户: {}, 问题: '{}', 安装类型: {}",
+                    userRagId, userId, request.getQuestion(), dataSourceInfo.getInstallType());
 
             // 第一阶段：检索文档
             sendSseData(emitter, AgentChatResponse.build("开始检索相关文档...", MessageType.RAG_RETRIEVAL_START), completed);
@@ -759,9 +797,16 @@ public class RAGSearchAppService {
             if (dataSourceInfo.getIsRealTime()) {
                 // REFERENCE类型：使用原始RAG的数据集进行向量搜索
                 List<String> ragDatasetIds = List.of(dataSourceInfo.getOriginalRagId());
-                retrievedDocuments = embeddingDomainService.ragDoc(ragDatasetIds, request.getQuestion(),
-                        request.getMaxResults(), request.getMinScore(), request.getEnableRerank(), 2, embeddingConfig,
-                        false); // UserRag流式问答中暂时不启用查询扩展，保持现有行为
+                // 使用HybridSearchConfig配置对象调用混合检索
+                HybridSearchConfig config = HybridSearchConfig.builder(ragDatasetIds, request.getQuestion())
+                        .maxResults(request.getMaxResults())
+                        .minScore(request.getMinScore())
+                        .enableRerank(request.getEnableRerank())
+                        .candidateMultiplier(2)
+                        .embeddingConfig(embeddingConfig)
+                        .enableQueryExpansion(false) // UserRag流式问答中暂时不启用查询扩展，保持现有行为
+                        .build();
+                retrievedDocuments = hybridSearchDomainService.hybridSearch(config);
             } else {
                 // SNAPSHOT类型：使用用户快照数据进行检索
                 retrievedDocuments = ragDataAccessService.getRagDocuments(userId, userRagId);
@@ -806,7 +851,7 @@ public class RAGSearchAppService {
             try {
                 retrievalEndResponse.setPayload(objectMapper.writeValueAsString(retrievedDocs));
             } catch (Exception e) {
-                log.error("Failed to serialize retrieved documents", e);
+                log.error("失败：序列化检索到的文档", e);
             }
             sendSseData(emitter, retrievalEndResponse, completed);
 
@@ -827,7 +872,7 @@ public class RAGSearchAppService {
             sendSseData(emitter, AgentChatResponse.buildEndMessage("回答生成完成", MessageType.RAG_ANSWER_END), completed);
 
         } catch (Exception e) {
-            log.error("Error in processRagStreamChatByUserRag", e);
+            log.error("processRagStreamChatByUserRag处理错误", e);
             sendSseData(emitter, createErrorResponse("处理过程中发生错误: " + e.getMessage()), completed);
         }
     }
@@ -841,8 +886,8 @@ public class RAGSearchAppService {
      * @param embeddingConfig 嵌入模型配置
      * @return 过滤和排序后的文档列表
      */
-    private List<DocumentUnitEntity> filterAndRankSnapshotDocuments(List<DocumentUnitEntity> documents, String question,
-                                                                    Integer maxResults,
+    private List<DocumentUnitEntity> filterAndRankSnapshotDocuments(List<DocumentUnitEntity> documents,
+                                                                    String question, Integer maxResults,
                                                                     EmbeddingModelFactory.EmbeddingConfig embeddingConfig) {
 
         if (documents == null || documents.isEmpty()) {
@@ -869,7 +914,6 @@ public class RAGSearchAppService {
                     // 设置相似度分数到文档实体
                     doc.setSimilarityScore(similarity);
                     documentsWithScores.add(new DocumentWithScore(doc, similarity));
-
                 } catch (Exception e) {
                     log.warn("计算文档相似度失败: {}", e.getMessage());
                     // 如果计算失败，设置较低的相似度分数
@@ -886,7 +930,10 @@ public class RAGSearchAppService {
                     ? Math.min(maxResults, documentsWithScores.size())
                     : documentsWithScores.size();
 
-            return documentsWithScores.stream().limit(limit).map(dws -> dws.document).collect(Collectors.toList());
+            return documentsWithScores.stream()
+                    .limit(limit)
+                    .map(dws -> dws.document)
+                    .collect(Collectors.toList());
 
         } catch (Exception e) {
             log.error("快照文档相关性过滤失败", e);

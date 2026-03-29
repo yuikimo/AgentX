@@ -1,11 +1,11 @@
 package com.example.agentx.domain.rag.service.state.impl;
 
-import com.example.agentx.domain.rag.constant.FileProcessingStatusEnum;
-import com.example.agentx.domain.rag.model.FileDetailEntity;
-import com.example.agentx.domain.rag.service.state.FileProcessingStateProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import com.example.agentx.domain.rag.constant.FileProcessingStatusEnum;
+import com.example.agentx.domain.rag.model.FileDetailEntity;
+import com.example.agentx.domain.rag.service.state.FileProcessingStateProcessor;
 
 /**
  * 向量化处理失败状态处理器
@@ -33,8 +33,7 @@ public class EmbeddingFailedStateProcessor implements FileProcessingStateProcess
 
     @Override
     public Integer[] getNextPossibleStatuses() {
-        return new Integer[]{
-                FileProcessingStatusEnum.EMBEDDING_PROCESSING.getCode(), // 允许重试
+        return new Integer[]{FileProcessingStatusEnum.EMBEDDING_PROCESSING.getCode(), // 允许重试
                 FileProcessingStatusEnum.OCR_COMPLETED.getCode(), // 回退到OCR完成状态
                 FileProcessingStatusEnum.UPLOADED.getCode() // 允许完全重置
         };

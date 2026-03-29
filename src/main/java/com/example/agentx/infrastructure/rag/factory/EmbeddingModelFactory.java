@@ -64,16 +64,4 @@ public class EmbeddingModelFactory {
                 .modelName(config.getModelName())
                 .build();
     }
-
-    /**
-     * 根据参数创建OpenAI嵌入模型实例
-     *
-     * @param apiKey    API密钥
-     * @param baseUrl   基础URL
-     * @param modelName 模型名称
-     * @return OpenAiEmbeddingModel实例
-     */
-    public OpenAiEmbeddingModel createEmbeddingModel(String apiKey, String baseUrl, String modelName) {
-        return createEmbeddingModel(new EmbeddingConfig(apiKey, baseUrl, modelName));
-    }
 }

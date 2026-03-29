@@ -28,7 +28,6 @@ import com.example.agentx.domain.rag.service.RagQaDatasetDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -189,8 +188,7 @@ public class RagVersionDomainService {
      */
     private void validateVersionUniqueness(String ragId, String version) {
         LambdaQueryWrapper<RagVersionEntity> wrapper = Wrappers.<RagVersionEntity>lambdaQuery()
-                .eq(RagVersionEntity::getOriginalRagId, ragId)
-                .eq(RagVersionEntity::getVersion, version);
+                .eq(RagVersionEntity::getOriginalRagId, ragId).eq(RagVersionEntity::getVersion, version);
         if (ragVersionRepository.exists(wrapper)) {
             throw new BusinessException("版本号已存在");
         }
@@ -293,7 +291,7 @@ public class RagVersionDomainService {
                     }
                 }));
 
-        List<RagVersionEntity> latestList = new ArrayList<>(latestMap.values());
+        List<RagVersionEntity> latestList = new java.util.ArrayList<>(latestMap.values());
 
         // 3. 按发布时间倒序排列
         latestList.sort((a, b) -> {
@@ -306,7 +304,7 @@ public class RagVersionDomainService {
         int fromIndex = (page - 1) * pageSize;
         int toIndex = Math.min(fromIndex + pageSize, latestList.size());
         List<RagVersionEntity> pageList = fromIndex >= latestList.size()
-                ? new ArrayList<>()
+                ? new java.util.ArrayList<>()
                 : latestList.subList(fromIndex, toIndex);
 
         Page<RagVersionEntity> resultPage = new Page<>(page, pageSize, latestList.size());
@@ -331,11 +329,13 @@ public class RagVersionDomainService {
         return ragVersionRepository.selectPage(pageObj, wrapper);
     }
 
+    /** 获取RAG的版本历史
+     *
+     * @param ragId 原始RAG数据集ID
+     * @param userId 用户ID
+     * @return 版本列表 */
     /**
-     * 获取RAG版本历史
-     * 智能权限处理：
-     * - 如果是RAG创建者：返回自己发布的所有版本（包括审核中的）
-     * - 如果不是创建者：返回该RAG的所有已发布版本（供版本切换使用）
+     * 获取RAG版本历史 智能权限处理： - 如果是RAG创建者：返回自己发布的所有版本（包括审核中的） - 如果不是创建者：返回该RAG的所有已发布版本（供版本切换使用）
      *
      * @param ragId  原始RAG数据集ID
      * @param userId 当前用户ID
@@ -488,19 +488,16 @@ public class RagVersionDomainService {
                 .eq(RagVersionFileEntity::getRagVersionId, versionId);
         List<RagVersionFileEntity> files = ragVersionFileRepository.selectList(fileWrapper);
 
-        List<RagVersionFileDTO> fileDTOs = files.stream()
-                .map(file -> {
-                    RagVersionFileDTO dto = new RagVersionFileDTO();
-                    BeanUtils.copyProperties(file, dto);
-                    return dto;
-                })
-                .collect(Collectors.toList());
+        List<RagVersionFileDTO> fileDTOs = files.stream().map(file -> {
+            RagVersionFileDTO dto = new RagVersionFileDTO();
+            BeanUtils.copyProperties(file, dto);
+            return dto;
+        }).collect(Collectors.toList());
         preview.setFiles(fileDTOs);
 
         // 获取所有文档内容（用于审核）
         LambdaQueryWrapper<RagVersionDocumentEntity> docWrapper = Wrappers.<RagVersionDocumentEntity>lambdaQuery()
-                .eq(RagVersionDocumentEntity::getRagVersionId, versionId)
-                .orderByAsc(RagVersionDocumentEntity::getPage)
+                .eq(RagVersionDocumentEntity::getRagVersionId, versionId).orderByAsc(RagVersionDocumentEntity::getPage)
                 .orderByAsc(RagVersionDocumentEntity::getCreatedAt);
         List<RagVersionDocumentEntity> allDocs = ragVersionDocumentRepository.selectList(docWrapper);
 
@@ -566,8 +563,7 @@ public class RagVersionDomainService {
 
         // 删除版本本身
         LambdaQueryWrapper<RagVersionEntity> versionWrapper = Wrappers.<RagVersionEntity>lambdaQuery()
-                .eq(RagVersionEntity::getId, versionId)
-                .eq(RagVersionEntity::getUserId, userId);
+                .eq(RagVersionEntity::getId, versionId).eq(RagVersionEntity::getUserId, userId);
         ragVersionRepository.checkedDelete(versionWrapper);
     }
 
@@ -585,9 +581,7 @@ public class RagVersionDomainService {
         // 检查当前用户是否为该知识库的创建者
         // 通过查询该原始RAG的任意一个版本来获取创建者信息
         RagVersionEntity firstVersion = ragVersionRepository.selectOne(Wrappers.<RagVersionEntity>lambdaQuery()
-                .eq(RagVersionEntity::getOriginalRagId, originalRagId)
-                .last("limit 1")
-        );
+                .eq(RagVersionEntity::getOriginalRagId, originalRagId).last("limit 1"));
 
         boolean isCreator = firstVersion != null && userId.equals(firstVersion.getUserId());
 
