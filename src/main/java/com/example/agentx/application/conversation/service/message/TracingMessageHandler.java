@@ -1,9 +1,13 @@
 package com.example.agentx.application.conversation.service.message;
 
+import dev.langchain4j.rag.content.Content;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.example.agentx.application.billing.service.BillingService;
 import com.example.agentx.application.conversation.service.handler.context.ChatContext;
 import com.example.agentx.application.conversation.service.handler.context.TracingChatContext;
-import com.example.agentx.application.conversation.service.message.agent.tool.RagToolManager;
+import com.example.agentx.application.conversation.service.message.builtin.BuiltInToolRegistry;
+import com.example.agentx.application.conversation.service.ChatSessionManager;
 import com.example.agentx.application.trace.collector.TraceCollector;
 import com.example.agentx.domain.agent.model.AgentEntity;
 import com.example.agentx.domain.conversation.constant.MessageType;
@@ -22,12 +26,9 @@ import com.example.agentx.infrastructure.llm.LLMServiceFactory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
-import dev.langchain4j.rag.content.Content;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.tool.ToolExecution;
 import dev.langchain4j.service.tool.ToolProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.function.BiFunction;
@@ -40,10 +41,8 @@ import java.util.function.Consumer;
  * <p>
  * 重要警告 - 线程池环境： 如果项目中引入了线程池（如 @Async、ThreadPoolExecutor、CompletableFuture 等）， InheritableThreadLocal 会导致线程复用时的上下文污染问题。
  * <p>
- * 线程池场景解决方案： 请使用阿里巴巴的 TransmittableThreadLocal (TTL) 替代：
- * 1. 添加依赖：com.alibaba:transmittable-thread-local
- * 2. 将 InheritableThreadLocal 替换为 TransmittableThreadLocal
- * 3. 使用 TtlExecutors.getTtlExecutor() 包装线程池
+ * 线程池场景解决方案： 请使用阿里巴巴的 TransmittableThreadLocal (TTL) 替代： 1. 添加依赖：com.alibaba:transmittable-thread-local 2. 将
+ * InheritableThreadLocal 替换为 TransmittableThreadLocal 3. 使用 TtlExecutors.getTtlExecutor() 包装线程池
  * 参考文档：https://github.com/alibaba/transmittable-thread-local
  * <p>
  * 但是目前使用了 langchan4j 的 tokenStream，内置的线程池，不方便改，就算了
@@ -63,16 +62,18 @@ public abstract class TracingMessageHandler extends AbstractMessageHandler {
                                  HighAvailabilityDomainService highAvailabilityDomainService,
                                  SessionDomainService sessionDomainService,
                                  UserSettingsDomainService userSettingsDomainService, LLMDomainService llmDomainService,
-                                 RagToolManager ragToolManager, BillingService billingService,
-                                 AccountDomainService accountDomainService,
+                                 BuiltInToolRegistry builtInToolRegistry, BillingService billingService,
+                                 AccountDomainService accountDomainService, ChatSessionManager chatSessionManager,
                                  TraceCollector traceCollector) {
         super(llmServiceFactory, messageDomainService, highAvailabilityDomainService, sessionDomainService,
-                userSettingsDomainService, llmDomainService, ragToolManager, billingService, accountDomainService);
+                userSettingsDomainService, llmDomainService, builtInToolRegistry, billingService, accountDomainService,
+                chatSessionManager);
         this.traceCollector = traceCollector;
     }
 
     @Override
     protected void onChatStart(ChatContext chatContext) {
+
         try {
             // 获取或开始会话级别的执行追踪
             TraceContext traceContext = traceCollector.getOrStartExecution(chatContext.getUserId(),
@@ -96,8 +97,8 @@ public abstract class TracingMessageHandler extends AbstractMessageHandler {
         // 用户消息已经在 startExecution 中记录，此处可以记录额外信息
         TraceContext traceContext = getCurrentTraceContext();
         if (traceContext != null && traceContext.isTraceEnabled()) {
-            logger.debug("用户消息已处理 - TraceId: {}, 消息长度: {}",
-                    traceContext.getTraceId(), userMessage.getContent().length());
+            logger.debug("用户消息已处理 - TraceId: {}, 消息长度: {}", traceContext.getTraceId(),
+                    userMessage.getContent().length());
         }
     }
 
@@ -141,6 +142,8 @@ public abstract class TracingMessageHandler extends AbstractMessageHandler {
 
     @Override
     protected void onChatCompleted(ChatContext chatContext, boolean success, String errorMessage) {
+        // 先调用父类钩子（执行记忆抽取与写入等通用逻辑）
+        super.onChatCompleted(chatContext, success, errorMessage);
         TraceContext traceContext = getCurrentTraceContext();
         if (traceContext != null && traceContext.isTraceEnabled()) {
             try {
@@ -213,6 +216,7 @@ public abstract class TracingMessageHandler extends AbstractMessageHandler {
     @Override
     protected Agent buildStreamingAgent(StreamingChatModel model, MessageWindowChatMemory memory,
                                         ToolProvider toolProvider, AgentEntity agent) {
+
         // 调用父类方法，获取原始 Agent
         Agent originalAgent = super.buildStreamingAgent(model, memory, toolProvider, agent);
 
@@ -230,14 +234,14 @@ public abstract class TracingMessageHandler extends AbstractMessageHandler {
         private final Agent originalAgent;
         private final TraceContext capturedTraceContext;
 
-        public TracingAgentWrapper(Agent originalAgent, TraceContext capturedTraceContext) {
+        public TracingAgentWrapper(Agent originalAgent, TraceContext traceContext) {
             this.originalAgent = originalAgent;
-            this.capturedTraceContext = capturedTraceContext;
+            this.capturedTraceContext = traceContext;
         }
 
         @Override
         public TokenStream chat(String message) {
-            // 调用原始 Agent和chat方法
+            // 调用原始 Agent 的 chat 方法
             TokenStream originalTokenStream = originalAgent.chat(message);
 
             // 返回包装后的 TokenStream

@@ -1,8 +1,8 @@
 package com.example.agentx.domain.conversation.factory;
 
+import org.springframework.stereotype.Component;
 import com.example.agentx.domain.conversation.constant.Role;
 import com.example.agentx.domain.conversation.model.MessageEntity;
-import org.springframework.stereotype.Component;
 
 /**
  * 消息工厂类，负责创建各类消息实体

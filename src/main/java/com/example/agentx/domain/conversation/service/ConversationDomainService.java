@@ -1,12 +1,12 @@
 package com.example.agentx.domain.conversation.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.example.agentx.domain.conversation.constant.Role;
-import com.example.agentx.domain.conversation.model.MessageEntity;
-import com.example.agentx.domain.conversation.repository.MessageRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import com.example.agentx.domain.conversation.constant.Role;
+import com.example.agentx.domain.conversation.model.MessageEntity;
+import com.example.agentx.domain.conversation.repository.MessageRepository;
 
 import java.util.List;
 
@@ -30,9 +30,10 @@ public class ConversationDomainService {
      * @return 消息列表
      */
     public List<MessageEntity> getConversationMessages(String sessionId) {
-        return messageRepository
-                .selectList(Wrappers.<MessageEntity>lambdaQuery().eq(MessageEntity::getSessionId, sessionId)
-                        .ne(MessageEntity::getRole, Role.SUMMARY).orderByAsc(MessageEntity::getCreatedAt));
+        return messageRepository.selectList(Wrappers.<MessageEntity>lambdaQuery()
+                .eq(MessageEntity::getSessionId, sessionId)
+                .ne(MessageEntity::getRole, Role.SUMMARY)
+                .orderByAsc(MessageEntity::getCreatedAt));
     }
 
     public void insertBathMessage(List<MessageEntity> messages) {
@@ -54,8 +55,8 @@ public class ConversationDomainService {
     }
 
     public void deleteConversationMessages(List<String> sessionIds) {
-        messageRepository
-                .checkedDelete(Wrappers.<MessageEntity>lambdaQuery().in(MessageEntity::getSessionId, sessionIds));
+        messageRepository.checkedDelete(Wrappers.<MessageEntity>lambdaQuery()
+                .in(MessageEntity::getSessionId, sessionIds));
     }
 
     /**

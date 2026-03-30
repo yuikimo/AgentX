@@ -1,13 +1,13 @@
 package com.example.agentx.domain.rag.strategy.context;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.example.agentx.domain.rag.message.RagDocMessage;
 import com.example.agentx.domain.rag.model.ModelConfig;
 import com.example.agentx.infrastructure.llm.config.ProviderConfig;
 import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 import com.example.agentx.infrastructure.rag.factory.EmbeddingModelFactory;
 import com.example.agentx.infrastructure.rag.service.UserModelConfigResolver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Markdown处理上下文
@@ -66,9 +66,9 @@ public class ProcessingContext {
             try {
                 ModelConfig embeddingModelConfig = userModelConfigResolver.getUserEmbeddingModelConfig(userId);
                 embeddingConfig = new EmbeddingModelFactory.EmbeddingConfig(embeddingModelConfig.getApiKey(),
-                        embeddingModelConfig.getBaseUrl(), embeddingModelConfig.getModelId());
+                        embeddingModelConfig.getBaseUrl(), embeddingModelConfig.getModelEndpoint());
             } catch (Exception e) {
-                log.warn("Failed to get embedding model config for user {}: {}", userId, e.getMessage());
+                log.warn("获取用户 {} 嵌入模型配置失败: {}", userId, e.getMessage());
             }
 
             // 获取聊天模型配置（用于LLM处理）
@@ -76,9 +76,9 @@ public class ProcessingContext {
             try {
                 ModelConfig chatModelConfig = userModelConfigResolver.getUserChatModelConfig(userId);
                 llmConfig = new ProviderConfig(chatModelConfig.getApiKey(), chatModelConfig.getBaseUrl(),
-                        chatModelConfig.getModelId(), ProviderProtocol.OPENAI);
+                        chatModelConfig.getModelEndpoint(), ProviderProtocol.OPENAI);
             } catch (Exception e) {
-                log.warn("Failed to get chat model config for user {}: {}", userId, e.getMessage());
+                log.warn("获取用户 {} 聊天模型配置失败: {}", userId, e.getMessage());
             }
 
             // 获取OCR/视觉模型配置
@@ -86,14 +86,14 @@ public class ProcessingContext {
             try {
                 ModelConfig ocrModelConfig = userModelConfigResolver.getUserOcrModelConfig(userId);
                 visionModelConfig = new ProviderConfig(ocrModelConfig.getApiKey(), ocrModelConfig.getBaseUrl(),
-                        ocrModelConfig.getModelId(), ProviderProtocol.OPENAI);
+                        ocrModelConfig.getModelEndpoint(), ProviderProtocol.OPENAI);
             } catch (Exception e) {
-                log.warn("Failed to get OCR model config for user {}: {}", userId, e.getMessage());
+                log.warn("获取用户 {} OCR模型配置失败: {}", userId, e.getMessage());
             }
 
             return new ProcessingContext(embeddingConfig, llmConfig, visionModelConfig, userId, message.getFileId());
         } catch (Exception e) {
-            log.error("Failed to create ProcessingContext from message: {}", e.getMessage(), e);
+            log.error("从消息创建ProcessingContext失败: {}", e.getMessage(), e);
             // 创建一个空配置的上下文作为回退
             return new ProcessingContext(null, null, null, message.getUserId(), message.getFileId());
         }

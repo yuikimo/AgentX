@@ -1,33 +1,20 @@
 package com.example.agentx.infrastructure.sso;
 
-import com.example.agentx.domain.sso.model.SsoProvider;
-import com.example.agentx.domain.sso.model.SsoUserInfo;
-import com.example.agentx.domain.sso.service.SsoService;
-import com.example.agentx.infrastructure.exception.BusinessException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import com.example.agentx.domain.sso.model.SsoProvider;
+import com.example.agentx.domain.sso.model.SsoUserInfo;
+import com.example.agentx.domain.sso.service.SsoService;
+import com.example.agentx.infrastructure.exception.BusinessException;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class CommunitySsoService implements SsoService {
-
-    @Value("${sso.community.base-url:}")
-    private String baseUrl;
-
-    @Value("${sso.community.app-key:}")
-    private String appKey;
-
-    @Value("${sso.community.app-secret:}")
-    private String appSecret;
-
-    @Value("${sso.community.callback-url:}")
-    private String callbackUrl;
 
     private final RestTemplate restTemplate;
     private final SsoConfigProvider ssoConfigProvider;
@@ -40,8 +27,8 @@ public class CommunitySsoService implements SsoService {
     @Override
     public String getLoginUrl(String redirectUrl) {
         SsoConfigProvider.CommunitySsoConfig config = getEffectiveConfig();
-        if (config.getBaseUrl() == null || config.getBaseUrl().isEmpty() ||
-                config.getAppKey() == null || config.getAppKey().isEmpty()) {
+        if (config.getBaseUrl() == null || config.getBaseUrl().isEmpty() || config.getAppKey() == null
+                || config.getAppKey().isEmpty()) {
             throw new BusinessException("Community SSO未配置");
         }
 
@@ -95,25 +82,18 @@ public class CommunitySsoService implements SsoService {
     }
 
     /**
-     * 获取有效的配置（数据库优先，配置文件回退）
+     * 获取有效的配置（仅从数据库读取）
      *
      * @return 有效的Community配置
      */
     private SsoConfigProvider.CommunitySsoConfig getEffectiveConfig() {
-        SsoConfigProvider.CommunitySsoConfig dbConfig = ssoConfigProvider.getCommunityConfig();
+        SsoConfigProvider.CommunitySsoConfig config = ssoConfigProvider.getCommunityConfig();
 
-        // 如果数据库配置完整，使用数据库配置
-        if (dbConfig.getBaseUrl() != null && dbConfig.getAppKey() != null && dbConfig.getAppSecret() != null) {
-            return dbConfig;
+        // 检查配置是否完整
+        if (config.getBaseUrl() == null || config.getAppKey() == null || config.getAppSecret() == null) {
+            throw new BusinessException("Community SSO配置不完整，请在管理后台配置Community OAuth应用信息");
         }
 
-        // 否则回退到配置文件配置
-        SsoConfigProvider.CommunitySsoConfig fileConfig = new SsoConfigProvider.CommunitySsoConfig();
-        fileConfig.setBaseUrl(baseUrl);
-        fileConfig.setAppKey(appKey);
-        fileConfig.setAppSecret(appSecret);
-        fileConfig.setCallbackUrl(callbackUrl);
-
-        return fileConfig;
+        return config;
     }
 }

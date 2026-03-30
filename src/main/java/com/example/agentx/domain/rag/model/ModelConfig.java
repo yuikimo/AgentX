@@ -1,20 +1,21 @@
 package com.example.agentx.domain.rag.model;
 
+import com.example.agentx.domain.llm.model.enums.ModelType;
+import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.io.Serial;
 import java.io.Serializable;
 
 /**
  * RAG模型配置
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ModelConfig implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
-
-    /**
-     * 模型ID
-     */
-    private String modelId;
 
     /**
      * API密钥
@@ -26,27 +27,22 @@ public class ModelConfig implements Serializable {
      */
     private String baseUrl;
 
-    /**
-     * 模型类型（OCR/EMBEDDING）
-     */
-    private String modelType;
+    private ModelType modelType;
+
+    private ProviderProtocol protocol;
+
+    private String modelEndpoint;
 
     public ModelConfig() {
     }
 
-    public ModelConfig(String modelId, String apiKey, String baseUrl, String modelType) {
-        this.modelId = modelId;
+    public ModelConfig(String apiKey, String baseUrl, ModelType modelType, ProviderProtocol protocol,
+                       String modelEndpoint) {
         this.apiKey = apiKey;
         this.baseUrl = baseUrl;
         this.modelType = modelType;
-    }
-
-    public String getModelId() {
-        return modelId;
-    }
-
-    public void setModelId(String modelId) {
-        this.modelId = modelId;
+        this.protocol = protocol;
+        this.modelEndpoint = modelEndpoint;
     }
 
     public String getApiKey() {
@@ -65,11 +61,32 @@ public class ModelConfig implements Serializable {
         this.baseUrl = baseUrl;
     }
 
-    public String getModelType() {
+    public ModelType getModelType() {
         return modelType;
     }
 
-    public void setModelType(String modelType) {
+    public void setModelType(ModelType modelType) {
         this.modelType = modelType;
+    }
+
+    public ProviderProtocol getProtocol() {
+        return protocol;
+    }
+
+    public void setProtocol(ProviderProtocol protocol) {
+        this.protocol = protocol;
+    }
+
+    @JsonIgnore
+    public boolean isChatType() {
+        return this.modelType == ModelType.CHAT;
+    }
+
+    public String getModelEndpoint() {
+        return modelEndpoint;
+    }
+
+    public void setModelEndpoint(String modelEndpoint) {
+        this.modelEndpoint = modelEndpoint;
     }
 }

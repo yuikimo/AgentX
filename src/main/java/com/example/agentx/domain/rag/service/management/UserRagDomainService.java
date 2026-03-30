@@ -175,10 +175,8 @@ public class UserRagDomainService {
 
         // 更新安装记录（更新快照数据）
         LambdaUpdateWrapper<UserRagEntity> updateWrapper = Wrappers.<UserRagEntity>lambdaUpdate()
-                .eq(UserRagEntity::getId, userRagId)
-                .eq(UserRagEntity::getUserId, userId)
-                .set(UserRagEntity::getRagVersionId, targetVersionId)
-                .set(UserRagEntity::getInstallType, newInstallType)
+                .eq(UserRagEntity::getId, userRagId).eq(UserRagEntity::getUserId, userId)
+                .set(UserRagEntity::getRagVersionId, targetVersionId).set(UserRagEntity::getInstallType, newInstallType)
                 .set(UserRagEntity::getVersion, targetVersion.getVersion())
                 .set(UserRagEntity::getName, targetVersion.getName())
                 .set(UserRagEntity::getDescription, targetVersion.getDescription())
@@ -219,8 +217,7 @@ public class UserRagDomainService {
         }
 
         LambdaUpdateWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaUpdate()
-                .eq(UserRagEntity::getUserId, userId)
-                .eq(UserRagEntity::getRagVersionId, ragVersionId);
+                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getRagVersionId, ragVersionId);
 
         userRagRepository.delete(wrapper);
     }
@@ -234,8 +231,7 @@ public class UserRagDomainService {
      */
     public boolean isRagInstalled(String userId, String ragVersionId) {
         LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery()
-                .eq(UserRagEntity::getUserId, userId)
-                .eq(UserRagEntity::getRagVersionId, ragVersionId);
+                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getRagVersionId, ragVersionId);
 
         return userRagRepository.exists(wrapper);
     }
@@ -329,8 +325,7 @@ public class UserRagDomainService {
      */
     public UserRagEntity getUserRag(String userId, String userRagId) {
         LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery()
-                .eq(UserRagEntity::getUserId, userId)
-                .eq(UserRagEntity::getId, userRagId);
+                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getId, userRagId);
 
         UserRagEntity userRag = userRagRepository.selectOne(wrapper);
         if (userRag == null) {

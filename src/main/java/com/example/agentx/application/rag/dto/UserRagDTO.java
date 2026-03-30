@@ -1,8 +1,8 @@
 package com.example.agentx.application.rag.dto;
 
-import com.example.agentx.domain.rag.constant.InstallType;
-
 import java.time.LocalDateTime;
+
+import com.example.agentx.domain.rag.constant.InstallType;
 
 /**
  * 用户安装的RAG DTO

@@ -13,7 +13,6 @@ import com.example.agentx.infrastructure.exception.BusinessException;
 
 /**
  * 用户模型配置解析器 - Infrastructure层服务
- * <p>
  * 解决Domain层需要获取用户模型配置的问题
  */
 @Service
@@ -50,10 +49,10 @@ public class UserModelConfigResolver {
             }
 
             String modelId = userSettingsDTO.getSettingConfig().getDefaultEmbeddingModel();
-            log.info("Getting embedding model config for user {}, modelId: {}", userId, modelId);
+            log.info("获取用户{}的嵌入模型配置，模型ID: {}", userId, modelId);
 
             // 根据模型ID从数据库获取真实的模型配置
-            return getModelConfigFromDatabase(modelId, userId, "EMBEDDING");
+            return getModelConfigFromDatabase(modelId, userId);
 
         } catch (BusinessException e) {
             // 重新抛出业务异常
@@ -77,17 +76,19 @@ public class UserModelConfigResolver {
             UserSettingsDTO userSettingsDTO = userSettingsAppService.getUserSettings(userId);
 
             // 检查用户是否配置了聊天模型
-            if (userSettingsDTO == null || userSettingsDTO.getSettingConfig() == null || userSettingsDTO.getSettingConfig().getDefaultModel() == null) {
+            if (userSettingsDTO == null || userSettingsDTO.getSettingConfig() == null
+                    || userSettingsDTO.getSettingConfig().getDefaultModel() == null) {
                 String errorMsg = String.format("用户 %s 未配置默认聊天模型，无法进行LLM处理", userId);
                 log.error(errorMsg);
                 throw new BusinessException(errorMsg);
             }
 
             String modelId = userSettingsDTO.getSettingConfig().getDefaultModel();
-            log.info("Getting chat model config for user {}, modelId: {}", userId, modelId);
+            log.info("获取用户{}的聊天模型配置，模型ID: {}", userId, modelId);
 
             // 根据模型ID从数据库获取真实的模型配置
-            return getModelConfigFromDatabase(modelId, userId, "CHAT");
+            return getModelConfigFromDatabase(modelId, userId);
+
         } catch (BusinessException e) {
             // 重新抛出业务异常
             throw e;
@@ -110,17 +111,18 @@ public class UserModelConfigResolver {
             UserSettingsDTO userSettingsDTO = userSettingsAppService.getUserSettings(userId);
 
             // 检查用户是否配置了OCR模型
-            if (userSettingsDTO == null || userSettingsDTO.getSettingConfig() == null || userSettingsDTO.getSettingConfig().getDefaultOcrModel() == null) {
+            if (userSettingsDTO == null || userSettingsDTO.getSettingConfig() == null
+                    || userSettingsDTO.getSettingConfig().getDefaultOcrModel() == null) {
                 String errorMsg = String.format("用户 %s 未配置默认OCR模型，无法进行视觉处理", userId);
                 log.error(errorMsg);
                 throw new BusinessException(errorMsg);
             }
 
             String modelId = userSettingsDTO.getSettingConfig().getDefaultOcrModel();
-            log.info("Getting OCR model config for user {}, modelId: {}", userId, modelId);
+            log.info("获取用户{}OCR模型配置，模型ID: {}", userId, modelId);
 
             // 根据模型ID从数据库获取真实的模型配置
-            return getModelConfigFromDatabase(modelId, userId, "OCR");
+            return getModelConfigFromDatabase(modelId, userId);
 
         } catch (BusinessException e) {
             // 重新抛出业务异常
@@ -135,13 +137,12 @@ public class UserModelConfigResolver {
     /**
      * 从数据库获取模型配置
      *
-     * @param modelId      模型ID
-     * @param userId       用户ID
-     * @param expectedType 期望的模型类型
+     * @param modelId 模型ID
+     * @param userId  用户ID
      * @return 模型配置
      * @throws BusinessException 如果模型不存在或配置无效
      */
-    private ModelConfig getModelConfigFromDatabase(String modelId, String userId, String expectedType) {
+    private ModelConfig getModelConfigFromDatabase(String modelId, String userId) {
         try {
             // 获取模型实体
             ModelEntity modelEntity = llmDomainService.findModelById(modelId);
@@ -171,14 +172,14 @@ public class UserModelConfigResolver {
             providerEntity.isAvailable(providerEntity.getUserId());
 
             // 构建模型配置
-            ModelConfig modelConfig = new ModelConfig(modelEntity.getModelId(), providerEntity.getConfig().getApiKey(),
-                    providerEntity.getConfig().getBaseUrl(), expectedType);
+            ModelConfig modelConfig = new ModelConfig(providerEntity.getConfig().getApiKey(),
+                    providerEntity.getConfig().getBaseUrl(), modelEntity.getType(), providerEntity.getProtocol(),
+                    modelEntity.getModelEndpoint());
 
-            log.info("Successfully retrieved model config for user {}: modelId={}, baseUrl={}", userId,
-                    modelEntity.getModelId(), providerEntity.getConfig().getBaseUrl());
+            log.info("成功获取用户{}的模型配置: modelId={}, baseUrl={}",
+                    userId, modelEntity.getModelId(), providerEntity.getConfig().getBaseUrl());
 
             return modelConfig;
-
         } catch (BusinessException e) {
             // 重新抛出业务异常
             throw e;

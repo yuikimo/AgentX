@@ -1,8 +1,8 @@
 package com.example.agentx.infrastructure.transport;
 
+import org.springframework.stereotype.Component;
 import com.example.agentx.application.conversation.dto.AgentChatResponse;
 import com.example.agentx.application.conversation.dto.ChatResponse;
-import org.springframework.stereotype.Component;
 
 /**
  * 同步消息传输实现

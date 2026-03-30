@@ -13,7 +13,9 @@ import com.example.agentx.domain.rag.model.VectorStoreResult;
 import org.dromara.streamquery.stream.core.stream.Steam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
+import com.example.agentx.infrastructure.mq.core.MessageEnvelope;
+import com.example.agentx.infrastructure.mq.core.MessagePublisher;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import com.example.agentx.domain.rag.message.RagDocSyncStorageMessage;
@@ -30,8 +32,6 @@ import com.example.agentx.infrastructure.mq.events.RagDocSyncStorageEvent;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 
 import cn.hutool.core.convert.Convert;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
@@ -53,7 +53,7 @@ public class EmbeddingDomainService implements MetadataConstant {
 
     private final EmbeddingModelFactory embeddingModelFactory;
 
-    private final ApplicationContext applicationContext;
+    private final MessagePublisher messagePublisher;
 
     private final EmbeddingStore<TextSegment> embeddingStore;
 
@@ -62,13 +62,13 @@ public class EmbeddingDomainService implements MetadataConstant {
     private final DocumentUnitRepository documentUnitRepository;
 
     public EmbeddingDomainService(EmbeddingModelFactory embeddingModelFactory,
-                                  EmbeddingStore<TextSegment> embeddingStore,
-                                  FileDetailRepository fileDetailRepository, ApplicationContext applicationContext,
+                                  @Qualifier("initEmbeddingStore") EmbeddingStore<TextSegment> embeddingStore,
+                                  FileDetailRepository fileDetailRepository, MessagePublisher messagePublisher,
                                   DocumentUnitRepository documentUnitRepository) {
         this.embeddingModelFactory = embeddingModelFactory;
         this.embeddingStore = embeddingStore;
         this.fileDetailRepository = fileDetailRepository;
-        this.applicationContext = applicationContext;
+        this.messagePublisher = messagePublisher;
         this.documentUnitRepository = documentUnitRepository;
     }
 
@@ -120,13 +120,17 @@ public class EmbeddingDomainService implements MetadataConstant {
                     ? Math.max(finalMaxResults * finalCandidateMultiplier, 30)
                     : finalMaxResults;
 
-            log.debug("开始向量搜索 参数: datasets={}, question='{}', maxResults={}, minScore={}, searchLimit={}", dataSetIds,
-                    question, finalMaxResults, finalMinScore, searchLimit);
+            log.debug("开始向量搜索 参数: datasets={}, question='{}', maxResults={}, minScore={}, searchLimit={}",
+                    dataSetIds, question, finalMaxResults, finalMinScore, searchLimit);
 
             // 执行向量查询
             final EmbeddingSearchResult<TextSegment> searchResult = embeddingStore.search(EmbeddingSearchRequest
-                    .builder().filter(new IsIn(DATA_SET_ID, dataSetIds)).maxResults(searchLimit).minScore(finalMinScore)
-                    .queryEmbedding(Embedding.from(embeddingModel.embed(question).content().vector())).build());
+                    .builder()
+                    .filter(new IsIn(DATA_SET_ID, dataSetIds))
+                    .maxResults(searchLimit)
+                    .minScore(finalMinScore)
+                    .queryEmbedding(Embedding.from(embeddingModel.embed(question).content().vector()))
+                    .build());
 
             List<EmbeddingMatch<TextSegment>> embeddingMatches = searchResult.matches();
 
@@ -134,8 +138,12 @@ public class EmbeddingDomainService implements MetadataConstant {
             if (embeddingMatches.isEmpty() && finalMinScore > 0.3) {
                 log.info("在最小分数{}下没有找到向量结果，尝试使用较低阈值重试", finalMinScore);
                 final EmbeddingSearchResult<TextSegment> fallbackResult = embeddingStore.search(EmbeddingSearchRequest
-                        .builder().filter(new IsIn(DATA_SET_ID, dataSetIds)).maxResults(searchLimit).minScore(0.3)
-                        .queryEmbedding(Embedding.from(embeddingModel.embed(question).content().vector())).build());
+                        .builder()
+                        .filter(new IsIn(DATA_SET_ID, dataSetIds))
+                        .maxResults(searchLimit)
+                        .minScore(0.3)
+                        .queryEmbedding(Embedding.from(embeddingModel.embed(question).content().vector()))
+                        .build());
                 embeddingMatches = fallbackResult.matches();
                 log.debug("回退向量搜索找到{}个匹配结果", embeddingMatches.size());
             }
@@ -170,7 +178,6 @@ public class EmbeddingDomainService implements MetadataConstant {
      * @param fileIds 文件id集合
      */
     public void deleteEmbedding(List<String> fileIds) {
-
         embeddingStore.removeAll(metadataKey(MetadataConstant.FILE_ID).isIn(fileIds));
     }
 
@@ -180,7 +187,6 @@ public class EmbeddingDomainService implements MetadataConstant {
      * @param fileId 文件ID
      */
     private void removeEmbeddingByFileId(String fileId) {
-
         embeddingStore.removeAll(new IsEqualTo(FILE_ID, fileId));
     }
 
@@ -188,9 +194,11 @@ public class EmbeddingDomainService implements MetadataConstant {
      * 批量向量化入库
      */
     private void indexEmbedding(List<DocumentUnitEntity> documentUnitEntityList) {
-
-        Steam.of(documentUnitEntityList).forEach(documentUnit -> applicationContext
-                .publishEvent(new RagDocSyncStorageEvent<>(documentUnit, EventType.DOC_SYNC_RAG)));
+        Steam.of(documentUnitEntityList).forEach(documentUnit -> {
+            MessageEnvelope<DocumentUnitEntity> env = MessageEnvelope.builder(documentUnit)
+                    .addEventType(EventType.DOC_SYNC_RAG).description("批量向量化入库任务").build();
+            messagePublisher.publish(RagDocSyncStorageEvent.route(), env);
+        });
 
     }
 
@@ -226,7 +234,8 @@ public class EmbeddingDomainService implements MetadataConstant {
         // 更新原始DocumentUnit的向量化状态
         if (originalDocId != null) {
             documentUnitRepository.update(Wrappers.lambdaUpdate(DocumentUnitEntity.class)
-                    .eq(DocumentUnitEntity::getId, originalDocId).set(DocumentUnitEntity::getIsVector, true));
+                    .eq(DocumentUnitEntity::getId, originalDocId)
+                    .set(DocumentUnitEntity::getIsVector, true));
         }
 
         // 修改文件状态
@@ -293,22 +302,12 @@ public class EmbeddingDomainService implements MetadataConstant {
         try {
             var modelConfig = ragDocSyncStorageMessage.getEmbeddingModelConfig();
 
-            // 验证模型配置的完整性
-            if (modelConfig.getModelId() == null || modelConfig.getApiKey() == null
-                    || modelConfig.getBaseUrl() == null) {
-                String errorMsg = String.format("用户 %s 的嵌入模型配置不完整: modelId=%s, apiKey=%s, baseUrl=%s",
-                        ragDocSyncStorageMessage.getUserId(), modelConfig.getModelId(),
-                        modelConfig.getApiKey() != null ? "已配置" : "未配置", modelConfig.getBaseUrl());
-                log.error(errorMsg);
-                throw new BusinessException(errorMsg);
-            }
-
             // 使用工厂类创建嵌入模型
             EmbeddingModelFactory.EmbeddingConfig config = new EmbeddingModelFactory.EmbeddingConfig(
-                    modelConfig.getApiKey(), modelConfig.getBaseUrl(), modelConfig.getModelId());
+                    modelConfig.getApiKey(), modelConfig.getBaseUrl(), modelConfig.getModelEndpoint());
             OpenAiEmbeddingModel embeddingModel = embeddingModelFactory.createEmbeddingModel(config);
 
-            log.info("成功为用户{}创建嵌入模型: {}", ragDocSyncStorageMessage.getUserId(), modelConfig.getModelId());
+            log.info("成功为用户{}创建嵌入模型: {}", ragDocSyncStorageMessage.getUserId(), modelConfig.getModelEndpoint());
             return embeddingModel;
 
         } catch (RuntimeException e) {

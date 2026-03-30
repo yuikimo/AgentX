@@ -9,12 +9,7 @@ import com.example.agentx.domain.conversation.model.MessageEntity;
 import com.example.agentx.domain.task.model.TaskEntity;
 import com.example.agentx.infrastructure.transport.MessageTransport;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -169,7 +164,8 @@ public class AgentWorkflowContext<T> {
     public String buildTaskSummary() {
         StringBuilder taskSummaryBuilder = new StringBuilder();
         for (Map.Entry<String, String> entry : taskResults.entrySet()) {
-            taskSummaryBuilder.append("任务: ").append(entry.getKey()).append("\n结果: ").append(entry.getValue()).append("\n\n");
+            taskSummaryBuilder.append("任务: ").append(entry.getKey()).append("\n结果: ").append(entry.getValue())
+                    .append("\n\n");
         }
         return taskSummaryBuilder.toString();
     }

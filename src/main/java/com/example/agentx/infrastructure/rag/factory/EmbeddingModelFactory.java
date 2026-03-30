@@ -15,7 +15,7 @@ public class EmbeddingModelFactory {
     public static class EmbeddingConfig {
         private String apiKey;
         private String baseUrl;
-        private String modelName;
+        private String modelEndpoint;
 
         public EmbeddingConfig() {
         }
@@ -23,7 +23,7 @@ public class EmbeddingModelFactory {
         public EmbeddingConfig(String apiKey, String baseUrl, String modelName) {
             this.apiKey = apiKey;
             this.baseUrl = baseUrl;
-            this.modelName = modelName;
+            this.modelEndpoint = modelName;
         }
 
         public String getApiKey() {
@@ -42,12 +42,12 @@ public class EmbeddingModelFactory {
             this.baseUrl = baseUrl;
         }
 
-        public String getModelName() {
-            return modelName;
+        public String getModelEndpoint() {
+            return modelEndpoint;
         }
 
-        public void setModelName(String modelName) {
-            this.modelName = modelName;
+        public void setModelEndpoint(String modelEndpoint) {
+            this.modelEndpoint = modelEndpoint;
         }
     }
 
@@ -61,7 +61,7 @@ public class EmbeddingModelFactory {
         return OpenAiEmbeddingModel.builder()
                 .apiKey(config.getApiKey())
                 .baseUrl(config.getBaseUrl())
-                .modelName(config.getModelName())
+                .modelName(config.getModelEndpoint())
                 .build();
     }
 }

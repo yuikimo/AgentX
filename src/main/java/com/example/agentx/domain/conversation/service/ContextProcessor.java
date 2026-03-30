@@ -1,5 +1,6 @@
 package com.example.agentx.domain.conversation.service;
 
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.conversation.model.ContextEntity;
 import com.example.agentx.domain.conversation.model.MessageEntity;
 import com.example.agentx.domain.shared.enums.TokenOverflowStrategyEnum;
@@ -8,7 +9,6 @@ import com.example.agentx.domain.token.model.TokenProcessResult;
 import com.example.agentx.domain.token.model.config.TokenOverflowConfig;
 import com.example.agentx.domain.token.service.TokenDomainService;
 import com.example.agentx.infrastructure.llm.config.ProviderConfig;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;

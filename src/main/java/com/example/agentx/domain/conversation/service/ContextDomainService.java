@@ -2,10 +2,10 @@ package com.example.agentx.domain.conversation.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.conversation.model.ContextEntity;
 import com.example.agentx.domain.conversation.repository.ContextRepository;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import org.springframework.stereotype.Service;
 
 @Service
 public class ContextDomainService {

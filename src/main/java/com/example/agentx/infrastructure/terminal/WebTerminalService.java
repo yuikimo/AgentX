@@ -1,10 +1,5 @@
 package com.example.agentx.infrastructure.terminal;
 
-import com.example.agentx.domain.container.constant.ContainerStatus;
-import com.example.agentx.domain.container.model.ContainerEntity;
-import com.example.agentx.domain.container.service.ContainerDomainService;
-import com.example.agentx.infrastructure.docker.DockerService;
-import com.example.agentx.infrastructure.entity.Operator;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.ExecCreateCmdResponse;
@@ -14,6 +9,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
+import com.example.agentx.domain.container.constant.ContainerStatus;
+import com.example.agentx.domain.container.model.ContainerEntity;
+import com.example.agentx.domain.container.service.ContainerDomainService;
+import com.example.agentx.infrastructure.docker.DockerService;
+import com.example.agentx.infrastructure.entity.Operator;
 
 import java.io.IOException;
 import java.io.PipedInputStream;
@@ -75,7 +75,7 @@ public class WebTerminalService {
                     // 更新数据库中的容器状态
                     try {
                         containerDomainService.updateContainerStatus(containerId, ContainerStatus.RUNNING,
-                                dockerContainerId);
+                                Operator.ADMIN, dockerContainerId);
                         logger.info("已同步更新数据库中容器状态: {} -> RUNNING", containerId);
                     } catch (Exception updateException) {
                         logger.warn("更新数据库容器状态失败，但容器已成功启动: {}", containerId, updateException);
@@ -243,7 +243,7 @@ public class WebTerminalService {
                 // 创建真正的exec会话
                 logger.debug("创建exec会话使用shell: {}", selectedShell);
                 ExecCreateCmdResponse execCreateCmd = dockerClient.execCreateCmd(containerId).withAttachStdout(true)
-                        .withAttachStderr(true).withAttachStdin(true).withTty(true).withWorkingDir("/") //
+                        .withAttachStderr(true).withAttachStdin(true).withTty(true).withWorkingDir("/") // 
                         // 设置工作目录为根目录，避免特定应用目录的干扰
                         .withCmd(selectedShell).exec();
 

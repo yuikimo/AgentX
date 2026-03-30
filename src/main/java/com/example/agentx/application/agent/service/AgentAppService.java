@@ -1,8 +1,6 @@
 package com.example.agentx.application.agent.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.example.agentx.domain.rag.service.management.RagVersionDomainService;
-import com.example.agentx.domain.rag.service.management.UserRagDomainService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -29,6 +27,8 @@ import com.example.agentx.domain.product.constant.BillingType;
 import com.example.agentx.domain.product.constant.UsageDataKeys;
 import com.example.agentx.infrastructure.exception.InsufficientBalanceException;
 import com.example.agentx.domain.tool.service.UserToolDomainService;
+import com.example.agentx.domain.rag.service.management.UserRagDomainService;
+import com.example.agentx.domain.rag.service.management.RagVersionDomainService;
 import com.example.agentx.domain.rag.constant.RagPublishStatus;
 import com.example.agentx.domain.rag.model.UserRagEntity;
 import com.example.agentx.domain.rag.model.RagVersionEntity;
@@ -82,8 +82,10 @@ public class AgentAppService {
         // 1. 创建计费上下文进行余额预检查
         RuleContext billingContext = RuleContext.builder().type(BillingType.AGENT_CREATION.getCode())
                 .serviceId("agent_creation") // 固定业务标识
-                .usageData(Map.of(UsageDataKeys.QUANTITY, 1)).requestId(generateRequestId(userId, "creation"))
-                .userId(userId).build();
+                .usageData(Map.of(UsageDataKeys.QUANTITY, 1))
+                .requestId(generateRequestId(userId, "creation"))
+                .userId(userId)
+                .build();
 
         // 2. 余额预检查 - 避免创建后发现余额不足
         if (!billingService.checkBalance(billingContext)) {
@@ -135,7 +137,6 @@ public class AgentAppService {
     /**
      * 获取已上架的Agent列表，支持名称搜索
      */
-
     public List<AgentVersionDTO> getPublishedAgentsByName(SearchAgentsRequest searchAgentsRequest, String userId) {
         AgentEntity entity = AgentAssembler.toEntity(searchAgentsRequest);
         List<AgentVersionEntity> agentVersionEntities = agentServiceDomainService.getPublishedAgentsByName(entity);

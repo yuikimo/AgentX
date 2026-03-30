@@ -1,5 +1,7 @@
 package com.example.agentx.application.conversation.service.message.agent;
 
+import com.example.agentx.application.conversation.service.ChatSessionManager;
+import com.example.agentx.application.conversation.service.message.builtin.BuiltInToolRegistry;
 import dev.langchain4j.service.tool.ToolProvider;
 import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
@@ -30,12 +32,12 @@ public class AgentMessageHandler extends TracingMessageHandler {
                                HighAvailabilityDomainService highAvailabilityDomainService,
                                SessionDomainService sessionDomainService,
                                UserSettingsDomainService userSettingsDomainService, LLMDomainService llmDomainService,
-                               RagToolManager ragToolManager, BillingService billingService,
-                               AccountDomainService accountDomainService,
+                               BuiltInToolRegistry builtInToolRegistry, BillingService billingService,
+                               AccountDomainService accountDomainService, ChatSessionManager chatSessionManager,
                                TraceCollector traceCollector, AgentToolManager agentToolManager) {
         super(llmServiceFactory, messageDomainService, highAvailabilityDomainService, sessionDomainService,
-                userSettingsDomainService, llmDomainService, ragToolManager, billingService, accountDomainService,
-                traceCollector);
+                userSettingsDomainService, llmDomainService, builtInToolRegistry, billingService, accountDomainService,
+                chatSessionManager, traceCollector);
         this.agentToolManager = agentToolManager;
     }
 

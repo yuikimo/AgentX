@@ -1,6 +1,9 @@
 package com.example.agentx.application.trace.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 import com.example.agentx.application.trace.assembler.AgentExecutionTraceAssembler;
 import com.example.agentx.application.trace.dto.*;
 import com.example.agentx.domain.agent.model.AgentEntity;
@@ -11,9 +14,6 @@ import com.example.agentx.domain.conversation.service.SessionDomainService;
 import com.example.agentx.domain.trace.model.AgentExecutionDetailEntity;
 import com.example.agentx.domain.trace.model.AgentExecutionSummaryEntity;
 import com.example.agentx.domain.trace.service.AgentExecutionTraceDomainService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -104,8 +104,8 @@ public class AgentExecutionTraceAppService {
      */
     public List<AgentExecutionSummaryDTO> getUserExecutionsByTimeRange(String userId, LocalDateTime startTime,
                                                                        LocalDateTime endTime) {
-        List<AgentExecutionSummaryEntity> entities =
-                traceDomainService.getUserExecutionsByTimeRange(userId, startTime, endTime);
+        List<AgentExecutionSummaryEntity> entities = traceDomainService.getUserExecutionsByTimeRange(userId, startTime,
+                endTime);
         return AgentExecutionTraceAssembler.toSummaryDTOs(entities);
     }
 
@@ -127,8 +127,8 @@ public class AgentExecutionTraceAppService {
      * @return 执行统计信息
      */
     public ExecutionStatisticsDTO getUserExecutionStatistics(String userId) {
-        AgentExecutionTraceDomainService.ExecutionStatistics statistics =
-                traceDomainService.getUserExecutionStatistics(userId);
+        AgentExecutionTraceDomainService.ExecutionStatistics statistics = traceDomainService
+                .getUserExecutionStatistics(userId);
         return AgentExecutionTraceAssembler.toStatisticsDTO(statistics);
     }
 
@@ -261,8 +261,7 @@ public class AgentExecutionTraceAppService {
 
         // 提取所有agentId，批量获取Agent信息
         List<String> agentIds = agentStatistics.stream()
-                .map(AgentExecutionTraceDomainService.AgentStatistics::getAgentId)
-                .collect(Collectors.toList());
+                .map(AgentExecutionTraceDomainService.AgentStatistics::getAgentId).collect(Collectors.toList());
 
         // 批量获取Agent名称映射（容错处理）
         Map<String, String> agentNameMap = getAgentNameMap(agentIds, userId);
@@ -299,8 +298,8 @@ public class AgentExecutionTraceAppService {
                                                                           SessionTraceListRequest request,
                                                                           String userId) {
         // 获取领域统计数据
-        List<AgentExecutionTraceDomainService.SessionStatistics> sessionStatistics =
-                traceDomainService.getAgentSessionStatistics(agentId, userId);
+        List<AgentExecutionTraceDomainService.SessionStatistics> sessionStatistics = traceDomainService
+                .getAgentSessionStatistics(agentId, userId);
 
         if (sessionStatistics.isEmpty()) {
             return List.of();
@@ -311,8 +310,7 @@ public class AgentExecutionTraceAppService {
 
         // 提取所有sessionId，批量获取会话信息
         List<String> sessionIds = sessionStatistics.stream()
-                .map(AgentExecutionTraceDomainService.SessionStatistics::getSessionId)
-                .collect(Collectors.toList());
+                .map(AgentExecutionTraceDomainService.SessionStatistics::getSessionId).collect(Collectors.toList());
 
         // 批量获取会话标题映射（容错处理）
         Map<String, SessionEntity> sessionMap = getSessionMap(sessionIds, userId);
@@ -401,9 +399,8 @@ public class AgentExecutionTraceAppService {
      */
     private Map<String, SessionEntity> getSessionMap(List<String> sessionIds, String userId) {
         return sessionIds.stream()
-                .collect(Collectors.toMap(Function.identity(), sessionId -> getSession(sessionId, userId)))
-                .entrySet().stream()
-                .filter(entry -> entry.getValue() != null)
+                .collect(Collectors.toMap(Function.identity(), sessionId -> getSession(sessionId, userId))).entrySet()
+                .stream().filter(entry -> entry.getValue() != null)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 

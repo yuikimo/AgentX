@@ -528,10 +528,8 @@ public class RagVersionDomainService {
     public String getLatestVersionNumber(String ragId, String userId) {
         // 查询该数据集的最新版本
         LambdaQueryWrapper<RagVersionEntity> wrapper = Wrappers.<RagVersionEntity>lambdaQuery()
-                .eq(RagVersionEntity::getOriginalRagId, ragId)
-                .eq(RagVersionEntity::getUserId, userId)
-                .orderByDesc(RagVersionEntity::getCreatedAt)
-                .last("limit 1");
+                .eq(RagVersionEntity::getOriginalRagId, ragId).eq(RagVersionEntity::getUserId, userId)
+                .orderByDesc(RagVersionEntity::getCreatedAt).last("limit 1");
 
         RagVersionEntity latestVersion = ragVersionRepository.selectOne(wrapper);
 

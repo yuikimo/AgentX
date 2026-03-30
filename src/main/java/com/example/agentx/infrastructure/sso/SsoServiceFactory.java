@@ -1,11 +1,11 @@
 package com.example.agentx.infrastructure.sso;
 
+import org.springframework.stereotype.Component;
 import com.example.agentx.domain.auth.constant.AuthFeatureKey;
 import com.example.agentx.domain.auth.service.AuthSettingDomainService;
 import com.example.agentx.domain.sso.model.SsoProvider;
 import com.example.agentx.domain.sso.service.SsoService;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
@@ -19,7 +19,8 @@ public class SsoServiceFactory {
     private final AuthSettingDomainService authSettingDomainService;
 
     public SsoServiceFactory(List<SsoService> ssoServices, AuthSettingDomainService authSettingDomainService) {
-        this.ssoServiceMap = ssoServices.stream().collect(Collectors.toMap(SsoService::getProvider, Function.identity()));
+        this.ssoServiceMap = ssoServices.stream()
+                .collect(Collectors.toMap(SsoService::getProvider, Function.identity()));
         this.authSettingDomainService = authSettingDomainService;
     }
 

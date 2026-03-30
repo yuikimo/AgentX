@@ -1,12 +1,12 @@
 package com.example.agentx.domain.rag.service;
 
-import com.example.agentx.domain.rag.constant.SearchType;
-import com.example.agentx.domain.rag.model.VectorStoreResult;
-import com.example.agentx.domain.rag.repository.VectorStoreRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import com.example.agentx.domain.rag.constant.SearchType;
+import com.example.agentx.domain.rag.model.VectorStoreResult;
+import com.example.agentx.domain.rag.repository.VectorStoreRepository;
 
 import java.util.Collections;
 import java.util.List;
@@ -68,6 +68,7 @@ public class KeywordSearchDomainService {
             log.info("关键词搜索完成，查询: '{}'，返回{}个文档，耗时{}ms", userQuery, results.size(), totalTime);
 
             return results;
+
         } catch (Exception e) {
             long totalTime = System.currentTimeMillis() - startTime;
             log.error("关键词搜索过程中出现错误，查询: '{}'，数据集: {}，耗时: {}ms", userQuery, dataSetIds, totalTime, e);

@@ -1,10 +1,10 @@
 package com.example.agentx.application.conversation.service.message.agent.event;
 
-import com.example.agentx.application.conversation.service.message.agent.handler.AbstractAgentHandler;
-import com.example.agentx.application.conversation.service.message.agent.workflow.AgentWorkflowState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import com.example.agentx.application.conversation.service.message.agent.handler.AbstractAgentHandler;
+import com.example.agentx.application.conversation.service.message.agent.workflow.AgentWorkflowState;
 
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +45,7 @@ public class AgentEventBus {
                 handler.handle(event);
             } catch (Exception e) {
                 // 处理事件处理异常
-                log.error("Error handling event: ", e);
+                log.error("事件处理异常: ", e);
             }
         }
     }

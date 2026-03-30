@@ -4,13 +4,12 @@ import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import com.example.agentx.domain.apikey.model.ApiKeyEntity;
 import com.example.agentx.domain.apikey.repository.ApiKeyRepository;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.interfaces.dto.apikey.request.QueryApiKeyRequest;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,7 +32,6 @@ public class ApiKeyDomainService {
      * @param apiKeyEntity API密钥实体
      * @return 创建后的API密钥实体
      */
-    @Transactional
     public ApiKeyEntity createApiKey(ApiKeyEntity apiKeyEntity) {
         // 生成API Key
         apiKeyEntity.generateApiKey();
@@ -51,8 +49,7 @@ public class ApiKeyDomainService {
      * @return API密钥实体
      */
     public ApiKeyEntity findByApiKey(String apiKey) {
-        Wrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery()
-                .eq(ApiKeyEntity::getApiKey, apiKey);
+        Wrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery().eq(ApiKeyEntity::getApiKey, apiKey);
         return apiKeyRepository.selectOne(wrapper);
     }
 
@@ -81,11 +78,9 @@ public class ApiKeyDomainService {
      *
      * @param apiKey API密钥
      */
-    @Transactional
     public void updateUsage(String apiKey) {
         LambdaUpdateWrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaUpdate()
-                .eq(ApiKeyEntity::getApiKey, apiKey)
-                .setSql("usage_count = usage_count + 1")
+                .eq(ApiKeyEntity::getApiKey, apiKey).setSql("usage_count = usage_count + 1")
                 .set(ApiKeyEntity::getLastUsedAt, LocalDateTime.now());
 
         apiKeyRepository.checkedUpdate(wrapper);
@@ -99,8 +94,8 @@ public class ApiKeyDomainService {
      * @return API密钥列表
      */
     public List<ApiKeyEntity> getUserApiKeys(String userId, QueryApiKeyRequest queryRequest) {
-        LambdaQueryWrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery()
-                .eq(ApiKeyEntity::getUserId, userId);
+        LambdaQueryWrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery().eq(ApiKeyEntity::getUserId,
+                userId);
 
         // 添加查询条件
         if (queryRequest != null) {
@@ -134,7 +129,6 @@ public class ApiKeyDomainService {
         return getUserApiKeys(userId, null);
     }
 
-
     /**
      * 获取Agent的API密钥列表
      *
@@ -144,8 +138,7 @@ public class ApiKeyDomainService {
      */
     public List<ApiKeyEntity> getAgentApiKeys(String agentId, String userId) {
         LambdaQueryWrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery()
-                .eq(ApiKeyEntity::getAgentId, agentId)
-                .eq(ApiKeyEntity::getUserId, userId)
+                .eq(ApiKeyEntity::getAgentId, agentId).eq(ApiKeyEntity::getUserId, userId)
                 .orderByDesc(ApiKeyEntity::getCreatedAt);
         return apiKeyRepository.selectList(wrapper);
     }
@@ -158,8 +151,7 @@ public class ApiKeyDomainService {
      * @return API密钥实体
      */
     public ApiKeyEntity getApiKey(String apiKeyId, String userId) {
-        Wrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery()
-                .eq(ApiKeyEntity::getId, apiKeyId)
+        Wrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery().eq(ApiKeyEntity::getId, apiKeyId)
                 .eq(ApiKeyEntity::getUserId, userId);
 
         ApiKeyEntity apiKeyEntity = apiKeyRepository.selectOne(wrapper);
@@ -177,11 +169,9 @@ public class ApiKeyDomainService {
      * @param userId   用户ID
      * @param status   状态
      */
-    @Transactional
     public void updateStatus(String apiKeyId, String userId, Boolean status) {
         LambdaUpdateWrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaUpdate()
-                .eq(ApiKeyEntity::getId, apiKeyId)
-                .eq(ApiKeyEntity::getUserId, userId)
+                .eq(ApiKeyEntity::getId, apiKeyId).eq(ApiKeyEntity::getUserId, userId)
                 .set(ApiKeyEntity::getStatus, status);
 
         apiKeyRepository.checkedUpdate(wrapper);
@@ -193,10 +183,8 @@ public class ApiKeyDomainService {
      * @param apiKeyId API密钥ID
      * @param userId   用户ID
      */
-    @Transactional
     public void deleteApiKey(String apiKeyId, String userId) {
-        Wrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery()
-                .eq(ApiKeyEntity::getId, apiKeyId)
+        Wrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery().eq(ApiKeyEntity::getId, apiKeyId)
                 .eq(ApiKeyEntity::getUserId, userId);
 
         apiKeyRepository.checkedDelete(wrapper);
@@ -209,7 +197,6 @@ public class ApiKeyDomainService {
      * @param userId   用户ID
      * @return 新的API密钥实体
      */
-    @Transactional
     public ApiKeyEntity resetApiKey(String apiKeyId, String userId) {
         ApiKeyEntity apiKeyEntity = getApiKey(apiKeyId, userId);
 
@@ -219,8 +206,7 @@ public class ApiKeyDomainService {
         apiKeyEntity.setLastUsedAt(null);
 
         LambdaUpdateWrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaUpdate()
-                .eq(ApiKeyEntity::getId, apiKeyId)
-                .eq(ApiKeyEntity::getUserId, userId);
+                .eq(ApiKeyEntity::getId, apiKeyId).eq(ApiKeyEntity::getUserId, userId);
 
         apiKeyRepository.update(apiKeyEntity, wrapper);
 

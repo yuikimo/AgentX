@@ -2,19 +2,24 @@ package com.example.agentx.application.rag.request;
 
 import java.util.List;
 
-/** 批量审核请求
- * @author xhy
- * @date 2025-07-18 <br/>
+/**
+ * 批量审核请求
  */
 public class BatchReviewRequest {
 
-    /** 版本ID列表 */
+    /**
+     * 版本ID列表
+     */
     private List<String> versionIds;
 
-    /** 审核状态：2:已发布, 3:拒绝, 4:已下架 */
+    /**
+     * 审核状态：2:已发布, 3:拒绝, 4:已下架
+     */
     private Integer status;
 
-    /** 拒绝原因（拒绝时必填） */
+    /**
+     * 拒绝原因（拒绝时必填）
+     */
     private String rejectReason;
 
     public List<String> getVersionIds() {

@@ -11,8 +11,6 @@ import java.util.stream.Collectors;
 
 /**
  * 文档单元转换器
- *
- * @author shilong.zang
  */
 public class DocumentUnitAssembler {
 

@@ -1,19 +1,15 @@
 package com.example.agentx.application.trace.collector;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.example.agentx.domain.trace.constant.ExecutionPhase;
-import com.example.agentx.domain.trace.event.ExecutionCompletedEvent;
-import com.example.agentx.domain.trace.event.ModelCalledEvent;
-import com.example.agentx.domain.trace.event.ToolExecutedEvent;
+import com.example.agentx.domain.trace.event.*;
 import com.example.agentx.domain.trace.model.ModelCallInfo;
 import com.example.agentx.domain.trace.model.ToolCallInfo;
 import com.example.agentx.domain.trace.model.TraceContext;
 import com.example.agentx.domain.trace.service.AgentExecutionTraceDomainService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
 
 /**
  * 追踪数据收集器 负责在关键执行节点收集追踪数据
@@ -41,15 +37,15 @@ public class TraceCollector {
      * @param messageType 消息类型
      * @return 追踪上下文
      */
-    public TraceContext getOrStartExecution(String userId, String sessionId, String agentId,
-                                            String userMessage, String messageType) {
+    public TraceContext getOrStartExecution(String userId, String sessionId, String agentId, String userMessage,
+                                            String messageType) {
         try {
             // 获取或创建会话级别的追踪上下文
             TraceContext traceContext = traceDomainService.getOrCreateTrace(userId, sessionId, agentId);
 
             // 立即记录用户消息，并保存记录ID到上下文中
-            Long messageId = traceDomainService.recordUserMessage(traceContext, userMessage,
-                    messageType, LocalDateTime.now());
+            Long messageId = traceDomainService.recordUserMessage(traceContext, userMessage, messageType,
+                    java.time.LocalDateTime.now());
             if (messageId != null) {
                 traceContext.setCurrentUserMessageId(messageId);
             }

@@ -1,13 +1,10 @@
 package com.example.agentx.application.trace.assembler;
 
-import com.example.agentx.application.trace.dto.AgentExecutionDetailDTO;
-import com.example.agentx.application.trace.dto.AgentExecutionSummaryDTO;
-import com.example.agentx.application.trace.dto.ExecutionStatisticsDTO;
-import com.example.agentx.application.trace.dto.ExecutionTraceDTO;
+import org.springframework.beans.BeanUtils;
+import com.example.agentx.application.trace.dto.*;
 import com.example.agentx.domain.trace.model.AgentExecutionDetailEntity;
 import com.example.agentx.domain.trace.model.AgentExecutionSummaryEntity;
 import com.example.agentx.domain.trace.service.AgentExecutionTraceDomainService;
-import org.springframework.beans.BeanUtils;
 
 import java.util.Collections;
 import java.util.List;

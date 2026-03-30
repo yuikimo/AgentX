@@ -70,8 +70,8 @@ public class AnalyserMessageHandler extends AbstractAgentHandler {
             ChatRequest request = buildRequest(context);
             ChatResponse chat = strandClient.chat(request);
             String text = chat.aiMessage().text();
-            AnalyzerMessageDTO analyzerMessageDTO = ModelResponseToJsonUtils.toJson(text, AnalyzerMessageDTO.class);
 
+            AnalyzerMessageDTO analyzerMessageDTO = ModelResponseToJsonUtils.toJson(text, AnalyzerMessageDTO.class);
             context.addExtraData(extraAnalyzerMessageKey, analyzerMessageDTO);
             context.getChatContext().setUserMessage(userMessage);
 

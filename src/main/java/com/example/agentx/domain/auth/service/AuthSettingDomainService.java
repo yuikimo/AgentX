@@ -3,13 +3,12 @@ package com.example.agentx.domain.auth.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.auth.constant.AuthFeatureKey;
 import com.example.agentx.domain.auth.constant.FeatureType;
 import com.example.agentx.domain.auth.model.AuthSettingEntity;
 import com.example.agentx.domain.auth.repository.AuthSettingRepository;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -33,8 +32,7 @@ public class AuthSettingDomainService {
      */
     public List<AuthSettingEntity> getEnabledFeatures(FeatureType featureType) {
         LambdaQueryWrapper<AuthSettingEntity> wrapper = Wrappers.<AuthSettingEntity>lambdaQuery()
-                .eq(AuthSettingEntity::getFeatureType, featureType.getCode())
-                .eq(AuthSettingEntity::getEnabled, true)
+                .eq(AuthSettingEntity::getFeatureType, featureType.getCode()).eq(AuthSettingEntity::getEnabled, true)
                 .orderByAsc(AuthSettingEntity::getDisplayOrder);
 
         return authSettingRepository.selectList(wrapper);
@@ -74,8 +72,7 @@ public class AuthSettingDomainService {
      */
     public boolean isFeatureEnabled(AuthFeatureKey featureKey) {
         LambdaQueryWrapper<AuthSettingEntity> wrapper = Wrappers.<AuthSettingEntity>lambdaQuery()
-                .eq(AuthSettingEntity::getFeatureKey, featureKey.getCode())
-                .eq(AuthSettingEntity::getEnabled, true);
+                .eq(AuthSettingEntity::getFeatureKey, featureKey.getCode()).eq(AuthSettingEntity::getEnabled, true);
 
         return authSettingRepository.selectCount(wrapper) > 0;
     }
@@ -113,13 +110,11 @@ public class AuthSettingDomainService {
      * @param id 配置ID
      * @return 更新后的配置
      */
-    @Transactional
     public AuthSettingEntity toggleEnabled(String id) {
         AuthSettingEntity entity = getById(id);
 
         LambdaUpdateWrapper<AuthSettingEntity> updateWrapper = Wrappers.<AuthSettingEntity>lambdaUpdate()
-                .eq(AuthSettingEntity::getId, id)
-                .set(AuthSettingEntity::getEnabled, !entity.getEnabled());
+                .eq(AuthSettingEntity::getId, id).set(AuthSettingEntity::getEnabled, !entity.getEnabled());
 
         authSettingRepository.checkedUpdate(null, updateWrapper);
 
@@ -134,7 +129,6 @@ public class AuthSettingDomainService {
      * @param entity 认证配置实体
      * @return 更新后的配置
      */
-    @Transactional
     public AuthSettingEntity updateAuthSetting(AuthSettingEntity entity) {
         AuthSettingEntity existingEntity = getById(entity.getId());
 
@@ -152,7 +146,6 @@ public class AuthSettingDomainService {
      * @param entity 认证配置实体
      * @return 创建的配置
      */
-    @Transactional
     public AuthSettingEntity createAuthSetting(AuthSettingEntity entity) {
         // 检查功能键是否已存在
         LambdaQueryWrapper<AuthSettingEntity> wrapper = Wrappers.<AuthSettingEntity>lambdaQuery()
@@ -171,7 +164,6 @@ public class AuthSettingDomainService {
      *
      * @param id 配置ID
      */
-    @Transactional
     public void deleteAuthSetting(String id) {
         AuthSettingEntity entity = getById(id);
         authSettingRepository.deleteById(id);

@@ -8,7 +8,8 @@ import com.example.agentx.application.conversation.service.handler.context.ChatC
 import com.example.agentx.application.conversation.service.message.AbstractMessageHandler;
 import com.example.agentx.application.conversation.service.message.Agent;
 import com.example.agentx.application.conversation.service.message.agent.AgentToolManager;
-import com.example.agentx.application.conversation.service.message.agent.tool.RagToolManager;
+import com.example.agentx.application.conversation.service.message.builtin.BuiltInToolRegistry;
+import com.example.agentx.application.conversation.service.ChatSessionManager;
 import com.example.agentx.domain.conversation.constant.MessageType;
 import com.example.agentx.domain.conversation.model.MessageEntity;
 import com.example.agentx.domain.conversation.service.MessageDomainService;
@@ -21,7 +22,6 @@ import com.example.agentx.infrastructure.transport.MessageTransport;
 import com.example.agentx.application.billing.service.BillingService;
 import com.example.agentx.domain.user.service.AccountDomainService;
 
-import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -36,11 +36,12 @@ public class PreviewMessageHandler extends AbstractMessageHandler {
                                  HighAvailabilityDomainService highAvailabilityDomainService,
                                  SessionDomainService sessionDomainService,
                                  UserSettingsDomainService userSettingsDomainService, LLMDomainService llmDomainService,
-                                 RagToolManager ragToolManager, BillingService billingService,
-                                 AccountDomainService accountDomainService,
+                                 BuiltInToolRegistry builtInToolRegistry, BillingService billingService,
+                                 AccountDomainService accountDomainService, ChatSessionManager chatSessionManager,
                                  AgentToolManager agentToolManager) {
         super(llmServiceFactory, messageDomainService, highAvailabilityDomainService, sessionDomainService,
-                userSettingsDomainService, llmDomainService, ragToolManager, billingService, accountDomainService);
+                userSettingsDomainService, llmDomainService, builtInToolRegistry, billingService, accountDomainService,
+                chatSessionManager);
         this.agentToolManager = agentToolManager;
     }
 
@@ -61,8 +62,10 @@ public class PreviewMessageHandler extends AbstractMessageHandler {
 
         TokenStream tokenStream = agent.chat(chatContext.getUserMessage());
 
-        tokenStream.onError(throwable -> transport.sendMessage(connection,
-                AgentChatResponse.buildEndMessage(throwable.getMessage(), MessageType.TEXT)));
+        tokenStream.onError(throwable -> {
+            transport.sendMessage(connection,
+                    AgentChatResponse.buildEndMessage(throwable.getMessage(), MessageType.TEXT));
+        });
 
         // 部分响应处理
         tokenStream.onPartialResponse(reply -> {

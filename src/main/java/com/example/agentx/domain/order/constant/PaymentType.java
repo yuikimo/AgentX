@@ -28,7 +28,7 @@ public enum PaymentType {
     /**
      * 小程序支付
      */
-    MINI_PROGRAM("MINI_PROGRAM", "小程序支付");
+    MINI_PROGRAM("mini_program", "小程序支付");
 
     private final String code;
     private final String name;

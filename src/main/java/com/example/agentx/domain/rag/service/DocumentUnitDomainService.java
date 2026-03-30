@@ -74,7 +74,8 @@ public class DocumentUnitDomainService {
      */
     public void updateDocumentUnit(DocumentUnitEntity entity, String userId) {
         LambdaUpdateWrapper<DocumentUnitEntity> updateWrapper = Wrappers.<DocumentUnitEntity>lambdaUpdate()
-                .eq(DocumentUnitEntity::getId, entity.getId()).set(DocumentUnitEntity::getContent, entity.getContent())
+                .eq(DocumentUnitEntity::getId, entity.getId())
+                .set(DocumentUnitEntity::getContent, entity.getContent())
                 .set(entity.getIsVector() != null, DocumentUnitEntity::getIsVector, entity.getIsVector());
 
         documentUnitRepository.checkedUpdate(entity, updateWrapper);
@@ -111,8 +112,7 @@ public class DocumentUnitDomainService {
      */
     public List<DocumentUnitEntity> listVectorizedDocumentsByFile(String fileId) {
         LambdaQueryWrapper<DocumentUnitEntity> wrapper = Wrappers.<DocumentUnitEntity>lambdaQuery()
-                .eq(DocumentUnitEntity::getFileId, fileId)
-                .eq(DocumentUnitEntity::getIsVector, true);
+                .eq(DocumentUnitEntity::getFileId, fileId).eq(DocumentUnitEntity::getIsVector, true);
         return documentUnitRepository.selectList(wrapper);
     }
 

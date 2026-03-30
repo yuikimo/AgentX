@@ -4,7 +4,8 @@ import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.example.agentx.application.conversation.service.message.AbstractMessageHandler;
-import com.example.agentx.application.conversation.service.message.agent.tool.RagToolManager;
+import com.example.agentx.application.conversation.service.message.builtin.BuiltInToolRegistry;
+import com.example.agentx.application.conversation.service.ChatSessionManager;
 import com.example.agentx.domain.conversation.service.MessageDomainService;
 import com.example.agentx.domain.conversation.service.SessionDomainService;
 import com.example.agentx.domain.llm.service.HighAvailabilityDomainService;
@@ -26,9 +27,10 @@ public class ChatMessageHandler extends AbstractMessageHandler {
                               HighAvailabilityDomainService highAvailabilityDomainService,
                               SessionDomainService sessionDomainService,
                               UserSettingsDomainService userSettingsDomainService, LLMDomainService llmDomainService,
-                              RagToolManager ragToolManager, BillingService billingService,
-                              AccountDomainService accountDomainService) {
+                              BuiltInToolRegistry builtInToolRegistry, BillingService billingService,
+                              AccountDomainService accountDomainService, ChatSessionManager chatSessionManager) {
         super(llmServiceFactory, messageDomainService, highAvailabilityDomainService, sessionDomainService,
-                userSettingsDomainService, llmDomainService, ragToolManager, billingService, accountDomainService);
+                userSettingsDomainService, llmDomainService, builtInToolRegistry, billingService, accountDomainService,
+                chatSessionManager);
     }
 }

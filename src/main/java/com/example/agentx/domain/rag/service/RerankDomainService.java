@@ -64,7 +64,7 @@ public class RerankDomainService {
     /**
      * 重排序文档（已废弃）
      *
-     * @deprecated 推荐使用 rerank(List String; documents, String query) 方法
+     * @deprecated 推荐使用 rerank(List&lt;String&gt; documents, String query) 方法
      */
     @Deprecated
     public List<EmbeddingMatch<TextSegment>> rerankDocument(
@@ -89,4 +89,5 @@ public class RerankDomainService {
 
         return matches;
     }
+
 }

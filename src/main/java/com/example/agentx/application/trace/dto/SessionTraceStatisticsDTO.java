@@ -1,5 +1,6 @@
 package com.example.agentx.application.trace.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**

@@ -1,11 +1,11 @@
 package com.example.agentx.domain.conversation.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.conversation.model.ContextEntity;
 import com.example.agentx.domain.conversation.model.MessageEntity;
 import com.example.agentx.domain.conversation.repository.ContextRepository;
 import com.example.agentx.domain.conversation.repository.MessageRepository;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;

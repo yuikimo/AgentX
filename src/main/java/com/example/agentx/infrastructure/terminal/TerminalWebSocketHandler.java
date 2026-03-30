@@ -56,7 +56,7 @@ public class TerminalWebSocketHandler implements WebSocketHandler {
     }
 
     @Override
-    public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {
+    public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
         if (message instanceof TextMessage) {
             TextMessage textMessage = (TextMessage) message;
             String payload = textMessage.getPayload();

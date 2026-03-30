@@ -3,9 +3,7 @@ package com.example.agentx.application.conversation.service.message.agent.analys
 public class InfoRequirementDTO {
 
     /**
-     * 是否信息完整
-     * true：信息完整，不需要额外输入
-     * false：缺少信息，需要用户补充
+     * 是否信息完整 true 表示信息完整，不需要额外输入； false 表示缺少信息，需要用户补充
      */
     private boolean infoComplete;
 

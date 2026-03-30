@@ -1,8 +1,8 @@
 package com.example.agentx.application.conversation.assembler;
 
-import com.example.agentx.application.conversation.dto.MessageDTO;
-import com.example.agentx.domain.conversation.model.MessageEntity;
 import org.springframework.beans.BeanUtils;
+import com.example.agentx.domain.conversation.model.MessageEntity;
+import com.example.agentx.application.conversation.dto.MessageDTO;
 
 import java.util.Collections;
 import java.util.List;

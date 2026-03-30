@@ -1,14 +1,11 @@
 package com.example.agentx.application.trace.listener;
 
-import com.example.agentx.domain.trace.event.ExecutionCompletedEvent;
-import com.example.agentx.domain.trace.event.ExecutionStartedEvent;
-import com.example.agentx.domain.trace.event.ModelCalledEvent;
-import com.example.agentx.domain.trace.event.ToolExecutedEvent;
-import com.example.agentx.domain.trace.service.AgentExecutionTraceDomainService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import com.example.agentx.domain.trace.event.*;
+import com.example.agentx.domain.trace.service.AgentExecutionTraceDomainService;
 
 /**
  * 追踪事件监听器 异步处理追踪事件，可用于扩展功能如日志记录、监控等
@@ -115,8 +112,9 @@ public class TraceEventListener {
             traceDomainService.completeTrace(event.getTraceContext(), event.isSuccess(), event.getErrorPhase(),
                     event.getErrorMessage());
 
-            logger.debug("追踪记录已完成并保存 - TraceId: {}, Success: {}",
-                    event.getTraceContext().getTraceId(), event.isSuccess());
+            logger.debug("追踪记录已完成并保存 - TraceId: {}, Success: {}", event.getTraceContext().getTraceId(),
+                    event.isSuccess());
+
         } catch (Exception e) {
             logger.error("处理执行完成事件失败 - TraceId: {}",
                     event.getTraceContext() != null ? event.getTraceContext().getTraceId() : "UNKNOWN", e);

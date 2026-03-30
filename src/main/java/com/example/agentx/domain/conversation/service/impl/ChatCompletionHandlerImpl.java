@@ -1,12 +1,12 @@
 package com.example.agentx.domain.conversation.service.impl;
 
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.conversation.model.ContextEntity;
 import com.example.agentx.domain.conversation.model.MessageEntity;
 import com.example.agentx.domain.conversation.service.ChatCompletionHandler;
 import com.example.agentx.domain.conversation.service.ContextDomainService;
 import com.example.agentx.domain.conversation.service.ConversationDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;

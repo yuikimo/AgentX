@@ -1,9 +1,9 @@
 package com.example.agentx.infrastructure.sso;
 
+import org.springframework.stereotype.Component;
 import com.example.agentx.domain.auth.constant.AuthFeatureKey;
 import com.example.agentx.domain.auth.model.AuthSettingEntity;
 import com.example.agentx.domain.auth.service.AuthSettingDomainService;
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 

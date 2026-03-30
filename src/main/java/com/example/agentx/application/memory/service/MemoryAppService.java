@@ -1,0 +1,54 @@
+package com.example.agentx.application.memory.service;
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.agentx.application.memory.assembler.MemoryAssembler;
+import com.example.agentx.application.memory.assembler.MemoryCommandAssembler;
+import com.example.agentx.application.memory.dto.MemoryItemDTO;
+import com.example.agentx.domain.memory.model.CandidateMemory;
+import com.example.agentx.domain.memory.model.MemoryItemEntity;
+import com.example.agentx.domain.memory.service.MemoryDomainService;
+import com.example.agentx.interfaces.dto.memory.CreateMemoryRequest;
+import com.example.agentx.interfaces.dto.memory.QueryMemoryRequest;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class MemoryAppService {
+
+    private final MemoryDomainService memoryDomainService;
+
+    public MemoryAppService(MemoryDomainService memoryDomainService) {
+        this.memoryDomainService = memoryDomainService;
+    }
+
+    /**
+     * 分页列出用户记忆
+     */
+    public Page<MemoryItemDTO> listUserMemories(String userId, QueryMemoryRequest request) {
+        int pageNo = request.getPage() != null ? request.getPage() : 1;
+        int pageSize = request.getPageSize() != null ? request.getPageSize() : 20;
+        Page<MemoryItemEntity> page = memoryDomainService.pageMemories(userId, request.getType(), pageNo, pageSize);
+        Page<MemoryItemDTO> dtoPage = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
+        dtoPage.setRecords(MemoryAssembler.toDTOs(page.getRecords()));
+        return dtoPage;
+    }
+
+    /**
+     * 手动创建记忆
+     */
+    public List<String> createMemory(String userId, CreateMemoryRequest request) {
+        CandidateMemory cm = MemoryCommandAssembler.toCandidate(request);
+        List<CandidateMemory> list = new ArrayList<>();
+        list.add(cm);
+        return memoryDomainService.saveMemories(userId, null, list);
+    }
+
+    /**
+     * 归档（软删除）记忆
+     */
+    public boolean deleteMemory(String userId, String itemId) {
+        return memoryDomainService.delete(userId, itemId);
+    }
+}

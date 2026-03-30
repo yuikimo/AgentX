@@ -71,9 +71,8 @@ public class RagToolExecutor implements ToolExecutor {
                 return "错误：搜索查询内容为空";
             }
 
-            log.debug(
-                    "RAG搜索参数 - query: {}, maxResults: {}, minScore: {}, enableRerank: {}, enableQueryExpansion: {}, " +
-                            "knowledgeBaseCount: {}",
+            log.debug("RAG搜索参数 - query: {}, maxResults: {}, minScore: {}, enableRerank: {}, enableQueryExpansion: {}," +
+                            " knowledgeBaseCount: {}",
                     query, maxResults, minScore, enableRerank, enableQueryExpansion, knowledgeBaseIds.size());
 
             // 构建RAG搜索请求，支持多个知识库
@@ -96,11 +95,10 @@ public class RagToolExecutor implements ToolExecutor {
             // 格式化搜索结果
             String formattedResults = formatSearchResults(searchResults, query);
 
-            log.info("RAG搜索完成，knowledgeBaseIds: {}, query: {}, 找到文档数量: {}", knowledgeBaseIds, query,
-                    searchResults.size());
+            log.info("RAG搜索完成，knowledgeBaseIds: {}, query: {}, 找到文档数量: {}",
+                    knowledgeBaseIds, query, searchResults.size());
 
             return formattedResults;
-
         } catch (Exception e) {
             log.error("RAG工具执行失败，knowledgeBaseIds: {}, userId: {}, error: {}", knowledgeBaseIds, userId, e.getMessage(),
                     e);

@@ -1,6 +1,6 @@
 package com.example.agentx.domain.rag.consumer;
 
-import static com.example.agentx.infrastructure.mq.model.MQSendEventModel.HEADER_NAME_TRACE_ID;
+import static com.example.agentx.infrastructure.mq.core.MessageHeaders.TRACE_ID;
 
 import java.io.IOException;
 import java.util.List;
@@ -17,7 +17,8 @@ import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.context.ApplicationEventPublisher;
+import com.example.agentx.infrastructure.mq.core.MessageEnvelope;
+import com.example.agentx.infrastructure.mq.core.MessagePublisher;
 import org.springframework.stereotype.Component;
 import com.example.agentx.domain.rag.message.RagDocMessage;
 import com.example.agentx.domain.rag.message.RagDocSyncStorageMessage;
@@ -31,14 +32,16 @@ import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.infrastructure.mq.enums.EventType;
 import com.example.agentx.infrastructure.mq.events.RagDocSyncOcrEvent;
 import com.example.agentx.infrastructure.mq.events.RagDocSyncStorageEvent;
-import com.example.agentx.infrastructure.mq.model.MqMessage;
-import com.example.agentx.infrastructure.rag.service.UserModelConfigResolver;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rabbitmq.client.Channel;
+import com.example.agentx.infrastructure.rag.service.UserModelConfigResolver;
 
 /**
  * document预处理消费者
@@ -49,37 +52,44 @@ import com.rabbitmq.client.Channel;
 public class RagDocConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(RagDocConsumer.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private final DocumentProcessingFactory documentProcessingFactory;
     private final FileDetailDomainService fileDetailDomainService;
     private final DocumentUnitRepository documentUnitRepository;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final MessagePublisher messagePublisher;
     private final UserModelConfigResolver userModelConfigResolver;
 
     public RagDocConsumer(DocumentProcessingFactory ragDocSyncOcrContext,
                           FileDetailDomainService fileDetailDomainService,
                           DocumentUnitRepository documentUnitRepository,
-                          ApplicationEventPublisher applicationEventPublisher,
-                          UserModelConfigResolver userModelConfigResolver) {
+                          MessagePublisher messagePublisher, UserModelConfigResolver userModelConfigResolver) {
         this.documentProcessingFactory = ragDocSyncOcrContext;
         this.fileDetailDomainService = fileDetailDomainService;
         this.documentUnitRepository = documentUnitRepository;
-        this.applicationEventPublisher = applicationEventPublisher;
+        this.messagePublisher = messagePublisher;
         this.userModelConfigResolver = userModelConfigResolver;
     }
 
     @RabbitHandler
-    public void receiveMessage(Message message, String msg, Channel channel) throws IOException {
-        MqMessage mqMessageBody = JSONObject.parseObject(msg, MqMessage.class);
-
-        MDC.put(HEADER_NAME_TRACE_ID,
-                Objects.nonNull(mqMessageBody.getTraceId()) ? mqMessageBody.getTraceId() : IdWorker.getTimeId());
+    public void receiveMessage(java.util.Map<String, Object> payload, Message message, Channel channel)
+            throws IOException {
         MessageProperties messageProperties = message.getMessageProperties();
         long deliveryTag = messageProperties.getDeliveryTag();
-        RagDocMessage docMessage = JSON.parseObject(JSON.toJSONString(mqMessageBody.getData()), RagDocMessage.class);
 
+        RagDocMessage docMessage = null;
         try {
-            log.info("Starting OCR processing for file: {}", docMessage.getFileId());
+            // 将已由 Jackson 转换的 Map 转为强类型 Envelope
+            MessageEnvelope<RagDocMessage> envelope = OBJECT_MAPPER.convertValue(payload, new TypeReference<>() {
+            });
+
+            MDC.put(TRACE_ID, Objects.nonNull(envelope.getTraceId()) ? envelope.getTraceId() : IdWorker.getTimeId());
+            docMessage = envelope.getData();
+
+            log.info("开始OCR处理文件: {}", docMessage.getFileId());
 
             // 获取文件并开始OCR处理
             FileDetailEntity fileEntity = fileDetailDomainService.getFileByIdWithoutUserCheck(docMessage.getFileId());
@@ -119,20 +129,22 @@ public class RagDocConsumer {
                 log.warn("OCR处理完成但状态转换失败，文件ID: {}", docMessage.getFileId());
             }
 
-            log.info("OCR processing completed for file: {}", docMessage.getFileId());
+            log.info("OCR处理完成，文件ID: {}", docMessage.getFileId());
 
             // 自动启动向量化处理
             autoStartVectorization(docMessage.getFileId(), fileEntity);
 
         } catch (Exception e) {
-            log.error("OCR processing failed for file: {}", docMessage.getFileId(), e);
+            log.error("OCR处理失败，文件ID: {}", docMessage != null ? docMessage.getFileId() : "unknown", e);
             // 处理失败
             try {
-                FileDetailEntity fileEntity = fileDetailDomainService
-                        .getFileByIdWithoutUserCheck(docMessage.getFileId());
-                fileDetailDomainService.failFileOcrProcessing(docMessage.getFileId(), fileEntity.getUserId());
+                if (docMessage != null) {
+                    FileDetailEntity fileEntity = fileDetailDomainService
+                            .getFileByIdWithoutUserCheck(docMessage.getFileId());
+                    fileDetailDomainService.failFileOcrProcessing(docMessage.getFileId(), fileEntity.getUserId());
+                }
             } catch (Exception ex) {
-                log.error("Failed to update file status to failed for file: {}", docMessage.getFileId(), ex);
+                log.error("更新文件状态为失败失败，文件ID: {}", docMessage != null ? docMessage.getFileId() : "unknown", ex);
             }
         } finally {
             channel.basicAck(deliveryTag, false);
@@ -147,7 +159,7 @@ public class RagDocConsumer {
      */
     private void autoStartVectorization(String fileId, FileDetailEntity fileEntity) {
         try {
-            log.info("Auto-starting vectorization for file: {}", fileId);
+            log.info("自动启动向量化处理，文件ID: {}", fileId);
 
             // 检查是否有可用的文档单元进行向量化
             List<DocumentUnitEntity> documentUnits = documentUnitRepository
@@ -155,7 +167,7 @@ public class RagDocConsumer {
                             .eq(DocumentUnitEntity::getIsOcr, true).eq(DocumentUnitEntity::getIsVector, false));
 
             if (documentUnits.isEmpty()) {
-                log.warn("No document units found for vectorization for file: {}", fileId);
+                log.warn("未找到用于向量化的文档单元，文件ID: {}", fileId);
                 return;
             }
 
@@ -181,21 +193,22 @@ public class RagDocConsumer {
                 storageMessage.setEmbeddingModelConfig(
                         userModelConfigResolver.getUserEmbeddingModelConfig(fileEntity.getUserId()));
 
-                RagDocSyncStorageEvent<RagDocSyncStorageMessage> storageEvent = new RagDocSyncStorageEvent<>(
-                        storageMessage, EventType.DOC_SYNC_RAG);
-                storageEvent.setDescription("文件自动向量化处理任务 - 页面 " + documentUnit.getPage());
-                applicationEventPublisher.publishEvent(storageEvent);
+                MessageEnvelope<RagDocSyncStorageMessage> env = MessageEnvelope.builder(storageMessage)
+                        .addEventType(EventType.DOC_SYNC_RAG)
+                        .description("文件自动向量化处理任务 - 页面 " + documentUnit.getPage())
+                        .build();
+                messagePublisher.publish(RagDocSyncStorageEvent.route(), env);
             }
 
-            log.info("Auto-vectorization started for file: {}, {} document units", fileId, documentUnits.size());
+            log.info("自动向量化启动完成，文件ID: {}，{}个文档单元", fileId, documentUnits.size());
 
         } catch (Exception e) {
-            log.error("Failed to auto-start vectorization for file: {}", fileId, e);
+            log.error("自动启动向量化失败，文件ID: {}", fileId, e);
             // 如果自动启动失败，重置向量化状态
             try {
                 fileDetailDomainService.failFileEmbeddingProcessing(fileId, fileEntity.getUserId());
             } catch (Exception ex) {
-                log.error("Failed to update file embedding status to failed for file: {}", fileId, ex);
+                log.error("更新文件嵌入状态为失败失败，文件ID: {}", fileId, ex);
             }
         }
     }

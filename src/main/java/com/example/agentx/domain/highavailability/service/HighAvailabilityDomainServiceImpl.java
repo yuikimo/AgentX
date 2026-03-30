@@ -1,26 +1,26 @@
 package com.example.agentx.domain.highavailability.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.highavailability.gateway.HighAvailabilityGateway;
-import com.example.agentx.domain.llm.event.ModelsBatchDeletedEvent;
 import com.example.agentx.domain.llm.model.HighAvailabilityResult;
 import com.example.agentx.domain.llm.model.ModelEntity;
 import com.example.agentx.domain.llm.model.ProviderEntity;
 import com.example.agentx.domain.llm.service.HighAvailabilityDomainService;
 import com.example.agentx.domain.llm.service.LLMDomainService;
+import com.example.agentx.domain.llm.event.ModelsBatchDeletedEvent;
 import com.example.agentx.infrastructure.config.HighAvailabilityProperties;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import com.example.agentx.infrastructure.highavailability.constant.AffinityType;
-import com.example.agentx.infrastructure.highavailability.dto.request.ApiInstanceBatchDeleteRequest;
 import com.example.agentx.infrastructure.highavailability.dto.request.ApiInstanceCreateRequest;
 import com.example.agentx.infrastructure.highavailability.dto.request.ApiInstanceUpdateRequest;
 import com.example.agentx.infrastructure.highavailability.dto.request.ProjectCreateRequest;
 import com.example.agentx.infrastructure.highavailability.dto.request.ReportResultRequest;
 import com.example.agentx.infrastructure.highavailability.dto.request.SelectInstanceRequest;
+import com.example.agentx.infrastructure.highavailability.dto.request.ApiInstanceBatchDeleteRequest;
 import com.example.agentx.infrastructure.highavailability.dto.response.ApiInstanceDTO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
+import com.example.agentx.infrastructure.highavailability.constant.AffinityType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -120,8 +120,8 @@ public class HighAvailabilityDomainServiceImpl implements HighAvailabilityDomain
         if (!properties.isEnabled()) {
             // 高可用未启用，使用默认逻辑
             logger.debug("高可用功能未启用，使用默认Provider选择逻辑: modelId={}", model.getId());
-            ProviderEntity provider = llmDomainService.getProvider(model.getProviderId(), userId);
-            return new HighAvailabilityResult(provider, model, null);
+            ProviderEntity provider = llmDomainService.getProvider(model.getProviderId());
+            return new HighAvailabilityResult(provider, model, null, false);
         }
 
         try {
@@ -151,21 +151,24 @@ public class HighAvailabilityDomainServiceImpl implements HighAvailabilityDomain
             // 获取最佳实例对应的模型
             ModelEntity bestModel = llmDomainService.getModelById(businessId);
 
+            // 判断模型是否被切换（通过比较主键id）
+            boolean switched = !model.getId().equals(bestModel.getId());
+
             // 返回最佳模型对应的Provider
-            ProviderEntity provider = llmDomainService.getProvider(bestModel.getProviderId(), userId);
+            ProviderEntity provider = llmDomainService.getProvider(bestModel.getProviderId());
 
-            logger.info("通过高可用网关选择Provider成功: modelId={}, bestBusinessId={}, providerId={}, sessionId={}",
-                    model.getId(), businessId, provider.getId(), sessionId);
+            logger.info("通过高可用网关选择Provider成功: modelId={}, bestBusinessId={}, providerId={}, sessionId={}, switched={}",
+                    model.getId(), businessId, provider.getId(), sessionId, switched);
 
-            return new HighAvailabilityResult(provider, bestModel, instanceId);
+            return new HighAvailabilityResult(provider, bestModel, instanceId, switched);
 
         } catch (Exception e) {
             logger.warn("高可用网关选择Provider失败，降级到默认逻辑: modelId={}, sessionId={}", model.getId(), sessionId, e);
 
             // 降级处理：使用默认逻辑
             try {
-                ProviderEntity provider = llmDomainService.getProvider(model.getProviderId(), userId);
-                return new HighAvailabilityResult(provider, model, null);
+                ProviderEntity provider = llmDomainService.getProvider(model.getProviderId());
+                return new HighAvailabilityResult(provider, model, null, false);
             } catch (Exception fallbackException) {
                 logger.error("降级逻辑也失败了: modelId={}, sessionId={}", model.getId(), sessionId, fallbackException);
                 throw new BusinessException("获取Provider失败", fallbackException);
@@ -295,7 +298,8 @@ public class HighAvailabilityDomainServiceImpl implements HighAvailabilityDomain
             List<ApiInstanceBatchDeleteRequest.ApiInstanceDeleteItem> instances = new ArrayList<>();
             for (ModelsBatchDeletedEvent.ModelDeleteItem deleteItem : deleteItems) {
                 ApiInstanceBatchDeleteRequest.ApiInstanceDeleteItem item =
-                        new ApiInstanceBatchDeleteRequest.ApiInstanceDeleteItem("MODEL", deleteItem.getModelId());
+                        new ApiInstanceBatchDeleteRequest.ApiInstanceDeleteItem(
+                                "MODEL", deleteItem.getModelId());
                 instances.add(item);
             }
 

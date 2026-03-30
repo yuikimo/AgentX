@@ -8,15 +8,15 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
-import org.dromara.x.file.storage.core.FileInfo;
-import org.dromara.x.file.storage.core.FileStorageService;
-import org.springframework.stereotype.Service;
 import com.example.agentx.domain.rag.constant.FileProcessingEventEnum;
 import com.example.agentx.domain.rag.constant.FileProcessingStatusEnum;
 import com.example.agentx.domain.rag.model.FileDetailEntity;
 import com.example.agentx.domain.rag.repository.FileDetailRepository;
 import com.example.agentx.infrastructure.exception.BusinessException;
+import org.apache.commons.lang3.StringUtils;
+import org.dromara.x.file.storage.core.FileInfo;
+import org.dromara.x.file.storage.core.FileStorageService;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -87,7 +87,8 @@ public class FileDetailDomainService {
      */
     public FileDetailEntity getFile(String fileId, String userId) {
         LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
-                .eq(FileDetailEntity::getId, fileId).eq(FileDetailEntity::getUserId, userId);
+                .eq(FileDetailEntity::getId, fileId)
+                .eq(FileDetailEntity::getUserId, userId);
         FileDetailEntity file = fileDetailRepository.selectOne(wrapper);
         if (file == null) {
             throw new BusinessException("文件不存在");
@@ -104,7 +105,8 @@ public class FileDetailDomainService {
      */
     public FileDetailEntity findFile(String fileId, String userId) {
         LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
-                .eq(FileDetailEntity::getId, fileId).eq(FileDetailEntity::getUserId, userId);
+                .eq(FileDetailEntity::getId, fileId)
+                .eq(FileDetailEntity::getUserId, userId);
         return fileDetailRepository.selectOne(wrapper);
     }
 
@@ -117,7 +119,8 @@ public class FileDetailDomainService {
      */
     public boolean existsFile(String fileId, String userId) {
         LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
-                .eq(FileDetailEntity::getId, fileId).eq(FileDetailEntity::getUserId, userId);
+                .eq(FileDetailEntity::getId, fileId)
+                .eq(FileDetailEntity::getUserId, userId);
         return fileDetailRepository.exists(wrapper);
     }
 
@@ -178,7 +181,8 @@ public class FileDetailDomainService {
     public IPage<FileDetailEntity> listFilesByDataset(String datasetId, String userId, Integer page, Integer pageSize,
                                                       String keyword) {
         LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
-                .eq(FileDetailEntity::getDataSetId, datasetId).eq(FileDetailEntity::getUserId, userId);
+                .eq(FileDetailEntity::getDataSetId, datasetId)
+                .eq(FileDetailEntity::getUserId, userId);
 
         // 关键词搜索
         if (StringUtils.isNotBlank(keyword)) {
@@ -201,7 +205,8 @@ public class FileDetailDomainService {
      */
     public List<FileDetailEntity> listAllFilesByDataset(String datasetId, String userId) {
         LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
-                .eq(FileDetailEntity::getDataSetId, datasetId).eq(FileDetailEntity::getUserId, userId)
+                .eq(FileDetailEntity::getDataSetId, datasetId)
+                .eq(FileDetailEntity::getUserId, userId)
                 .orderByDesc(FileDetailEntity::getCreatedAt);
         return fileDetailRepository.selectList(wrapper);
     }
@@ -215,7 +220,8 @@ public class FileDetailDomainService {
      */
     public long countFilesByDataset(String datasetId, String userId) {
         LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
-                .eq(FileDetailEntity::getDataSetId, datasetId).eq(FileDetailEntity::getUserId, userId);
+                .eq(FileDetailEntity::getDataSetId, datasetId)
+                .eq(FileDetailEntity::getUserId, userId);
         return fileDetailRepository.selectCount(wrapper);
     }
 
@@ -377,7 +383,8 @@ public class FileDetailDomainService {
      */
     public FileDetailEntity getFileById(String fileId, String userId) {
         LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
-                .eq(FileDetailEntity::getId, fileId).eq(FileDetailEntity::getUserId, userId);
+                .eq(FileDetailEntity::getId, fileId)
+                .eq(FileDetailEntity::getUserId, userId);
         FileDetailEntity fileEntity = fileDetailRepository.selectOne(wrapper);
         if (fileEntity == null) {
             throw new BusinessException("文件不存在或无权限访问");
@@ -396,7 +403,8 @@ public class FileDetailDomainService {
     @Deprecated
     public void updateFileProgress(String fileId, Integer currentPage, Double progress) {
         LambdaUpdateWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaUpdate()
-                .eq(FileDetailEntity::getId, fileId).set(FileDetailEntity::getCurrentOcrPageNumber, currentPage)
+                .eq(FileDetailEntity::getId, fileId)
+                .set(FileDetailEntity::getCurrentOcrPageNumber, currentPage)
                 .set(FileDetailEntity::getOcrProcessProgress, progress);
         fileDetailRepository.update(wrapper);
     }
@@ -449,7 +457,8 @@ public class FileDetailDomainService {
     @Deprecated
     public void updateFileOcrProgress(String fileId, Integer currentOcrPage, Double ocrProgress) {
         LambdaUpdateWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaUpdate()
-                .eq(FileDetailEntity::getId, fileId).set(FileDetailEntity::getCurrentOcrPageNumber, currentOcrPage)
+                .eq(FileDetailEntity::getId, fileId)
+                .set(FileDetailEntity::getCurrentOcrPageNumber, currentOcrPage)
                 .set(FileDetailEntity::getOcrProcessProgress, ocrProgress);
         fileDetailRepository.update(wrapper);
     }
@@ -479,7 +488,8 @@ public class FileDetailDomainService {
      */
     public void updateFilePageSize(String fileId, Integer totalPages) {
         LambdaUpdateWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaUpdate()
-                .eq(FileDetailEntity::getId, fileId).set(FileDetailEntity::getFilePageSize, totalPages);
+                .eq(FileDetailEntity::getId, fileId)
+                .set(FileDetailEntity::getFilePageSize, totalPages);
         fileDetailRepository.update(wrapper);
     }
 
@@ -491,7 +501,8 @@ public class FileDetailDomainService {
      */
     public String getFileExtension(String fileId) {
         LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
-                .eq(FileDetailEntity::getId, fileId).select(FileDetailEntity::getExt);
+                .eq(FileDetailEntity::getId, fileId)
+                .select(FileDetailEntity::getExt);
         FileDetailEntity fileEntity = fileDetailRepository.selectOne(wrapper);
         if (fileEntity == null) {
             throw new BusinessException("文件不存在");

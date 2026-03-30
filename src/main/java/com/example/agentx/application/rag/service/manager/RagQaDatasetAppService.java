@@ -5,6 +5,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 import java.util.Collections;
 
+import com.example.agentx.infrastructure.mq.core.MessageEnvelope;
+import com.example.agentx.infrastructure.mq.core.MessagePublisher;
+import com.example.agentx.infrastructure.rag.service.UserModelConfigResolver;
 import org.dromara.streamquery.stream.core.stream.Steam;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -52,7 +55,7 @@ public class RagQaDatasetAppService {
     private final RagQaDatasetDomainService ragQaDatasetDomainService;
     private final FileDetailDomainService fileDetailDomainService;
     private final DocumentUnitDomainService documentUnitDomainService;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final MessagePublisher messagePublisher;
     private final EmbeddingDomainService embeddingDomainService;
 
     // 添加RAG发布和市场服务依赖
@@ -60,28 +63,28 @@ public class RagQaDatasetAppService {
     private final RagVersionDomainService ragVersionDomainService;
     private final UserRagDomainService userRagDomainService;
     private final RagDataAccessDomainService ragDataAccessService;
-    private final RagModelConfigService ragModelConfigService;
+
+    private final UserModelConfigResolver userModelConfigResolver;
 
     public RagQaDatasetAppService(RagQaDatasetDomainService ragQaDatasetDomainService,
                                   FileDetailDomainService fileDetailDomainService,
                                   DocumentUnitDomainService documentUnitDomainService,
-                                  ApplicationEventPublisher applicationEventPublisher,
-                                  EmbeddingDomainService embeddingDomainService,
+                                  MessagePublisher messagePublisher, EmbeddingDomainService embeddingDomainService,
                                   RagPublishAppService ragPublishAppService,
                                   RagVersionDomainService ragVersionDomainService,
                                   UserRagDomainService userRagDomainService,
                                   RagDataAccessDomainService ragDataAccessService,
-                                  RagModelConfigService ragModelConfigService) {
+                                  UserModelConfigResolver userModelConfigResolver) {
         this.ragQaDatasetDomainService = ragQaDatasetDomainService;
         this.fileDetailDomainService = fileDetailDomainService;
         this.documentUnitDomainService = documentUnitDomainService;
-        this.applicationEventPublisher = applicationEventPublisher;
+        this.messagePublisher = messagePublisher;
         this.embeddingDomainService = embeddingDomainService;
         this.ragPublishAppService = ragPublishAppService;
         this.ragVersionDomainService = ragVersionDomainService;
         this.userRagDomainService = userRagDomainService;
         this.ragDataAccessService = ragDataAccessService;
-        this.ragModelConfigService = ragModelConfigService;
+        this.userModelConfigResolver = userModelConfigResolver;
     }
 
     /**
@@ -126,8 +129,8 @@ public class RagQaDatasetAppService {
         // 使用新的自动安装方法（直接创建REFERENCE类型安装）
         userRagDomainService.autoInstallRag(userId, ragId, versionDTO.getId());
 
-        log.info("Successfully created and auto-installed initial version 0.0.1 for dataset {} by user {}", ragId,
-                userId);
+        log.info("Successfully created and auto-installed initial version 0.0.1 for dataset {} by user {}",
+                ragId, userId);
     }
 
     /**
@@ -443,15 +446,14 @@ public class RagQaDatasetAppService {
             ocrMessage.setPageSize(fileEntity.getFilePageSize());
             ocrMessage.setUserId(userId);
             // 获取用户的OCR模型配置并设置到消息中
-            ocrMessage.setOcrModelConfig(ragModelConfigService.getUserOcrModelConfig(userId));
+            ocrMessage.setOcrModelConfig(userModelConfigResolver.getUserOcrModelConfig(userId));
 
-            RagDocSyncOcrEvent<RagDocMessage> ocrEvent = new RagDocSyncOcrEvent<>(ocrMessage,
-                    EventType.DOC_REFRESH_ORG);
-            ocrEvent.setDescription("文件自动预处理任务");
-            applicationEventPublisher.publishEvent(ocrEvent);
-
+            MessageEnvelope<RagDocMessage> envelope = MessageEnvelope.builder(ocrMessage)
+                    .addEventType(EventType.DOC_REFRESH_ORG)
+                    .description("文件自动预处理任务")
+                    .build();
+            messagePublisher.publish(RagDocSyncOcrEvent.route(), envelope);
             log.info("Auto-preprocessing started for file: {}", fileId);
-
         } catch (Exception e) {
             log.error("Failed to auto-start preprocessing for file: {}", fileId, e);
             // 如果自动启动失败，重置状态
@@ -543,10 +545,9 @@ public class RagQaDatasetAppService {
             ocrMessage.setFileId(request.getFileId());
             ocrMessage.setPageSize(fileEntity.getFilePageSize());
 
-            RagDocSyncOcrEvent<RagDocMessage> ocrEvent = new RagDocSyncOcrEvent<>(ocrMessage,
-                    EventType.DOC_REFRESH_ORG);
-            ocrEvent.setDescription("文件OCR预处理任务");
-            applicationEventPublisher.publishEvent(ocrEvent);
+            MessageEnvelope<RagDocMessage> envelope = MessageEnvelope.builder(ocrMessage)
+                    .addEventType(EventType.DOC_REFRESH_ORG).description("文件OCR预处理任务").build();
+            messagePublisher.publish(RagDocSyncOcrEvent.route(), envelope);
 
         } else if (request.getProcessType() == 2) {
             // 向量化处理 - 检查是否可以启动向量化
@@ -573,10 +574,11 @@ public class RagQaDatasetAppService {
                 storageMessage.setVector(true);
                 storageMessage.setDatasetId(request.getDatasetId()); // 设置数据集ID
 
-                RagDocSyncStorageEvent<RagDocSyncStorageMessage> storageEvent = new RagDocSyncStorageEvent<>(
-                        storageMessage, EventType.DOC_SYNC_RAG);
-                storageEvent.setDescription("文件向量化处理任务 - 页面 " + documentUnit.getPage());
-                applicationEventPublisher.publishEvent(storageEvent);
+                MessageEnvelope<RagDocSyncStorageMessage> env = MessageEnvelope.builder(storageMessage)
+                        .addEventType(EventType.DOC_SYNC_RAG)
+                        .description("文件向量化处理任务 - 页面 " + documentUnit.getPage())
+                        .build();
+                messagePublisher.publish(RagDocSyncStorageEvent.route(), env);
             }
 
         } else {
@@ -656,10 +658,11 @@ public class RagQaDatasetAppService {
             ocrMessage.setFileId(request.getFileId());
             ocrMessage.setPageSize(fileEntity.getFilePageSize());
 
-            RagDocSyncOcrEvent<RagDocMessage> ocrEvent = new RagDocSyncOcrEvent<>(ocrMessage,
-                    EventType.DOC_REFRESH_ORG);
-            ocrEvent.setDescription("文件强制重新OCR预处理任务");
-            applicationEventPublisher.publishEvent(ocrEvent);
+            MessageEnvelope<RagDocMessage> envelope = MessageEnvelope.builder(ocrMessage)
+                    .addEventType(EventType.DOC_REFRESH_ORG)
+                    .description("文件强制重新OCR预处理任务").
+                    build();
+            messagePublisher.publish(RagDocSyncOcrEvent.route(), envelope);
 
         } else if (request.getProcessType() == 2) {
             // 强制重新向量化处理
@@ -701,12 +704,12 @@ public class RagQaDatasetAppService {
                 storageMessage.setVector(true);
                 storageMessage.setDatasetId(request.getDatasetId());
 
-                RagDocSyncStorageEvent<RagDocSyncStorageMessage> storageEvent = new RagDocSyncStorageEvent<>(
-                        storageMessage, EventType.DOC_SYNC_RAG);
-                storageEvent.setDescription("文件强制重新向量化处理任务 - 页面 " + documentUnit.getPage());
-                applicationEventPublisher.publishEvent(storageEvent);
+                MessageEnvelope<RagDocSyncStorageMessage> env = MessageEnvelope.builder(storageMessage)
+                        .addEventType(EventType.DOC_SYNC_RAG)
+                        .description("文件强制重新向量化处理任务 - 页面 " + documentUnit.getPage())
+                        .build();
+                messagePublisher.publish(RagDocSyncStorageEvent.route(), env);
             }
-
         } else {
             throw new IllegalArgumentException("不支持的处理类型: " + request.getProcessType());
         }
