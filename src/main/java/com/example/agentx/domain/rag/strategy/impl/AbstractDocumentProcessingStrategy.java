@@ -1,11 +1,11 @@
 package com.example.agentx.domain.rag.strategy.impl;
 
-import com.example.agentx.domain.rag.message.RagDocMessage;
-import com.example.agentx.domain.rag.strategy.DocumentProcessingStrategy;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
+import com.example.agentx.domain.rag.message.RagDocMessage;
+import com.example.agentx.domain.rag.strategy.DocumentProcessingStrategy;
 
 public abstract class AbstractDocumentProcessingStrategy implements DocumentProcessingStrategy {
 
@@ -23,21 +23,24 @@ public abstract class AbstractDocumentProcessingStrategy implements DocumentProc
         final byte[] fileData = getFileData(ragDocMessage, strategy);
         pushPageSize(fileData, ragDocMessage);
         if (fileData == null) {
-            LOG.error("File data is empty");
+            LOG.error("文件数据为空");
             return;
         }
 
         Integer pageSize = ragDocMessage.getPageSize();
         if (pageSize == null) {
-            LOG.warn("Page size is null, using default value 1 for txt/word files");
+            LOG.warn("页面大小为空，使用默认值1用于txt/word文件");
             pageSize = 1;
         }
         final Map<Integer, String> data = processFile(fileData, pageSize, ragDocMessage);
 
-        LOG.info("Successfully retrieved {} pages of data from the current file", data.size());
+        LOG.info("成功从当前文件获取 {} 页数据", data.size());
 
         insertData(ragDocMessage, data);
+
     }
+
+    ;
 
     /**
      * 获取文件页数

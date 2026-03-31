@@ -46,8 +46,9 @@ public class ScheduleTaskExecutor {
             }
 
             // 发布任务执行事件，由Application层监听并处理实际的对话逻辑
-            ScheduledTaskExecuteEvent event = new ScheduledTaskExecuteEvent(this, task.getId(), task.getUserId(),
-                    task.getSessionId(), task.getContent());
+            ScheduledTaskExecuteEvent event =
+                    new ScheduledTaskExecuteEvent(this, task.getId(), task.getUserId(), task.getSessionId(),
+                            task.getContent());
             eventPublisher.publishEvent(event);
 
             logger.info("定时任务执行事件已发布: taskId={}", task.getId());

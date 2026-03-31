@@ -1,12 +1,8 @@
 package com.example.agentx.domain.trace.model;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import com.example.agentx.infrastructure.entity.BaseEntity;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 /**
@@ -137,7 +133,7 @@ public class AgentExecutionSummaryEntity extends BaseEntity {
 
         // 计算总执行时间
         if (this.executionStartTime != null && this.executionEndTime != null) {
-            long duration = Duration.between(this.executionStartTime, this.executionEndTime).toMillis();
+            long duration = java.time.Duration.between(this.executionStartTime, this.executionEndTime).toMillis();
             this.totalExecutionTime = (int) duration;
         }
     }

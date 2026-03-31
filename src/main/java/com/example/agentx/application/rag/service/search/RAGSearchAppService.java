@@ -1,15 +1,24 @@
 package com.example.agentx.application.rag.service.search;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import com.example.agentx.application.rag.assembler.DocumentUnitAssembler;
 import com.example.agentx.application.rag.dto.*;
 import com.example.agentx.application.rag.service.manager.RagQaDatasetAppService;
+import com.example.agentx.domain.llm.service.HighAvailabilityDomainService;
+import com.example.agentx.domain.llm.service.LLMDomainService;
+import com.example.agentx.domain.rag.service.DocumentUnitDomainService;
+import com.example.agentx.domain.rag.service.EmbeddingDomainService;
+import com.example.agentx.domain.rag.service.FileDetailDomainService;
 import com.example.agentx.domain.rag.service.RagQaDatasetDomainService;
 import com.example.agentx.domain.rag.service.management.RagDataAccessDomainService;
 import com.example.agentx.domain.rag.service.management.UserRagDomainService;
+import com.example.agentx.domain.rag.service.management.UserRagFileDomainService;
+import com.example.agentx.domain.user.service.UserSettingsDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
+import com.example.agentx.infrastructure.llm.LLMServiceFactory;
 import com.example.agentx.infrastructure.rag.factory.EmbeddingModelFactory;
 
 import com.example.agentx.domain.rag.model.ModelConfig;
@@ -27,21 +36,50 @@ public class RAGSearchAppService {
     private static final Logger log = LoggerFactory.getLogger(RagQaDatasetAppService.class);
 
     private final RagQaDatasetDomainService ragQaDatasetDomainService;
+    private final FileDetailDomainService fileDetailDomainService;
+    private final DocumentUnitDomainService documentUnitDomainService;
+    private final EmbeddingDomainService embeddingDomainService;
+    private final ObjectMapper objectMapper;
+    private final LLMServiceFactory llmServiceFactory;
+    private final LLMDomainService llmDomainService;
+    private final UserSettingsDomainService userSettingsDomainService;
+    private final HighAvailabilityDomainService highAvailabilityDomainService;
+
     private final UserRagDomainService userRagDomainService;
     private final RagDataAccessDomainService ragDataAccessService;
+    private final EmbeddingModelFactory embeddingModelFactory;
     private final HybridSearchDomainService hybridSearchDomainService;
     private final UserModelConfigResolver userModelConfigResolver;
+    private final UserRagFileDomainService userRagFileDomainService;
 
     public RAGSearchAppService(RagQaDatasetDomainService ragQaDatasetDomainService,
+                               FileDetailDomainService fileDetailDomainService,
+                               DocumentUnitDomainService documentUnitDomainService,
+                               EmbeddingDomainService embeddingDomainService, ObjectMapper objectMapper,
+                               LLMServiceFactory llmServiceFactory, LLMDomainService llmDomainService,
+                               UserSettingsDomainService userSettingsDomainService,
+                               HighAvailabilityDomainService highAvailabilityDomainService,
                                UserRagDomainService userRagDomainService,
                                RagDataAccessDomainService ragDataAccessService,
+                               EmbeddingModelFactory embeddingModelFactory,
                                HybridSearchDomainService hybridSearchDomainService,
-                               UserModelConfigResolver userModelConfigResolver) {
+                               com.example.agentx.infrastructure.rag.service.UserModelConfigResolver userModelConfigResolver,
+                               UserRagFileDomainService userRagFileDomainService) {
         this.ragQaDatasetDomainService = ragQaDatasetDomainService;
+        this.fileDetailDomainService = fileDetailDomainService;
+        this.documentUnitDomainService = documentUnitDomainService;
+        this.embeddingDomainService = embeddingDomainService;
+        this.objectMapper = objectMapper;
+        this.llmServiceFactory = llmServiceFactory;
+        this.llmDomainService = llmDomainService;
+        this.userSettingsDomainService = userSettingsDomainService;
+        this.highAvailabilityDomainService = highAvailabilityDomainService;
         this.userRagDomainService = userRagDomainService;
         this.ragDataAccessService = ragDataAccessService;
+        this.embeddingModelFactory = embeddingModelFactory;
         this.hybridSearchDomainService = hybridSearchDomainService;
         this.userModelConfigResolver = userModelConfigResolver;
+        this.userRagFileDomainService = userRagFileDomainService;
     }
 
     /**

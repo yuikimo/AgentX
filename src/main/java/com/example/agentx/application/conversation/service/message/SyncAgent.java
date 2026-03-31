@@ -1,5 +1,7 @@
 package com.example.agentx.application.conversation.service.message;
 
+import dev.langchain4j.model.chat.response.ChatResponse;
+
 /**
  * 同步聊天Agent接口
  */

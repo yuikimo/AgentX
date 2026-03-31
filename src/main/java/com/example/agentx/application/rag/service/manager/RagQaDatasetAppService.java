@@ -5,11 +5,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 import java.util.Collections;
 
+import org.dromara.streamquery.stream.core.stream.Steam;
 import com.example.agentx.infrastructure.mq.core.MessageEnvelope;
 import com.example.agentx.infrastructure.mq.core.MessagePublisher;
-import com.example.agentx.infrastructure.rag.service.UserModelConfigResolver;
-import org.dromara.streamquery.stream.core.stream.Steam;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -35,11 +33,7 @@ import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.infrastructure.mq.enums.EventType;
 import com.example.agentx.infrastructure.mq.events.RagDocSyncOcrEvent;
 import com.example.agentx.infrastructure.mq.events.RagDocSyncStorageEvent;
-import com.example.agentx.infrastructure.llm.LLMServiceFactory;
-import com.example.agentx.domain.llm.service.LLMDomainService;
-import com.example.agentx.domain.llm.service.HighAvailabilityDomainService;
-import com.example.agentx.domain.user.service.UserSettingsDomainService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.agentx.infrastructure.rag.service.UserModelConfigResolver;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -94,7 +88,7 @@ public class RagQaDatasetAppService {
      * @param userId  用户ID
      * @return 数据集DTO
      */
-    @Transactional
+    @Transactional(transactionManager = "transactionManager")
     public RagQaDatasetDTO createDataset(CreateDatasetRequest request, String userId) {
         RagQaDatasetEntity entity = RagQaDatasetAssembler.toEntity(request, userId);
         RagQaDatasetEntity createdEntity = ragQaDatasetDomainService.createDataset(entity);
@@ -129,8 +123,8 @@ public class RagQaDatasetAppService {
         // 使用新的自动安装方法（直接创建REFERENCE类型安装）
         userRagDomainService.autoInstallRag(userId, ragId, versionDTO.getId());
 
-        log.info("Successfully created and auto-installed initial version 0.0.1 for dataset {} by user {}",
-                ragId, userId);
+        log.info("Successfully created and auto-installed initial version 0.0.1 for dataset {} by user {}", ragId,
+                userId);
     }
 
     /**
@@ -173,7 +167,7 @@ public class RagQaDatasetAppService {
      * @param userId    用户ID
      * @return 数据集DTO
      */
-    @Transactional
+    @Transactional(transactionManager = "transactionManager")
     public RagQaDatasetDTO updateDataset(String datasetId, UpdateDatasetRequest request, String userId) {
         RagQaDatasetEntity entity = RagQaDatasetAssembler.toEntity(request, datasetId, userId);
         ragQaDatasetDomainService.updateDataset(entity);
@@ -198,7 +192,7 @@ public class RagQaDatasetAppService {
      * @param datasetId 数据集ID
      * @param userId    用户ID
      */
-    @Transactional
+    @Transactional(transactionManager = "transactionManager")
     public void deleteDataset(String datasetId, String userId) {
         // 参考工具删除逻辑：先获取版本历史，然后删除创建者自己的安装记录
         List<RagVersionDTO> versions = Collections.emptyList();
@@ -402,7 +396,7 @@ public class RagQaDatasetAppService {
      * @param userId  用户ID
      * @return 文件DTO
      */
-    @Transactional
+    @Transactional(transactionManager = "transactionManager")
     public FileDetailDTO uploadFile(UploadFileRequest request, String userId) {
         // 检查数据集是否存在
         ragQaDatasetDomainService.checkDatasetExists(request.getDatasetId(), userId);
@@ -449,11 +443,11 @@ public class RagQaDatasetAppService {
             ocrMessage.setOcrModelConfig(userModelConfigResolver.getUserOcrModelConfig(userId));
 
             MessageEnvelope<RagDocMessage> envelope = MessageEnvelope.builder(ocrMessage)
-                    .addEventType(EventType.DOC_REFRESH_ORG)
-                    .description("文件自动预处理任务")
-                    .build();
+                    .addEventType(EventType.DOC_REFRESH_ORG).description("文件自动预处理任务").build();
             messagePublisher.publish(RagDocSyncOcrEvent.route(), envelope);
+
             log.info("Auto-preprocessing started for file: {}", fileId);
+
         } catch (Exception e) {
             log.error("Failed to auto-start preprocessing for file: {}", fileId, e);
             // 如果自动启动失败，重置状态
@@ -468,7 +462,7 @@ public class RagQaDatasetAppService {
      * @param fileId    文件ID
      * @param userId    用户ID
      */
-    @Transactional
+    @Transactional(transactionManager = "transactionManager")
     public void deleteFile(String datasetId, String fileId, String userId) {
         // 检查数据集是否存在
         ragQaDatasetDomainService.checkDatasetExists(datasetId, userId);
@@ -520,7 +514,7 @@ public class RagQaDatasetAppService {
      * @param request 预处理请求
      * @param userId  用户ID
      */
-    @Transactional
+    @Transactional(transactionManager = "transactionManager")
     public void processFile(ProcessFileRequest request, String userId) {
         // 检查数据集是否存在
         ragQaDatasetDomainService.checkDatasetExists(request.getDatasetId(), userId);
@@ -575,8 +569,7 @@ public class RagQaDatasetAppService {
                 storageMessage.setDatasetId(request.getDatasetId()); // 设置数据集ID
 
                 MessageEnvelope<RagDocSyncStorageMessage> env = MessageEnvelope.builder(storageMessage)
-                        .addEventType(EventType.DOC_SYNC_RAG)
-                        .description("文件向量化处理任务 - 页面 " + documentUnit.getPage())
+                        .addEventType(EventType.DOC_SYNC_RAG).description("文件向量化处理任务 - 页面 " + documentUnit.getPage())
                         .build();
                 messagePublisher.publish(RagDocSyncStorageEvent.route(), env);
             }
@@ -629,7 +622,7 @@ public class RagQaDatasetAppService {
      * @param request 预处理请求
      * @param userId  用户ID
      */
-    @Transactional
+    @Transactional(transactionManager = "transactionManager")
     public void reprocessFile(ProcessFileRequest request, String userId) {
         log.warn("Force reprocessing file: {}, type: {}, user: {}", request.getFileId(), request.getProcessType(),
                 userId);
@@ -659,9 +652,7 @@ public class RagQaDatasetAppService {
             ocrMessage.setPageSize(fileEntity.getFilePageSize());
 
             MessageEnvelope<RagDocMessage> envelope = MessageEnvelope.builder(ocrMessage)
-                    .addEventType(EventType.DOC_REFRESH_ORG)
-                    .description("文件强制重新OCR预处理任务").
-                    build();
+                    .addEventType(EventType.DOC_REFRESH_ORG).description("文件强制重新OCR预处理任务").build();
             messagePublisher.publish(RagDocSyncOcrEvent.route(), envelope);
 
         } else if (request.getProcessType() == 2) {
@@ -706,10 +697,10 @@ public class RagQaDatasetAppService {
 
                 MessageEnvelope<RagDocSyncStorageMessage> env = MessageEnvelope.builder(storageMessage)
                         .addEventType(EventType.DOC_SYNC_RAG)
-                        .description("文件强制重新向量化处理任务 - 页面 " + documentUnit.getPage())
-                        .build();
+                        .description("文件强制重新向量化处理任务 - 页面 " + documentUnit.getPage()).build();
                 messagePublisher.publish(RagDocSyncStorageEvent.route(), env);
             }
+
         } else {
             throw new IllegalArgumentException("不支持的处理类型: " + request.getProcessType());
         }

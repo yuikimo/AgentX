@@ -29,8 +29,7 @@ public class PdfToBase64Converter {
     private static final float DEFAULT_COMPRESSION_QUALITY = 0.7f;
 
     /**
-     * 转换PDF文件为base64图像列表(批量处理方式)
-     * 注意：此方法将整个PDF加载到内存中，可能导致内存溢出 推荐使用 processPdfPageByPage 方法进行流式处理
+     * 转换PDF文件为base64图像列表(批量处理方式) 注意：此方法将整个PDF加载到内存中，可能导致内存溢出 推荐使用 processPdfPageByPage 方法进行流式处理
      */
     public static List<String> convertPdfToBase64Images(byte[] pdfData, String imageFormat) throws IOException {
         List<String> base64Images = new ArrayList<>();

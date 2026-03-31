@@ -1,12 +1,12 @@
 package com.example.agentx.application.conversation.service;
 
-import com.example.agentx.domain.conversation.model.SessionEntity;
-import com.example.agentx.domain.conversation.service.SessionDomainService;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.springframework.stereotype.Component;
+import com.example.agentx.domain.conversation.model.SessionEntity;
+import com.example.agentx.domain.conversation.service.SessionDomainService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 
@@ -35,8 +35,7 @@ public class RagSessionManager {
 
         // 初始化Guava Cache，30分钟自动过期
         this.ragSessionCache = CacheBuilder.newBuilder()
-                .expireAfterWrite(Duration.ofMinutes(RAG_SESSION_MAX_LIFE_MINUTES))
-                .maximumSize(1000) // 最大缓存1000个会话
+                .expireAfterWrite(Duration.ofMinutes(RAG_SESSION_MAX_LIFE_MINUTES)).maximumSize(1000) // 最大缓存1000个会话
                 .recordStats() // 启用统计功能
                 .build();
     }
@@ -161,7 +160,7 @@ public class RagSessionManager {
      * 获取缓存统计信息（可选，用于监控和调试）
      */
     public String getCacheStats() {
-        return String.format("缓存大小: %d, 统计信息: %s", ragSessionCache.size(), ragSessionCache.stats());
+        return String.format("缓存大小: %d, 统计信息: %s", ragSessionCache.size(), ragSessionCache.stats().toString());
     }
 
     /**

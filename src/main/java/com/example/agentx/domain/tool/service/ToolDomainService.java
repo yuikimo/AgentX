@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import com.example.agentx.domain.tool.constant.ToolStatus;
 import com.example.agentx.domain.tool.model.ToolEntity;
 import com.example.agentx.domain.tool.model.ToolOperationResult;
-import com.example.agentx.domain.tool.model.ToolVersionEntity;
 import com.example.agentx.domain.tool.model.UserToolEntity;
 import com.example.agentx.domain.tool.repository.ToolRepository;
 import com.example.agentx.domain.tool.repository.ToolVersionRepository;
@@ -24,7 +23,6 @@ import com.example.agentx.interfaces.dto.tool.request.QueryToolRequest;
 import com.example.agentx.infrastructure.exception.BusinessException;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -97,7 +95,9 @@ public class ToolDomainService {
     }
 
     public ToolOperationResult updateTool(ToolEntity toolEntity) {
-        /** 修改 name/description/icon/labels只触发人工审核状态 修改 upload_url/upload_command触发整个状态扭转 */
+        /** 修改 name/description/icon/labels只触发人工审核状态
+         * 修改 upload_url/upload_command触发整个状态扭转
+         */
         // 获取原工具信息
         ToolEntity oldTool = toolRepository.selectById(toolEntity.getId());
         if (oldTool == null) {
@@ -140,7 +140,8 @@ public class ToolDomainService {
 
         // 删除当前用户安装的该工具
         Wrapper<UserToolEntity> userToolWrapper = Wrappers.<UserToolEntity>lambdaQuery()
-                .eq(UserToolEntity::getToolId, toolId).eq(UserToolEntity::getUserId, userId);
+                .eq(UserToolEntity::getToolId, toolId)
+                .eq(UserToolEntity::getUserId, userId);
 
         toolRepository.checkedDelete(wrapper);
         userToolRepository.delete(userToolWrapper);
@@ -158,8 +159,10 @@ public class ToolDomainService {
     }
 
     public ToolEntity updateFailedToolStatus(String toolId, ToolStatus failedStepStatus, String rejectReason) {
-        LambdaUpdateWrapper<ToolEntity> wrapper = Wrappers.<ToolEntity>lambdaUpdate().eq(ToolEntity::getId, toolId)
-                .set(ToolEntity::getFailedStepStatus, failedStepStatus).set(ToolEntity::getRejectReason, rejectReason)
+        LambdaUpdateWrapper<ToolEntity> wrapper = Wrappers.<ToolEntity>lambdaUpdate()
+                .eq(ToolEntity::getId, toolId)
+                .set(ToolEntity::getFailedStepStatus, failedStepStatus)
+                .set(ToolEntity::getRejectReason, rejectReason)
                 .set(ToolEntity::getStatus, ToolStatus.FAILED);
         toolRepository.checkedUpdate(wrapper);
         return toolRepository.selectById(toolId);
@@ -343,32 +346,32 @@ public class ToolDomainService {
         statistics.setTotalTools(totalTools);
 
         // 待审核工具数量（WAITING_REVIEW状态）
-        LambdaQueryWrapper<ToolEntity> pendingWrapper = Wrappers.<ToolEntity>lambdaQuery().eq(ToolEntity::getStatus,
-                ToolStatus.WAITING_REVIEW);
+        LambdaQueryWrapper<ToolEntity> pendingWrapper = Wrappers.<ToolEntity>lambdaQuery()
+                .eq(ToolEntity::getStatus, ToolStatus.WAITING_REVIEW);
         long pendingReviewTools = toolRepository.selectCount(pendingWrapper);
         statistics.setPendingReviewTools(pendingReviewTools);
 
         // 人工审核工具数量（MANUAL_REVIEW状态）
-        LambdaQueryWrapper<ToolEntity> manualWrapper = Wrappers.<ToolEntity>lambdaQuery().eq(ToolEntity::getStatus,
-                ToolStatus.MANUAL_REVIEW);
+        LambdaQueryWrapper<ToolEntity> manualWrapper = Wrappers.<ToolEntity>lambdaQuery()
+                .eq(ToolEntity::getStatus, ToolStatus.MANUAL_REVIEW);
         long manualReviewTools = toolRepository.selectCount(manualWrapper);
         statistics.setManualReviewTools(manualReviewTools);
 
         // 已通过工具数量（APPROVED状态）
-        LambdaQueryWrapper<ToolEntity> approvedWrapper = Wrappers.<ToolEntity>lambdaQuery().eq(ToolEntity::getStatus,
-                ToolStatus.APPROVED);
+        LambdaQueryWrapper<ToolEntity> approvedWrapper = Wrappers.<ToolEntity>lambdaQuery()
+                .eq(ToolEntity::getStatus, ToolStatus.APPROVED);
         long approvedTools = toolRepository.selectCount(approvedWrapper);
         statistics.setApprovedTools(approvedTools);
 
         // 审核失败工具数量（FAILED状态）
-        LambdaQueryWrapper<ToolEntity> failedWrapper = Wrappers.<ToolEntity>lambdaQuery().eq(ToolEntity::getStatus,
-                ToolStatus.FAILED);
+        LambdaQueryWrapper<ToolEntity> failedWrapper = Wrappers.<ToolEntity>lambdaQuery()
+                .eq(ToolEntity::getStatus, ToolStatus.FAILED);
         long failedTools = toolRepository.selectCount(failedWrapper);
         statistics.setFailedTools(failedTools);
 
         // 官方工具数量
-        LambdaQueryWrapper<ToolEntity> officialWrapper = Wrappers.<ToolEntity>lambdaQuery().eq(ToolEntity::getIsOffice,
-                true);
+        LambdaQueryWrapper<ToolEntity> officialWrapper = Wrappers.<ToolEntity>lambdaQuery()
+                .eq(ToolEntity::getIsOffice, true);
         long officialTools = toolRepository.selectCount(officialWrapper);
         statistics.setOfficialTools(officialTools);
 
@@ -389,7 +392,8 @@ public class ToolDomainService {
 
         // 2. 同步更新所有已安装的user_tools记录
         LambdaUpdateWrapper<UserToolEntity> userToolWrapper = Wrappers.<UserToolEntity>lambdaUpdate()
-                .eq(UserToolEntity::getToolId, toolId).set(UserToolEntity::getIsGlobal, isGlobal);
+                .eq(UserToolEntity::getToolId, toolId)
+                .set(UserToolEntity::getIsGlobal, isGlobal);
         userToolRepository.update(null, userToolWrapper);
     }
 
@@ -406,7 +410,8 @@ public class ToolDomainService {
         }
 
         LambdaQueryWrapper<UserToolEntity> wrapper = Wrappers.<UserToolEntity>lambdaQuery()
-                .eq(UserToolEntity::getMcpServerName, serverName).eq(UserToolEntity::getUserId, userId);
+                .eq(UserToolEntity::getMcpServerName, serverName)
+                .eq(UserToolEntity::getUserId, userId);
 
         return userToolRepository.selectList(wrapper).get(0);
     }
@@ -443,7 +448,8 @@ public class ToolDomainService {
     private void validateMcpServerNameUnique(String mcpServerName, String userId, String excludeToolId) {
         // 检查用户已安装工具中是否已存在此名称
         LambdaQueryWrapper<UserToolEntity> userToolWrapper = Wrappers.<UserToolEntity>lambdaQuery()
-                .eq(UserToolEntity::getMcpServerName, mcpServerName).eq(UserToolEntity::getUserId, userId);
+                .eq(UserToolEntity::getMcpServerName, mcpServerName)
+                .eq(UserToolEntity::getUserId, userId);
 
         // 如果是工具更新，需要排除来自同一工具的安装记录
         if (excludeToolId != null) {

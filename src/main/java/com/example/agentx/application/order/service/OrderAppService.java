@@ -1,6 +1,10 @@
 package com.example.agentx.application.order.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import com.example.agentx.application.order.assembler.OrderAssembler;
 import com.example.agentx.application.order.dto.OrderDTO;
 import com.example.agentx.application.order.dto.QueryAllOrderRequest;
@@ -12,10 +16,6 @@ import com.example.agentx.domain.order.service.OrderDomainService;
 import com.example.agentx.domain.user.model.UserEntity;
 import com.example.agentx.domain.user.service.UserDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -49,8 +49,8 @@ public class OrderAppService {
             throw new BusinessException("用户ID不能为空");
         }
 
-        logger.info("获取用户已支付订单列表: userId={}, page={}, pageSize={}",
-                userId, queryRequest.getPage(), queryRequest.getPageSize());
+        logger.info("获取用户已支付订单列表: userId={}, page={}, pageSize={}", userId, queryRequest.getPage(),
+                queryRequest.getPageSize());
 
         // 转换查询条件
         OrderType orderType = null;
@@ -117,8 +117,8 @@ public class OrderAppService {
      * @return 订单分页数据
      */
     public Page<OrderDTO> getAllOrders(QueryAllOrderRequest queryRequest) {
-        logger.info("管理员获取所有订单列表: page={}, pageSize={}, keyword={}",
-                queryRequest.getPage(), queryRequest.getPageSize(), queryRequest.getKeyword());
+        logger.info("管理员获取所有订单列表: page={}, pageSize={}, keyword={}", queryRequest.getPage(), queryRequest.getPageSize(),
+                queryRequest.getKeyword());
 
         // 转换查询条件
         OrderType orderType = null;
@@ -141,18 +141,15 @@ public class OrderAppService {
         // 管理员查询需要补充用户昵称信息
         if (!orderDTOList.isEmpty()) {
             // 获取所有用户ID
-            List<String> userIds = orderDTOList.stream()
-                    .map(OrderDTO::getUserId)
-                    .distinct()
+            List<String> userIds = orderDTOList.stream().map(OrderDTO::getUserId).distinct()
                     .collect(Collectors.toList());
 
             // 批量查询用户信息
             Map<String, String> userNicknameMap = userIds.stream()
                     .collect(Collectors.toMap(userId -> userId, userId -> {
-                                UserEntity user = userDomainService.getUserInfo(userId);
-                                return user != null ? user.getNickname() : "未知用户";
-                            })
-                    );
+                        UserEntity user = userDomainService.getUserInfo(userId);
+                        return user != null ? user.getNickname() : "未知用户";
+                    }));
 
             // 为每个订单设置用户昵称
             orderDTOList.forEach(order -> order.setUserNickname(userNicknameMap.get(order.getUserId())));

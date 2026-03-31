@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.agentx.infrastructure.mq.core.MessageEnvelope;
 import com.example.agentx.infrastructure.mq.core.MessagePublisher;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.agentx.application.rag.assembler.DocumentUnitAssembler;
@@ -172,10 +171,10 @@ public class FileOperationAppService {
 
             // 发送消息
             MessageEnvelope<RagDocSyncStorageMessage> envelope = MessageEnvelope.builder(storageMessage)
-                    .addEventType(EventType.DOC_SYNC_RAG)
-                    .description("语料内容修改后重新向量化 - 页面 " + documentUnit.getPage())
+                    .addEventType(EventType.DOC_SYNC_RAG).description("语料内容修改后重新向量化 - 页面 " + documentUnit.getPage())
                     .build();
             messagePublisher.publish(RagDocSyncStorageEvent.route(), envelope);
+
         } catch (Exception e) {
             // 记录日志但不影响主流程
             // 可以考虑使用日志框架记录错误

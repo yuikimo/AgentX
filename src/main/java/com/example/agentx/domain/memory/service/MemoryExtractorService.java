@@ -1,10 +1,5 @@
 package com.example.agentx.domain.memory.service;
 
-import com.example.agentx.domain.memory.model.CandidateMemory;
-import com.example.agentx.domain.memory.model.MemoryType;
-import com.example.agentx.domain.rag.model.ModelConfig;
-import com.example.agentx.infrastructure.llm.LLMProviderService;
-import com.example.agentx.infrastructure.rag.service.UserModelConfigResolver;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.data.message.ChatMessage;
@@ -17,18 +12,24 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import com.example.agentx.domain.memory.model.CandidateMemory;
+import com.example.agentx.domain.memory.model.MemoryType;
+import com.example.agentx.domain.rag.model.ModelConfig;
+import com.example.agentx.infrastructure.llm.LLMProviderService;
+import com.example.agentx.infrastructure.rag.service.UserModelConfigResolver;
+
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * 记忆抽取服务（对话后从一轮对话提取可长期复用的要点）
@@ -236,7 +237,7 @@ public class MemoryExtractorService {
                 String dataStr = childText(el, "data");
                 if (StringUtils.hasText(dataStr)) {
                     try {
-                        data = objectMapper.readValue(dataStr, new TypeReference<>() {
+                        data = objectMapper.readValue(dataStr, new TypeReference<Map<String, Object>>() {
                         });
                     } catch (Exception ignore) {
                         // 如果 data 不是 JSON，则忽略

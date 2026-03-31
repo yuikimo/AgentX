@@ -1,6 +1,5 @@
 package com.example.agentx.application.conversation.service.message.builtin;
 
-import com.example.agentx.domain.agent.model.AgentEntity;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.service.tool.ToolExecutor;
 import org.slf4j.Logger;
@@ -9,12 +8,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import com.example.agentx.domain.agent.model.AgentEntity;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -48,6 +44,7 @@ public class BuiltInToolRegistry {
      */
     @EventListener(ContextRefreshedEvent.class)
     public void initialize() {
+        logger.info("开始初始化内置工具注册器...");
 
         // 获取所有带有@BuiltInTool注解的Bean
         Map<String, Object> builtInToolBeans = applicationContext.getBeansWithAnnotation(BuiltInTool.class);
@@ -70,8 +67,8 @@ public class BuiltInToolRegistry {
                             annotation.priority(), annotation.enabled(), provider.getClass().getSimpleName());
                     toolMetadataCache.put(annotation.name(), metadata);
 
-                    logger.info("注册内置工具: {} - {} (优先级: {}, Bean: {})",
-                            annotation.name(), annotation.description(), annotation.priority(), beanName);
+                    logger.info("注册内置工具: {} - {} (优先级: {}, Bean: {})", annotation.name(), annotation.description(),
+                            annotation.priority(), beanName);
                 } else {
                     logger.info("跳过已禁用的内置工具: {} (Bean: {})", annotation != null ? annotation.name() : "未知", beanName);
                 }
@@ -79,6 +76,7 @@ public class BuiltInToolRegistry {
                 logger.warn("Bean {} 标记为@BuiltInTool但未实现BuiltInToolProvider接口", beanName);
             }
         }
+
         // 按优先级排序（优先级数值越小越优先）
         providers.sort(Comparator.comparingInt(BuiltInToolProvider::getPriority));
 
@@ -92,8 +90,9 @@ public class BuiltInToolRegistry {
 
         // 打印所有注册的工具信息
         if (logger.isDebugEnabled()) {
-            toolProviders.forEach(provider -> logger.debug("内置工具详情: {} - {}",
-                    provider.getName(), provider.getDescription()));
+            toolProviders.forEach(provider -> {
+                logger.debug("内置工具详情: {} - {}", provider.getName(), provider.getDescription());
+            });
         }
     }
 
@@ -115,8 +114,8 @@ public class BuiltInToolRegistry {
                         if (providerTools != null && !providerTools.isEmpty()) {
                             allTools.putAll(providerTools);
 
-                            logger.debug("为Agent {} 添加内置工具 {} 的 {} 个工具",
-                                    agent.getId(), provider.getName(), providerTools.size());
+                            logger.debug("为Agent {} 添加内置工具 {} 的 {} 个工具", agent.getId(), provider.getName(),
+                                    providerTools.size());
                         }
                     }
                 } catch (Exception e) {
@@ -124,6 +123,7 @@ public class BuiltInToolRegistry {
                 }
             }
         }
+
         logger.info("为Agent {} 创建了 {} 个内置工具", agent.getId(), allTools.size());
         return allTools;
     }
@@ -147,10 +147,7 @@ public class BuiltInToolRegistry {
      */
     public BuiltInToolProvider getProviderByName(String name) {
         synchronized (toolProviders) {
-            return toolProviders.stream()
-                    .filter(provider -> name.equals(provider.getName()))
-                    .findFirst()
-                    .orElse(null);
+            return toolProviders.stream().filter(provider -> name.equals(provider.getName())).findFirst().orElse(null);
         }
     }
 

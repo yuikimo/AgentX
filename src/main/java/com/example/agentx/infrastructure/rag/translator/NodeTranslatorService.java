@@ -1,10 +1,10 @@
 package com.example.agentx.infrastructure.rag.translator;
 
-import com.example.agentx.domain.rag.strategy.context.ProcessingContext;
 import com.vladsch.flexmark.util.ast.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import com.example.agentx.domain.rag.strategy.context.ProcessingContext;
 
 import java.util.Comparator;
 import java.util.List;
@@ -25,8 +25,8 @@ public class NodeTranslatorService {
         // 按优先级排序翻译器
         this.translators = translators.stream().sorted(Comparator.comparingInt(NodeTranslator::getPriority)).toList();
 
-        log.info("NodeTranslatorService initialized with {} translators: {}",
-                translators.size(), this.translators.stream().map(NodeTranslator::getType).toList());
+        log.info("NodeTranslatorService initialized with {} translators: {}", translators.size(),
+                this.translators.stream().map(NodeTranslator::getType).toList());
     }
 
     /**
@@ -58,8 +58,8 @@ public class NodeTranslatorService {
                     }
                 }
             } catch (Exception e) {
-                log.warn("Translator {} failed to process {} node: {}",
-                        translator.getType(), node.getClass().getSimpleName(), e.getMessage());
+                log.warn("Translator {} failed to process {} node: {}", translator.getType(),
+                        node.getClass().getSimpleName(), e.getMessage());
                 // 继续尝试下一个翻译器
             }
         }

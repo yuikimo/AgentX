@@ -1,21 +1,23 @@
 package com.example.agentx.infrastructure.mq.rabbit;
 
-import com.example.agentx.infrastructure.mq.core.MessageEnvelope;
-import com.example.agentx.infrastructure.mq.core.MessageHeaders;
-import com.example.agentx.infrastructure.mq.core.MessagePublisher;
-import com.example.agentx.infrastructure.mq.core.MessageRoute;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
+
+import java.util.concurrent.TimeoutException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.example.agentx.infrastructure.mq.core.MessageEnvelope;
+import com.example.agentx.infrastructure.mq.core.MessageHeaders;
+import com.example.agentx.infrastructure.mq.core.MessagePublisher;
+import com.example.agentx.infrastructure.mq.core.MessageRoute;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Direct RabbitMQ publisher using the raw client API.

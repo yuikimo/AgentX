@@ -27,12 +27,14 @@ public class MemoryEmbeddingConfig {
     public EmbeddingStore<TextSegment> memoryEmbeddingStore() {
         MemoryEmbeddingProperties.VectorStore c = props.getVectorStore();
         return PgVectorEmbeddingStore.builder()
-                .table(c.getTable()).dropTableFirst(c.isDropTableFirst())
+                .table(c.getTable())
+                .dropTableFirst(c.isDropTableFirst())
                 .createTable(c.isCreateTable())
-                .host(c.getHost())
-                .port(c.getPort()).user(c.getUser())
+                .host(c.getHost()).port(c.getPort())
+                .user(c.getUser())
                 .password(c.getPassword())
-                .dimension(c.getDimension()).database(c.getDatabase())
+                .dimension(c.getDimension())
+                .database(c.getDatabase())
                 .build();
     }
 }

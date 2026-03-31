@@ -1,8 +1,23 @@
 package com.example.agentx.domain.memory.service;
 
+import static com.example.agentx.domain.memory.constant.MemoryMetadataConstant.*;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import dev.langchain4j.data.document.Metadata;
+import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
+import dev.langchain4j.store.embedding.EmbeddingSearchResult;
+import dev.langchain4j.store.embedding.EmbeddingStore;
+import dev.langchain4j.store.embedding.EmbeddingMatch;
+import dev.langchain4j.store.embedding.filter.comparison.IsEqualTo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import com.example.agentx.domain.memory.model.CandidateMemory;
 import com.example.agentx.domain.memory.model.MemoryItemEntity;
 import com.example.agentx.domain.memory.model.MemoryResult;
@@ -11,39 +26,13 @@ import com.example.agentx.domain.memory.repository.MemoryItemRepository;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.infrastructure.rag.factory.EmbeddingModelFactory;
 import com.example.agentx.infrastructure.rag.service.UserModelConfigResolver;
-import dev.langchain4j.data.document.Metadata;
-import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.store.embedding.EmbeddingMatch;
-import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
-import dev.langchain4j.store.embedding.EmbeddingSearchResult;
-import dev.langchain4j.store.embedding.EmbeddingStore;
-import dev.langchain4j.store.embedding.filter.comparison.IsEqualTo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.example.agentx.domain.memory.constant.MemoryMetadataConstant.ITEM_ID;
-import static com.example.agentx.domain.memory.constant.MemoryMetadataConstant.MEMORY_TYPE;
-import static com.example.agentx.domain.memory.constant.MemoryMetadataConstant.STATUS;
-import static com.example.agentx.domain.memory.constant.MemoryMetadataConstant.TAGS;
-import static com.example.agentx.domain.memory.constant.MemoryMetadataConstant.USER_ID;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 /**
  * 记忆存取领域服务（与现有向量/模型体系对齐）
@@ -98,7 +87,8 @@ public class MemoryDomainService {
             // 查重（同用户，同hash）
             MemoryItemEntity existed = memoryItemRepository.selectOne(Wrappers.<MemoryItemEntity>lambdaQuery()
                     .eq(MemoryItemEntity::getUserId, userId)
-                    .eq(MemoryItemEntity::getDedupeHash, hash));
+                    .eq(MemoryItemEntity::getDedupeHash, hash)
+            );
 
             MemoryItemEntity toSave;
             if (existed == null) {
@@ -122,10 +112,10 @@ public class MemoryDomainService {
                 // 合并（简单策略：importance 取 max，tags 合并去重，text 以更长者为准）
                 toSave = existed;
                 Float newImportance = max(existed.getImportance(), c.getImportance());
-                toSave.setImportance(newImportance); // 1. 重要性取两者最高
-                toSave.setTags(mergeTags(existed.getTags(), c.getTags())); // 2. 标签合并去重
-                toSave.setData(mergeData(existed.getData(), c.getData())); // 3. 附加数据合并
-                toSave.setText(pickRichText(existed.getText(), c.getText())); // 4. 文本取更长/信息量更大的那个
+                toSave.setImportance(newImportance);
+                toSave.setTags(mergeTags(existed.getTags(), c.getTags()));
+                toSave.setData(mergeData(existed.getData(), c.getData()));
+                toSave.setText(pickRichText(existed.getText(), c.getText()));
                 memoryItemRepository.updateById(toSave);
             }
 
@@ -133,7 +123,6 @@ public class MemoryDomainService {
 
             // 向量入库
             try {
-                // 1. 贴标签（Metadata 元数据）
                 Metadata md = new Metadata();
                 md.put(USER_ID, userId);
                 md.put(ITEM_ID, toSave.getId());
@@ -141,7 +130,6 @@ public class MemoryDomainService {
                 md.put(TAGS, String.join(",", toSave.getTags() == null ? List.of() : toSave.getTags()));
                 md.put(STATUS, String.valueOf(ACTIVE));
 
-                // 2. 转换为向量并保存
                 TextSegment segment = new TextSegment(toSave.getText(), md);
                 Embedding emb = embeddingModel.embed(segment).content();
                 memoryEmbeddingStore.add(emb, segment);
@@ -150,6 +138,7 @@ public class MemoryDomainService {
                 throw new BusinessException("记忆向量入库失败: " + e.getMessage(), e);
             }
         }
+
         return itemIds;
     }
 
@@ -160,15 +149,12 @@ public class MemoryDomainService {
         if (!StringUtils.hasText(query)) {
             return Collections.emptyList();
         }
-
-        // 限制最多只能回想 16 条记忆
         int k = Math.max(1, Math.min(topK, 16));
 
         // 构造嵌入模型
         var embeddingCfg = userModelConfigResolver.getUserEmbeddingModelConfig(userId);
         var embeddingModel = embeddingModelFactory.createEmbeddingModel(new EmbeddingModelFactory.EmbeddingConfig(
-                embeddingCfg.getApiKey(), embeddingCfg.getBaseUrl(), embeddingCfg.getModelEndpoint()
-        ));
+                embeddingCfg.getApiKey(), embeddingCfg.getBaseUrl(), embeddingCfg.getModelEndpoint()));
 
         try {
             Embedding queryEmbedding = embeddingModel.embed(query).content();
@@ -179,37 +165,38 @@ public class MemoryDomainService {
                     .minScore(0.3)
                     .queryEmbedding(queryEmbedding)
                     .build();
+
             EmbeddingSearchResult<TextSegment> result = memoryEmbeddingStore.search(req);
             List<EmbeddingMatch<TextSegment>> matches = result.matches();
             if (CollectionUtils.isEmpty(matches)) {
                 return Collections.emptyList();
             }
 
-            // 批量获取 itemIds 并过滤 status = 1
+            // 批量获取 itemIds 并过滤 status=1
             List<String> itemIds = matches.stream()
                     .map(m -> (String) m.embedded().metadata().toMap().get(ITEM_ID))
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
+
             if (itemIds.isEmpty()) {
                 return Collections.emptyList();
             }
 
-            List<MemoryItemEntity> items = memoryItemRepository.selectList(Wrappers.<MemoryItemEntity>lambdaQuery()
-                    .in(MemoryItemEntity::getId, itemIds));
-            Map<String, MemoryItemEntity> itemMap = items.stream().collect(Collectors.toMap(MemoryItemEntity::getId,
-                    it -> it, (a, b) -> a));
+            List<MemoryItemEntity> items = memoryItemRepository.selectList(
+                    Wrappers.<MemoryItemEntity>lambdaQuery().in(MemoryItemEntity::getId, itemIds)
+            );
+            Map<String, MemoryItemEntity> itemMap = items.stream()
+                    .collect(Collectors.toMap(MemoryItemEntity::getId, it -> it, (a, b) -> a));
 
-            // 生成结果，按加权分排序： sim * w1 + importance * w2
+            // 生成结果，按加权分排序：sim*w1 + importance*w2
             List<MemoryResult> results = new ArrayList<>();
             for (EmbeddingMatch<TextSegment> m : matches) {
                 String itemId = (String) m.embedded().metadata().toMap().get(ITEM_ID);
                 if (!itemMap.containsKey(itemId)) {
                     continue;
                 }
-
                 MemoryItemEntity it = itemMap.get(itemId);
-                double sim = m.score(); // 相似度得分
-                // 核心打分公式： 70% 相似度 + 30% 重要性
+                double sim = m.score();
                 double weight = 0.7 * sim + 0.3 * (it.getImportance() == null ? 0.5 : it.getImportance());
 
                 MemoryResult mr = new MemoryResult();
@@ -218,12 +205,12 @@ public class MemoryDomainService {
                 mr.setText(it.getText());
                 mr.setImportance(it.getImportance());
                 mr.setTags(it.getTags());
-                mr.setScore(weight); // 设置最终综合得分
+                mr.setScore(weight);
                 results.add(mr);
             }
 
             return results.stream()
-                    .sorted(Comparator.comparing(MemoryResult::getScore).reversed()) // 从高到低排序
+                    .sorted(Comparator.comparing(MemoryResult::getScore).reversed())
                     .limit(k)
                     .collect(Collectors.toList());
         } catch (Exception e) {

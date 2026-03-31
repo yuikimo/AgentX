@@ -3,22 +3,17 @@ package com.example.agentx.domain.trace.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.example.agentx.domain.trace.constant.ExecutionPhase;
-import com.example.agentx.domain.trace.model.AgentExecutionDetailEntity;
-import com.example.agentx.domain.trace.model.AgentExecutionSummaryEntity;
-import com.example.agentx.domain.trace.model.ModelCallInfo;
-import com.example.agentx.domain.trace.model.ToolCallInfo;
-import com.example.agentx.domain.trace.model.TraceContext;
-import com.example.agentx.domain.trace.repository.AgentExecutionDetailRepository;
-import com.example.agentx.domain.trace.repository.AgentExecutionSummaryRepository;
-import com.example.agentx.infrastructure.exception.BusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import com.example.agentx.domain.trace.constant.ExecutionPhase;
+import com.example.agentx.domain.trace.model.*;
+import com.example.agentx.domain.trace.repository.AgentExecutionDetailRepository;
+import com.example.agentx.domain.trace.repository.AgentExecutionSummaryRepository;
+import com.example.agentx.infrastructure.exception.BusinessException;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Agent执行链路追踪领域服务 负责处理追踪数据的核心业务逻辑
@@ -71,14 +66,15 @@ public class AgentExecutionTraceDomainService {
      * @param eventTime    事件发生时间
      * @return 插入记录的ID
      */
-    public Long recordUserMessage(TraceContext traceContext, String userMessage,
-                                  String messageType, LocalDateTime eventTime) {
+    public Long recordUserMessage(TraceContext traceContext, String userMessage, String messageType,
+                                  LocalDateTime eventTime) {
         if (!traceContext.isTraceEnabled()) {
             return null;
         }
 
         AgentExecutionDetailEntity detail = AgentExecutionDetailEntity.createUserMessageStep(
                 traceContext.getSessionId(), traceContext.nextSequence(), userMessage, messageType, eventTime);
+
         detailRepository.insert(detail);
         return detail.getId();
     }
@@ -99,8 +95,9 @@ public class AgentExecutionTraceDomainService {
         }
 
         AgentExecutionDetailEntity detail = AgentExecutionDetailEntity.createUserMessageStepWithTokens(
-                traceContext.getSessionId(), traceContext.nextSequence(), userMessage,
-                messageType, messageTokens, eventTime);
+                traceContext.getSessionId(), traceContext.nextSequence(), userMessage, messageType, messageTokens,
+                eventTime);
+
         detailRepository.insert(detail);
     }
 
@@ -177,8 +174,8 @@ public class AgentExecutionTraceDomainService {
      * @param errorPhase   错误阶段
      * @param errorMessage 错误信息
      */
-    public void completeTrace(TraceContext traceContext, boolean success,
-                              ExecutionPhase errorPhase, String errorMessage) {
+    public void completeTrace(TraceContext traceContext, boolean success, ExecutionPhase errorPhase,
+                              String errorMessage) {
         if (!traceContext.isTraceEnabled()) {
             return;
         }
@@ -362,16 +359,14 @@ public class AgentExecutionTraceDomainService {
         int totalExecutions = Math.toIntExact(summaryRepository.selectCount(totalWrapper));
 
         // 统计成功执行次数
-        LambdaQueryWrapper<AgentExecutionSummaryEntity> successWrapper =
-                Wrappers.<AgentExecutionSummaryEntity>lambdaQuery()
-                        .eq(AgentExecutionSummaryEntity::getUserId, userId)
-                        .eq(AgentExecutionSummaryEntity::getExecutionSuccess, true);
+        LambdaQueryWrapper<AgentExecutionSummaryEntity> successWrapper = Wrappers
+                .<AgentExecutionSummaryEntity>lambdaQuery().eq(AgentExecutionSummaryEntity::getUserId, userId)
+                .eq(AgentExecutionSummaryEntity::getExecutionSuccess, true);
         int successfulExecutions = Math.toIntExact(summaryRepository.selectCount(successWrapper));
 
         // 统计Token使用量
         List<AgentExecutionSummaryEntity> executions = summaryRepository.selectList(totalWrapper);
-        long totalTokens = executions.stream()
-                .mapToLong(e -> e.getTotalTokens() != null ? e.getTotalTokens() : 0L)
+        long totalTokens = executions.stream().mapToLong(e -> e.getTotalTokens() != null ? e.getTotalTokens() : 0L)
                 .sum();
 
         return new ExecutionStatistics(totalExecutions, successfulExecutions, totalTokens);
@@ -393,8 +388,7 @@ public class AgentExecutionTraceDomainService {
         // 按agentId分组统计
         return executions.stream()
                 .collect(java.util.stream.Collectors.groupingBy(AgentExecutionSummaryEntity::getAgentId)).entrySet()
-                .stream()
-                .map(entry -> {
+                .stream().map(entry -> {
                     String agentId = entry.getKey();
                     List<AgentExecutionSummaryEntity> agentExecutions = entry.getValue();
 
@@ -418,10 +412,8 @@ public class AgentExecutionTraceDomainService {
                             .mapToInt(e -> e.getToolCallCount() != null ? e.getToolCallCount() : 0).sum();
 
                     // 会话数统计（去重）
-                    int totalSessions = (int) agentExecutions.stream()
-                            .map(AgentExecutionSummaryEntity::getSessionId)
-                            .distinct()
-                            .count();
+                    int totalSessions = (int) agentExecutions.stream().map(AgentExecutionSummaryEntity::getSessionId)
+                            .distinct().count();
 
                     // 最后执行时间和状态
                     LocalDateTime lastExecutionTime = agentExecutions.stream()
@@ -429,16 +421,13 @@ public class AgentExecutionTraceDomainService {
                             .orElse(null);
 
                     Boolean lastExecutionSuccess = agentExecutions.stream()
-                            .filter(e -> e.getExecutionStartTime().equals(lastExecutionTime))
-                            .findFirst()
-                            .map(AgentExecutionSummaryEntity::getExecutionSuccess)
-                            .orElse(null);
+                            .filter(e -> e.getExecutionStartTime().equals(lastExecutionTime)).findFirst()
+                            .map(AgentExecutionSummaryEntity::getExecutionSuccess).orElse(null);
 
                     return new AgentStatistics(agentId, totalExecutions, successfulExecutions, failedExecutions,
                             successRate, totalTokens, totalInputTokens, totalOutputTokens, totalToolCalls,
                             totalSessions, lastExecutionTime, lastExecutionSuccess);
-                })
-                .sorted((a, b) -> b.getLastExecutionTime().compareTo(a.getLastExecutionTime()))
+                }).sorted((a, b) -> b.getLastExecutionTime().compareTo(a.getLastExecutionTime()))
                 .collect(java.util.stream.Collectors.toList());
     }
 
@@ -451,25 +440,22 @@ public class AgentExecutionTraceDomainService {
      */
     public List<SessionStatistics> getAgentSessionStatistics(String agentId, String userId) {
         LambdaQueryWrapper<AgentExecutionSummaryEntity> wrapper = Wrappers.<AgentExecutionSummaryEntity>lambdaQuery()
-                .eq(AgentExecutionSummaryEntity::getAgentId, agentId)
-                .eq(AgentExecutionSummaryEntity::getUserId, userId)
+                .eq(AgentExecutionSummaryEntity::getAgentId, agentId).eq(AgentExecutionSummaryEntity::getUserId, userId)
                 .orderByDesc(AgentExecutionSummaryEntity::getExecutionStartTime);
 
         List<AgentExecutionSummaryEntity> executions = summaryRepository.selectList(wrapper);
 
         // 按sessionId分组统计
         return executions.stream()
-                .collect(Collectors.groupingBy(AgentExecutionSummaryEntity::getSessionId)).entrySet()
-                .stream()
-                .map(entry -> {
+                .collect(java.util.stream.Collectors.groupingBy(AgentExecutionSummaryEntity::getSessionId)).entrySet()
+                .stream().map(entry -> {
                     String sessionId = entry.getKey();
                     List<AgentExecutionSummaryEntity> sessionExecutions = entry.getValue();
 
                     // 计算统计信息
                     int totalExecutions = sessionExecutions.size();
                     int successfulExecutions = (int) sessionExecutions.stream()
-                            .filter(e -> Boolean.TRUE.equals(e.getExecutionSuccess()))
-                            .count();
+                            .filter(e -> Boolean.TRUE.equals(e.getExecutionSuccess())).count();
                     int failedExecutions = totalExecutions - successfulExecutions;
                     double successRate = totalExecutions > 0 ? (double) successfulExecutions / totalExecutions : 0.0;
 
@@ -491,21 +477,17 @@ public class AgentExecutionTraceDomainService {
 
                     // 最后执行时间和状态
                     LocalDateTime lastExecutionTime = sessionExecutions.stream()
-                            .map(AgentExecutionSummaryEntity::getExecutionStartTime)
-                            .max(LocalDateTime::compareTo)
+                            .map(AgentExecutionSummaryEntity::getExecutionStartTime).max(LocalDateTime::compareTo)
                             .orElse(null);
 
                     Boolean lastExecutionSuccess = sessionExecutions.stream()
-                            .filter(e -> e.getExecutionStartTime().equals(lastExecutionTime))
-                            .findFirst()
-                            .map(AgentExecutionSummaryEntity::getExecutionSuccess)
-                            .orElse(null);
+                            .filter(e -> e.getExecutionStartTime().equals(lastExecutionTime)).findFirst()
+                            .map(AgentExecutionSummaryEntity::getExecutionSuccess).orElse(null);
 
                     return new SessionStatistics(sessionId, agentId, totalExecutions, successfulExecutions,
                             failedExecutions, successRate, totalTokens, totalInputTokens, totalOutputTokens,
                             totalToolCalls, totalExecutionTime, lastExecutionTime, lastExecutionSuccess);
-                })
-                .sorted((a, b) -> b.getLastExecutionTime().compareTo(a.getLastExecutionTime()))
+                }).sorted((a, b) -> b.getLastExecutionTime().compareTo(a.getLastExecutionTime()))
                 .collect(java.util.stream.Collectors.toList());
     }
 
@@ -552,31 +534,6 @@ public class AgentExecutionTraceDomainService {
         if (detail != null) {
             detail.setMessageTokens(messageTokens);
             detailRepository.updateById(detail);
-        }
-    }
-
-    /**
-     * 记录异常消息到详细记录表
-     *
-     * @param traceContext 追踪上下文
-     * @param errorMessage 错误信息
-     * @param eventTime    事件发生时间
-     */
-    public void recordErrorMessage(TraceContext traceContext, String errorMessage, LocalDateTime eventTime) {
-        if (!traceContext.isTraceEnabled()) {
-            return;
-        }
-
-        try {
-            // 创建异常记录
-            AgentExecutionDetailEntity errorEntity = AgentExecutionDetailEntity
-                    .createErrorMessageStep(traceContext.getSessionId(), errorMessage, eventTime);
-
-            detailRepository.insert(errorEntity);
-
-            logger.debug("记录异常消息成功: SessionId={}, ErrorMessage={}", traceContext.getSessionId(), errorMessage);
-        } catch (Exception e) {
-            logger.warn("记录异常消息失败: SessionId={}, error={}", traceContext.getSessionId(), e.getMessage());
         }
     }
 
@@ -697,6 +654,31 @@ public class AgentExecutionTraceDomainService {
 
         public Boolean getLastExecutionSuccess() {
             return lastExecutionSuccess;
+        }
+    }
+
+    /**
+     * 记录异常消息到详细记录表
+     *
+     * @param traceContext 追踪上下文
+     * @param errorMessage 错误信息
+     * @param eventTime    事件发生时间
+     */
+    public void recordErrorMessage(TraceContext traceContext, String errorMessage, LocalDateTime eventTime) {
+        if (!traceContext.isTraceEnabled()) {
+            return;
+        }
+
+        try {
+            // 创建异常记录
+            AgentExecutionDetailEntity errorEntity = AgentExecutionDetailEntity
+                    .createErrorMessageStep(traceContext.getSessionId(), errorMessage, eventTime);
+
+            detailRepository.insert(errorEntity);
+
+            logger.debug("记录异常消息成功: SessionId={}, ErrorMessage={}", traceContext.getSessionId(), errorMessage);
+        } catch (Exception e) {
+            logger.warn("记录异常消息失败: SessionId={}, error={}", traceContext.getSessionId(), e.getMessage());
         }
     }
 

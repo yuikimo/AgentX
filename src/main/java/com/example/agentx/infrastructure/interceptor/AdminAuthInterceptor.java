@@ -1,13 +1,13 @@
 package com.example.agentx.infrastructure.interceptor;
 
-import com.example.agentx.domain.user.model.UserEntity;
-import com.example.agentx.domain.user.service.UserDomainService;
-import com.example.agentx.infrastructure.auth.UserContext;
-import com.example.agentx.infrastructure.exception.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+import com.example.agentx.domain.user.model.UserEntity;
+import com.example.agentx.domain.user.service.UserDomainService;
+import com.example.agentx.infrastructure.auth.UserContext;
+import com.example.agentx.infrastructure.exception.BusinessException;
 
 /**
  * 管理员权限拦截器 用于拦截需要管理员权限的请求

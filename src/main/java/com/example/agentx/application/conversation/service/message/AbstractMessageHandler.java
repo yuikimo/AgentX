@@ -86,7 +86,6 @@ public abstract class AbstractMessageHandler {
     protected MemoryDomainService memoryDomainService;
     @Autowired
     protected MemoryExtractorService memoryExtractorService;
-
     // 无需事件或单独服务，直接调用异步方法
     // 记忆注入常量（默认开启）
     private static final String MEMORY_SECTION_TITLE = "[记忆要点]";
@@ -512,9 +511,7 @@ public abstract class AbstractMessageHandler {
         // 通过内置工具注册器获取所有适用的内置工具
         Map<ToolSpecification, ToolExecutor> builtInTools = builtInToolRegistry.createToolsForAgent(agent);
 
-        AiServices<Agent> agentService = AiServices.builder(Agent.class)
-                .streamingChatModel(model)
-                .chatMemory(memory);
+        AiServices<Agent> agentService = AiServices.builder(Agent.class).streamingChatModel(model).chatMemory(memory);
 
         // 添加内置工具（如RAG等）
         if (builtInTools != null && !builtInTools.isEmpty()) {
@@ -812,7 +809,7 @@ public abstract class AbstractMessageHandler {
      */
     protected ToolCallInfo buildToolCallInfo(ToolExecution toolExecution) {
         return ToolCallInfo.builder().toolName(toolExecution.request().name())
-                .requestArgs(toolExecution.request().arguments()).responseData(toolExecution.result()).success(true)
+                .requestArgs(toolExecution.request().arguments()).responseData(toolExecution.result()).success(true) 
                 // 此时表示工具执行成功
                 .build();
     }

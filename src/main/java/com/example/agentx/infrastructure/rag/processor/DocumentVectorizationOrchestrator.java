@@ -1,9 +1,9 @@
 package com.example.agentx.infrastructure.rag.processor;
 
-import com.example.agentx.domain.rag.strategy.context.ProcessingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
+import com.example.agentx.infrastructure.mq.core.MessageEnvelope;
+import com.example.agentx.infrastructure.mq.core.MessagePublisher;
 import org.springframework.stereotype.Service;
 import com.example.agentx.domain.rag.message.RagDocMessage;
 import com.example.agentx.domain.rag.message.RagDocSyncStorageMessage;
@@ -11,6 +11,7 @@ import com.example.agentx.domain.rag.model.DocumentUnitEntity;
 import com.example.agentx.domain.rag.model.FileDetailEntity;
 import com.example.agentx.domain.rag.repository.DocumentUnitRepository;
 import com.example.agentx.domain.rag.service.FileDetailDomainService;
+import com.example.agentx.domain.rag.strategy.context.ProcessingContext;
 import com.example.agentx.infrastructure.mq.enums.EventType;
 import com.example.agentx.infrastructure.mq.events.RagDocSyncStorageEvent;
 import com.example.agentx.infrastructure.rag.service.UserModelConfigResolver;
@@ -20,12 +21,7 @@ import java.util.List;
 /**
  * 向量段落处理器
  * <p>
- * 负责翻译+分割+向量化的完整处理链：
- * 1. 读取DocumentUnitEntity原文
- * 2. 翻译特殊节点（内存处理）
- * 3. 检查翻译后长度
- * 4. 如超限则二次分割
- * 5. 触发向量化处理
+ * 负责翻译+分割+向量化的完整处理链： 1. 读取DocumentUnitEntity原文 2. 翻译特殊节点（内存处理） 3. 检查翻译后长度 4. 如超限则二次分割 5. 触发向量化处理
  */
 @Service
 public class DocumentVectorizationOrchestrator {
@@ -35,19 +31,19 @@ public class DocumentVectorizationOrchestrator {
     private final MarkdownAstRewriter translator;
     private final MarkdownContentSplitter splitter;
     private final DocumentUnitRepository documentUnitRepository;
-    private final ApplicationContext applicationContext;
+    private final MessagePublisher messagePublisher;
     private final FileDetailDomainService fileDetailDomainService;
     private final UserModelConfigResolver userModelConfigResolver;
 
     public DocumentVectorizationOrchestrator(MarkdownAstRewriter translator, MarkdownContentSplitter splitter,
                                              DocumentUnitRepository documentUnitRepository,
-                                             ApplicationContext applicationContext,
+                                             MessagePublisher messagePublisher,
                                              FileDetailDomainService fileDetailDomainService,
                                              UserModelConfigResolver userModelConfigResolver) {
         this.translator = translator;
         this.splitter = splitter;
         this.documentUnitRepository = documentUnitRepository;
-        this.applicationContext = applicationContext;
+        this.messagePublisher = messagePublisher;
         this.fileDetailDomainService = fileDetailDomainService;
         this.userModelConfigResolver = userModelConfigResolver;
     }
@@ -64,7 +60,7 @@ public class DocumentVectorizationOrchestrator {
             return;
         }
 
-        log.info("Starting vector segment processing for {} document units", units.size());
+        log.info("开始向量片段处理 {} 个文档单元", units.size());
 
         int successCount = 0;
         int errorCount = 0;
@@ -200,11 +196,10 @@ public class DocumentVectorizationOrchestrator {
             }
 
             // 发送向量化消息到消息队列
-            RagDocSyncStorageEvent<RagDocSyncStorageMessage> storageEvent = new RagDocSyncStorageEvent<>(storageMessage,
-                    EventType.DOC_SYNC_RAG);
-            storageEvent.setDescription("二次分割后的向量化处理任务 - 段落 " + segmentIndex + " 页面 " + vectorPage);
-
-            applicationContext.publishEvent(storageEvent);
+            MessageEnvelope<RagDocSyncStorageMessage> env = MessageEnvelope.builder(storageMessage)
+                    .addEventType(EventType.DOC_SYNC_RAG)
+                    .description("二次分割后的向量化处理任务 - 段落 " + segmentIndex + " 页面 " + vectorPage).build();
+            messagePublisher.publish(RagDocSyncStorageEvent.route(), env);
 
             log.debug("Triggered vectorization for segment {} from unit {} with fileName: {}", segmentIndex,
                     originalUnit.getId(), fileEntity.getOriginalFilename());
@@ -270,7 +265,7 @@ public class DocumentVectorizationOrchestrator {
             return;
         }
 
-        log.info("Starting async vector segment processing for {} units", units.size());
+        log.info("开始异步向量片段处理 {} 个单元", units.size());
 
         try {
             // 创建默认的处理上下文

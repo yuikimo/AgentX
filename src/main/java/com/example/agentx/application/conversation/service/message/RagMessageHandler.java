@@ -1,13 +1,19 @@
 package com.example.agentx.application.conversation.service.message;
 
-import com.example.agentx.application.billing.service.BillingService;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import dev.langchain4j.model.chat.StreamingChatModel;
+import dev.langchain4j.service.TokenStream;
+import dev.langchain4j.service.tool.ToolProvider;
+import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
+import org.springframework.stereotype.Component;
 import com.example.agentx.application.conversation.dto.AgentChatResponse;
-import com.example.agentx.application.conversation.dto.RagRetrievalDocumentDTO;
-import com.example.agentx.application.conversation.service.ChatSessionManager;
 import com.example.agentx.application.conversation.service.handler.context.ChatContext;
 import com.example.agentx.application.conversation.service.message.builtin.BuiltInToolRegistry;
+import com.example.agentx.application.conversation.service.ChatSessionManager;
 import com.example.agentx.application.conversation.service.message.rag.RagChatContext;
 import com.example.agentx.application.conversation.service.message.rag.RagRetrievalResult;
+import com.example.agentx.application.conversation.dto.RagRetrievalDocumentDTO;
 import com.example.agentx.application.rag.dto.DocumentUnitDTO;
 import com.example.agentx.application.rag.service.search.RAGSearchAppService;
 import com.example.agentx.domain.agent.model.AgentEntity;
@@ -17,21 +23,14 @@ import com.example.agentx.domain.conversation.service.MessageDomainService;
 import com.example.agentx.domain.conversation.service.SessionDomainService;
 import com.example.agentx.domain.llm.service.HighAvailabilityDomainService;
 import com.example.agentx.domain.llm.service.LLMDomainService;
-import com.example.agentx.domain.user.service.AccountDomainService;
 import com.example.agentx.domain.user.service.UserSettingsDomainService;
+import com.example.agentx.domain.user.service.AccountDomainService;
 import com.example.agentx.infrastructure.llm.LLMServiceFactory;
 import com.example.agentx.infrastructure.transport.MessageTransport;
+import com.example.agentx.application.billing.service.BillingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.memory.chat.MessageWindowChatMemory;
-import dev.langchain4j.model.chat.StreamingChatModel;
-import dev.langchain4j.model.chat.response.ChatResponse;
-import dev.langchain4j.service.TokenStream;
-import dev.langchain4j.service.tool.ToolProvider;
-import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -82,7 +81,9 @@ public class RagMessageHandler extends AbstractMessageHandler {
     @Override
     protected <T> void processStreamingChat(ChatContext chatContext, T connection, MessageTransport<T> transport,
                                             MessageEntity userEntity, MessageEntity llmEntity,
-                                            MessageWindowChatMemory memory, ToolProvider toolProvider) {
+                                            MessageWindowChatMemory memory,
+                                            ToolProvider toolProvider) {
+
         // 检查是否是RAG上下文
         if (!(chatContext instanceof RagChatContext)) {
             throw new IllegalArgumentException("RagMessageHandler requires RagChatContext");
@@ -122,7 +123,7 @@ public class RagMessageHandler extends AbstractMessageHandler {
                                                        T connection) {
         try {
             // 发送检索开始信号
-            transport.sendMessage(connection, AgentChatResponse.build("开始检索相关文档...", MessageType.RAG_ANSWER_START));
+            transport.sendMessage(connection, AgentChatResponse.build("开始检索相关文档...", MessageType.RAG_RETRIEVAL_START));
             Thread.sleep(500);
 
             // 执行RAG检索 - 获取完整数据用于答案生成
@@ -157,6 +158,7 @@ public class RagMessageHandler extends AbstractMessageHandler {
 
             // 返回包含完整数据的结果用于答案生成
             return new RagRetrievalResult(fullRetrievedDocuments, retrievalMessage);
+
         } catch (Exception e) {
             logger.error("RAG检索失败", e);
             transport.sendMessage(connection, AgentChatResponse.build("文档检索失败: " + e.getMessage(), MessageType.TEXT));
@@ -179,6 +181,7 @@ public class RagMessageHandler extends AbstractMessageHandler {
     private <T> void generateRagAnswer(RagChatContext ragContext, RagRetrievalResult retrievalResult, T connection,
                                        MessageTransport<T> transport, MessageEntity userEntity, MessageEntity llmEntity,
                                        MessageWindowChatMemory memory, ToolProvider toolProvider) {
+
         // 发送回答生成开始信号
         transport.sendMessage(connection, AgentChatResponse.build("开始生成回答...", MessageType.RAG_ANSWER_START));
 
@@ -203,6 +206,7 @@ public class RagMessageHandler extends AbstractMessageHandler {
      */
     private <T> void processRagChat(Agent agent, T connection, MessageTransport<T> transport, RagChatContext ragContext,
                                     MessageEntity userEntity, MessageEntity llmEntity, String ragPrompt) {
+
         AtomicReference<StringBuilder> messageBuilder = new AtomicReference<>(new StringBuilder());
         TokenStream tokenStream = agent.chat(ragPrompt);
 
@@ -227,13 +231,13 @@ public class RagMessageHandler extends AbstractMessageHandler {
 
         // 部分回答处理
         tokenStream.onPartialResponse(fragment -> {
-            // 场景A：刚才还在思考，现在突然开始回答了 -> 赶紧通知前端把“思考框”关掉！
+            // 如果有思考过程但还没结束思考，先结束思考阶段
             if (hasThinkingProcess[0] && !thinkingEnded[0]) {
                 transport.sendMessage(connection, AgentChatResponse.build("思考完成", MessageType.RAG_THINKING_END));
                 thinkingEnded[0] = true;
             }
 
-            // 场景B：这个模型比较笨（不支持思考），直接就开始回答了 -> 为了 UI 好看，假装它思考了 0 秒
+            // 如果没有思考过程且还没开始过思考，先发送思考开始和结束
             if (!hasThinkingProcess[0] && !thinkingStarted[0]) {
                 transport.sendMessage(connection, AgentChatResponse.build("开始思考...", MessageType.RAG_THINKING_START));
                 transport.sendMessage(connection, AgentChatResponse.build("思考完成", MessageType.RAG_THINKING_END));
@@ -247,10 +251,8 @@ public class RagMessageHandler extends AbstractMessageHandler {
 
         // 思维链处理
         tokenStream.onPartialReasoning(reasoning -> {
-            // 亮灯：当前模型支持思考！
             hasThinkingProcess[0] = true;
             if (!thinkingStarted[0]) {
-                // 如果是刚开始思考，赶紧给前端发个通知：“开始思考...”
                 transport.sendMessage(connection, AgentChatResponse.build("开始思考...", MessageType.RAG_THINKING_START));
                 thinkingStarted[0] = true;
             }
@@ -261,7 +263,6 @@ public class RagMessageHandler extends AbstractMessageHandler {
         tokenStream.onCompleteResponse(chatResponse -> {
             this.setMessageTokenCount(ragContext.getMessageHistory(), userEntity, llmEntity, chatResponse);
 
-            // 把聊天记录存到数据库里
             messageDomainService.updateMessage(userEntity);
             messageDomainService.saveMessageAndUpdateContext(Collections.singletonList(llmEntity),
                     ragContext.getContextEntity());
@@ -278,7 +279,6 @@ public class RagMessageHandler extends AbstractMessageHandler {
             performBillingWithErrorHandling(ragContext, chatResponse.tokenUsage().inputTokenCount(),
                     chatResponse.tokenUsage().outputTokenCount(), transport, connection);
 
-            // 根据聊天内容，自动给这段对话取个霸气的标题
             smartRenameSession(ragContext);
         });
 
@@ -301,10 +301,10 @@ public class RagMessageHandler extends AbstractMessageHandler {
                 RagRetrievalDocumentDTO lightweightDTO = new RagRetrievalDocumentDTO(doc.getFileId(), fileName,
                         doc.getId(), // documentId
                         0.85, // 默认相似度，实际应该从其他地方获取
-                        doc.getPage()
-                );
+                        doc.getPage());
 
                 lightweightDTOs.add(lightweightDTO);
+
             } catch (Exception e) {
                 logger.warn("转换轻量级DTO失败，文档ID: {}", doc.getId(), e);
                 // 使用默认值
@@ -345,7 +345,7 @@ public class RagMessageHandler extends AbstractMessageHandler {
 
         return String.format(
                 "请基于以下提供的文档内容回答用户的问题。如果文档中没有相关信息，请诚实地告知用户。\n\n" + "文档内容：\n%s\n\n" + "用户问题：%s\n\n" + "请提供准确、有帮助的回答：",
-                context, question);
+                context.toString(), question);
     }
 
     /**
@@ -354,11 +354,10 @@ public class RagMessageHandler extends AbstractMessageHandler {
     private Agent buildRagStreamingAgent(StreamingChatModel model, MessageWindowChatMemory memory,
                                          ToolProvider toolProvider, AgentEntity agent,
                                          List<DocumentUnitDTO> documentUnitDTOS) {
+
         // 为RAG对话添加专用的系统提示词
-        MessageWindowChatMemory ragMemory = MessageWindowChatMemory.builder()
-                .maxMessages(1000)
-                .chatMemoryStore(new InMemoryChatMemoryStore())
-                .build();
+        MessageWindowChatMemory ragMemory = MessageWindowChatMemory.builder().maxMessages(1000)
+                .chatMemoryStore(new InMemoryChatMemoryStore()).build();
 
         // 添加RAG专用系统提示词
         ragMemory.add(new SystemMessage(ragSystemPrompt.replace("${context}", documentUnitDTOS.toString())));
@@ -370,7 +369,8 @@ public class RagMessageHandler extends AbstractMessageHandler {
      * 设置消息Token计数（调用父类方法）
      */
     private void setMessageTokenCount(List<MessageEntity> historyMessages, MessageEntity userEntity,
-                                      MessageEntity llmEntity, ChatResponse chatResponse) {
+                                      MessageEntity llmEntity,
+                                      dev.langchain4j.model.chat.response.ChatResponse chatResponse) {
         // 调用父类AbstractMessageHandler中的方法
         llmEntity.setTokenCount(chatResponse.tokenUsage().outputTokenCount());
         llmEntity.setBodyTokenCount(chatResponse.tokenUsage().outputTokenCount());
@@ -378,10 +378,8 @@ public class RagMessageHandler extends AbstractMessageHandler {
 
         int bodyTokenSum = 0;
         if (historyMessages != null && !historyMessages.isEmpty()) {
-            bodyTokenSum = historyMessages.stream()
-                    .filter(java.util.Objects::nonNull)
-                    .mapToInt(MessageEntity::getBodyTokenCount)
-                    .sum();
+            bodyTokenSum = historyMessages.stream().filter(java.util.Objects::nonNull)
+                    .mapToInt(MessageEntity::getBodyTokenCount).sum();
         }
         userEntity.setTokenCount(chatResponse.tokenUsage().inputTokenCount());
         userEntity.setBodyTokenCount(chatResponse.tokenUsage().inputTokenCount() - bodyTokenSum);

@@ -1,10 +1,10 @@
 package com.example.agentx.application.conversation.service.message.agent.manager;
 
+import org.springframework.stereotype.Component;
 import com.example.agentx.application.conversation.service.handler.content.ChatContext;
 import com.example.agentx.domain.task.constant.TaskStatus;
 import com.example.agentx.domain.task.model.TaskEntity;
 import com.example.agentx.domain.task.service.TaskDomainService;
-import org.springframework.stereotype.Component;
 
 /**
  * 任务管理器 封装任务实体的创建和状态更新

@@ -31,8 +31,13 @@ public class LLMProviderFactory {
             openAiChatModelBuilder.timeout(Duration.ofHours(1));
             model = new OpenAiChatModel(openAiChatModelBuilder);
         } else if (protocol == ProviderProtocol.ANTHROPIC) {
-            model = AnthropicChatModel.builder().apiKey(providerConfig.getApiKey()).baseUrl(providerConfig.getBaseUrl())
-                    .modelName(providerConfig.getModel()).version("2023-06-01").timeout(Duration.ofHours(1)).build();
+            model = AnthropicChatModel.builder()
+                    .apiKey(providerConfig.getApiKey())
+                    .baseUrl(providerConfig.getBaseUrl())
+                    .modelName(providerConfig.getModel())
+                    .version("2023-06-01")
+                    .timeout(Duration.ofHours(1))
+                    .build();
         }
         return model;
     }
@@ -40,13 +45,20 @@ public class LLMProviderFactory {
     public static StreamingChatModel getLLMProviderByStream(ProviderProtocol protocol, ProviderConfig providerConfig) {
         StreamingChatModel model = null;
         if (protocol == ProviderProtocol.OPENAI) {
-            model = new OpenAiStreamingChatModel.OpenAiStreamingChatModelBuilder().apiKey(providerConfig.getApiKey())
-                    .baseUrl(providerConfig.getBaseUrl()).customHeaders(providerConfig.getCustomHeaders())
-                    .modelName(providerConfig.getModel()).timeout(Duration.ofHours(1)).build();
-        } else if (protocol == ProviderProtocol.ANTHROPIC) {
-            model = AnthropicStreamingChatModel.builder().apiKey(providerConfig.getApiKey())
-                    .baseUrl(providerConfig.getBaseUrl()).version("2023-06-01").modelName(providerConfig.getModel())
+            model = new OpenAiStreamingChatModel.OpenAiStreamingChatModelBuilder()
+                    .apiKey(providerConfig.getApiKey())
+                    .baseUrl(providerConfig.getBaseUrl())
+                    .customHeaders(providerConfig.getCustomHeaders())
+                    .modelName(providerConfig.getModel())
                     .timeout(Duration.ofHours(1)).build();
+        } else if (protocol == ProviderProtocol.ANTHROPIC) {
+            model = AnthropicStreamingChatModel.builder()
+                    .apiKey(providerConfig.getApiKey())
+                    .baseUrl(providerConfig.getBaseUrl())
+                    .version("2023-06-01")
+                    .modelName(providerConfig.getModel())
+                    .timeout(Duration.ofHours(1))
+                    .build();
         }
 
         return model;

@@ -176,7 +176,8 @@ public class UserRagDomainService {
         // 更新安装记录（更新快照数据）
         LambdaUpdateWrapper<UserRagEntity> updateWrapper = Wrappers.<UserRagEntity>lambdaUpdate()
                 .eq(UserRagEntity::getId, userRagId).eq(UserRagEntity::getUserId, userId)
-                .set(UserRagEntity::getRagVersionId, targetVersionId).set(UserRagEntity::getInstallType, newInstallType)
+                .set(UserRagEntity::getRagVersionId, targetVersionId)
+                .set(UserRagEntity::getInstallType, newInstallType)
                 .set(UserRagEntity::getVersion, targetVersion.getVersion())
                 .set(UserRagEntity::getName, targetVersion.getName())
                 .set(UserRagEntity::getDescription, targetVersion.getDescription())
@@ -217,7 +218,8 @@ public class UserRagDomainService {
         }
 
         LambdaUpdateWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaUpdate()
-                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getRagVersionId, ragVersionId);
+                .eq(UserRagEntity::getUserId, userId)
+                .eq(UserRagEntity::getRagVersionId, ragVersionId);
 
         userRagRepository.delete(wrapper);
     }
@@ -231,7 +233,8 @@ public class UserRagDomainService {
      */
     public boolean isRagInstalled(String userId, String ragVersionId) {
         LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery()
-                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getRagVersionId, ragVersionId);
+                .eq(UserRagEntity::getUserId, userId)
+                .eq(UserRagEntity::getRagVersionId, ragVersionId);
 
         return userRagRepository.exists(wrapper);
     }
@@ -256,7 +259,8 @@ public class UserRagDomainService {
      */
     public UserRagEntity findInstalledRagByOriginalId(String userId, String originalRagId) {
         LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery()
-                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getOriginalRagId, originalRagId);
+                .eq(UserRagEntity::getUserId, userId)
+                .eq(UserRagEntity::getOriginalRagId, originalRagId);
 
         return userRagRepository.selectOne(wrapper);
     }
@@ -271,8 +275,8 @@ public class UserRagDomainService {
      * @return 分页结果
      */
     public IPage<UserRagEntity> listInstalledRags(String userId, Integer page, Integer pageSize, String keyword) {
-        LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery().eq(UserRagEntity::getUserId,
-                userId);
+        LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery()
+                .eq(UserRagEntity::getUserId, userId);
 
         if (StringUtils.isNotBlank(keyword)) {
             wrapper.and(w -> w.like(UserRagEntity::getName, keyword).or().like(UserRagEntity::getDescription, keyword));
@@ -292,7 +296,8 @@ public class UserRagDomainService {
      */
     public List<UserRagEntity> listAllInstalledRags(String userId) {
         LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery()
-                .eq(UserRagEntity::getUserId, userId).orderByDesc(UserRagEntity::getInstalledAt);
+                .eq(UserRagEntity::getUserId, userId)
+                .orderByDesc(UserRagEntity::getInstalledAt);
 
         return userRagRepository.selectList(wrapper);
     }
@@ -306,7 +311,8 @@ public class UserRagDomainService {
      */
     public UserRagEntity getInstalledRag(String userId, String ragVersionId) {
         LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery()
-                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getRagVersionId, ragVersionId);
+                .eq(UserRagEntity::getUserId, userId)
+                .eq(UserRagEntity::getRagVersionId, ragVersionId);
 
         UserRagEntity userRag = userRagRepository.selectOne(wrapper);
         if (userRag == null) {
@@ -325,7 +331,8 @@ public class UserRagDomainService {
      */
     public UserRagEntity getUserRag(String userId, String userRagId) {
         LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery()
-                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getId, userRagId);
+                .eq(UserRagEntity::getUserId, userId)
+                .eq(UserRagEntity::getId, userRagId);
 
         UserRagEntity userRag = userRagRepository.selectOne(wrapper);
         if (userRag == null) {
@@ -381,9 +388,11 @@ public class UserRagDomainService {
     public void updateUserRagBasicInfo(String userId, String originalRagId, String name, String description,
                                        String icon) {
         LambdaUpdateWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaUpdate()
-                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getOriginalRagId, originalRagId)
+                .eq(UserRagEntity::getUserId, userId)
+                .eq(UserRagEntity::getOriginalRagId, originalRagId)
                 .eq(UserRagEntity::getInstallType, InstallType.REFERENCE) // 只更新REFERENCE类型的安装
-                .set(UserRagEntity::getName, name).set(UserRagEntity::getDescription, description)
+                .set(UserRagEntity::getName, name)
+                .set(UserRagEntity::getDescription, description)
                 .set(UserRagEntity::getIcon, icon);
 
         userRagRepository.update(null, wrapper);
@@ -397,7 +406,8 @@ public class UserRagDomainService {
      */
     public void forceUninstallRagByOriginalId(String userId, String originalRagId) {
         LambdaUpdateWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaUpdate()
-                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getOriginalRagId, originalRagId);
+                .eq(UserRagEntity::getUserId, userId)
+                .eq(UserRagEntity::getOriginalRagId, originalRagId);
 
         userRagRepository.checkedDelete(wrapper);
     }
@@ -462,7 +472,6 @@ public class UserRagDomainService {
             currentUserRagEntity.setInstallType(
                     !Objects.equals(ragVersion.getVersion(), "0.0.1") ? InstallType.SNAPSHOT : InstallType.REFERENCE);
             result.add(currentUserRagEntity);
-
         }
 
         return result;

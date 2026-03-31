@@ -1,15 +1,5 @@
 package com.example.agentx.application.conversation.service.message.agent.service;
 
-import com.example.agentx.application.conversation.service.handler.content.ChatContext;
-import com.example.agentx.application.conversation.service.message.agent.analysis.dto.InfoRequirementDTO;
-import com.example.agentx.application.conversation.service.message.agent.template.AgentPromptTemplates;
-import com.example.agentx.application.conversation.service.message.agent.workflow.AgentWorkflowContext;
-import com.example.agentx.domain.conversation.constant.MessageType;
-import com.example.agentx.domain.conversation.constant.Role;
-import com.example.agentx.domain.conversation.model.MessageEntity;
-import com.example.agentx.domain.conversation.service.MessageDomainService;
-import com.example.agentx.infrastructure.llm.LLMServiceFactory;
-import com.example.agentx.infrastructure.utils.ModelResponseToJsonUtils;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -20,10 +10,18 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import com.example.agentx.application.conversation.service.handler.content.ChatContext;
+import com.example.agentx.application.conversation.service.message.agent.analysis.dto.InfoRequirementDTO;
+import com.example.agentx.application.conversation.service.message.agent.template.AgentPromptTemplates;
+import com.example.agentx.application.conversation.service.message.agent.workflow.AgentWorkflowContext;
+import com.example.agentx.domain.conversation.constant.MessageType;
+import com.example.agentx.domain.conversation.constant.Role;
+import com.example.agentx.domain.conversation.model.MessageEntity;
+import com.example.agentx.domain.conversation.service.MessageDomainService;
+import com.example.agentx.infrastructure.llm.LLMServiceFactory;
+import com.example.agentx.infrastructure.utils.ModelResponseToJsonUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -108,18 +106,21 @@ public class InfoRequirementService {
      * @return 带有信息完整性状态的CompletableFuture
      */
     private CompletableFuture<Boolean> checkInfoCompleteness(AgentWorkflowContext<?> context, int attemptCount) {
+
         String sessionId = context.getChatContext().getSessionId();
         String userMessage = context.getChatContext().getUserMessage();
 
         // 检查是否超过最大尝试次数
         MessageEntity llmMessageEntity = createLlmMessage(context.getChatContext());
         if (attemptCount > MAX_INFO_CHECK_ATTEMPTS) {
+            log.info("会话[{}]已达到最大信息补充尝试次数({}次)，将基于当前信息继续处理", sessionId, MAX_INFO_CHECK_ATTEMPTS);
+
             // 清理等待状态
             WAITING_FUTURES.remove(sessionId);
             BLOCKING_INFO.remove(sessionId);
 
-            // 告知用户已达最大尝试次数，进行处理
-            context.sendEndMessage("", MessageType.TEXT);
+            // 告知用户已达最大尝试次数，继续处理
+            context.sendEndMessage("已尝试多次获取信息，将基于当前提供的信息继续处理。", MessageType.TEXT);
 
             // 返回true，表示继续处理（尽管信息可能不完整）
             return CompletableFuture.completedFuture(true);
@@ -131,12 +132,13 @@ public class InfoRequirementService {
 
             // 构建请求
             ChatRequest request = buildRequest(context);
+
             // attemptCount > 0 说明是后续的补充信息，补充信息没有被加入上下文中，需要手动添加
             if (attemptCount > 0) {
                 request.messages().add(new UserMessage(userMessage));
             }
-            request.messages().add(new SystemMessage(AgentPromptTemplates.getInfoAnalysisPrompt()));
 
+            request.messages().add(new SystemMessage(AgentPromptTemplates.getInfoAnalysisPrompt()));
             ChatResponse chat = strandClient.chat(request);
             String text = chat.aiMessage().text();
 
@@ -164,6 +166,7 @@ public class InfoRequirementService {
             log.info("会话[{}]信息不完整，尝试次数:{}/{}，等待用户补充", sessionId, attemptCount + 1, MAX_INFO_CHECK_ATTEMPTS);
 
             String missingInfoPrompt = infoRequirementDTO.getMissingInfoPrompt();
+
             // 向用户发送提示
             context.sendEndMessage(missingInfoPrompt, MessageType.TEXT);
 
@@ -171,7 +174,7 @@ public class InfoRequirementService {
             llmMessageEntity.setContent(missingInfoPrompt);
 
             List<MessageEntity> messageEntityList = new ArrayList<>();
-            // 保存原始用户消息，以便再消息记录中显示
+            // 保存原始用户消息，以便在消息记录中显示
             if (attemptCount == 0) {
                 context.getChatContext().setUserMessage(userMessage);
             } else {
@@ -205,6 +208,7 @@ public class InfoRequirementService {
                 // 递归调用自身，尝试次数+1
                 return checkInfoCompleteness(context, attemptCount + 1);
             });
+
         } catch (Exception e) {
             log.error("会话[{}]信息完整性检查异常", sessionId, e);
             context.handleError(e);
@@ -268,4 +272,5 @@ public class InfoRequirementService {
         messageEntity.setProvider(environment.getProvider().getId());
         return messageEntity;
     }
+
 }

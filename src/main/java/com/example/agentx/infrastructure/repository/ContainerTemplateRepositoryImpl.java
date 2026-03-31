@@ -4,11 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
 import com.example.agentx.domain.container.constant.ContainerType;
 import com.example.agentx.domain.container.model.ContainerTemplateEntity;
 import com.example.agentx.domain.container.repository.ContainerTemplateRepository;
-import org.apache.ibatis.annotations.Mapper;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
@@ -22,10 +22,8 @@ public interface ContainerTemplateRepositoryImpl extends ContainerTemplateReposi
     @Override
     default List<ContainerTemplateEntity> findByType(String type) {
         LambdaQueryWrapper<ContainerTemplateEntity> wrapper = Wrappers.<ContainerTemplateEntity>lambdaQuery()
-                .eq(ContainerTemplateEntity::getType, type)
-                .eq(ContainerTemplateEntity::getEnabled, true)
-                .orderByAsc(ContainerTemplateEntity::getSortOrder)
-                .orderByDesc(ContainerTemplateEntity::getCreatedAt);
+                .eq(ContainerTemplateEntity::getType, type).eq(ContainerTemplateEntity::getEnabled, true)
+                .orderByAsc(ContainerTemplateEntity::getSortOrder).orderByDesc(ContainerTemplateEntity::getCreatedAt);
 
         return selectList(wrapper);
     }
@@ -33,10 +31,8 @@ public interface ContainerTemplateRepositoryImpl extends ContainerTemplateReposi
     @Override
     default ContainerTemplateEntity findDefaultByType(ContainerType type) {
         LambdaQueryWrapper<ContainerTemplateEntity> wrapper = Wrappers.<ContainerTemplateEntity>lambdaQuery()
-                .eq(ContainerTemplateEntity::getType, type.name())
-                .eq(ContainerTemplateEntity::getEnabled, true)
-                .eq(ContainerTemplateEntity::getIsDefault, true)
-                .orderByDesc(ContainerTemplateEntity::getCreatedAt);
+                .eq(ContainerTemplateEntity::getType, type.name()).eq(ContainerTemplateEntity::getEnabled, true)
+                .eq(ContainerTemplateEntity::getIsDefault, true).orderByDesc(ContainerTemplateEntity::getCreatedAt);
 
         return selectOne(wrapper);
     }
@@ -44,8 +40,7 @@ public interface ContainerTemplateRepositoryImpl extends ContainerTemplateReposi
     @Override
     default List<ContainerTemplateEntity> findEnabledTemplates() {
         LambdaQueryWrapper<ContainerTemplateEntity> wrapper = Wrappers.<ContainerTemplateEntity>lambdaQuery()
-                .eq(ContainerTemplateEntity::getEnabled, true)
-                .orderByAsc(ContainerTemplateEntity::getSortOrder)
+                .eq(ContainerTemplateEntity::getEnabled, true).orderByAsc(ContainerTemplateEntity::getSortOrder)
                 .orderByDesc(ContainerTemplateEntity::getCreatedAt);
 
         return selectList(wrapper);
@@ -74,12 +69,11 @@ public interface ContainerTemplateRepositoryImpl extends ContainerTemplateReposi
     @Override
     default Page<ContainerTemplateEntity> selectPageWithConditions(Page<ContainerTemplateEntity> page, String keyword,
                                                                    String type, Boolean enabled) {
-        LambdaQueryWrapper<ContainerTemplateEntity> wrapper = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<ContainerTemplateEntity> wrapper = Wrappers.<ContainerTemplateEntity>lambdaQuery();
 
         // 关键词搜索：模板名称、描述、镜像名称
         if (StringUtils.isNotBlank(keyword)) {
-            wrapper.and(w -> w
-                    .like(ContainerTemplateEntity::getName, keyword).or()
+            wrapper.and(w -> w.like(ContainerTemplateEntity::getName, keyword).or()
                     .like(ContainerTemplateEntity::getDescription, keyword).or()
                     .like(ContainerTemplateEntity::getImage, keyword));
         }
@@ -88,6 +82,7 @@ public interface ContainerTemplateRepositoryImpl extends ContainerTemplateReposi
         if (StringUtils.isNotBlank(type)) {
             wrapper.eq(ContainerTemplateEntity::getType, type);
         }
+
         // 启用状态过滤
         if (enabled != null) {
             wrapper.eq(ContainerTemplateEntity::getEnabled, enabled);

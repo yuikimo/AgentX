@@ -32,11 +32,13 @@ public class ModelTokenStrategy implements RuleStrategy {
         BigDecimal outputCostPerMillion = getBigDecimalValue(pricingConfig, PricingConfigKeys.OUTPUT_COST_PER_MILLION);
 
         // 计算输入Token费用：(inputTokens / 1000000) * inputCostPerMillion
-        BigDecimal inputCost = new BigDecimal(inputTokens).divide(MILLION, 8, RoundingMode.HALF_UP)
+        BigDecimal inputCost = new BigDecimal(inputTokens)
+                .divide(MILLION, 8, RoundingMode.HALF_UP)
                 .multiply(inputCostPerMillion);
 
         // 计算输出Token费用：(outputTokens / 1000000) * outputCostPerMillion
-        BigDecimal outputCost = new BigDecimal(outputTokens).divide(MILLION, 8, RoundingMode.HALF_UP)
+        BigDecimal outputCost = new BigDecimal(outputTokens)
+                .divide(MILLION, 8, RoundingMode.HALF_UP)
                 .multiply(outputCostPerMillion);
 
         // 总费用

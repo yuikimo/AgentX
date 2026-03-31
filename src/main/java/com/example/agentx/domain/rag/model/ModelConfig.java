@@ -1,9 +1,9 @@
 package com.example.agentx.domain.rag.model;
 
-import com.example.agentx.domain.llm.model.enums.ModelType;
-import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.example.agentx.domain.llm.model.enums.ModelType;
+import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 
 import java.io.Serial;
 import java.io.Serializable;

@@ -2,8 +2,7 @@ package com.example.agentx.infrastructure.mq.enums;
 
 public enum EventType {
 
-    DOC_SYNC_RAG(4000, "文件入库"),
-    DOC_REFRESH_ORG(4001, "文件ocr");
+    DOC_SYNC_RAG(4000, "文件入库"), DOC_REFRESH_ORG(4001, "文件ocr");
 
     private final Integer code;
     private final String desc;

@@ -1,24 +1,23 @@
 package com.example.agentx.application.container.service;
 
-import com.example.agentx.domain.container.constant.ContainerStatus;
-import com.example.agentx.domain.container.model.ContainerEntity;
-import com.example.agentx.domain.container.service.ContainerDomainService;
-import com.example.agentx.infrastructure.docker.DockerService;
-import com.example.agentx.infrastructure.entity.Operator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.agentx.domain.container.constant.ContainerStatus;
+import com.example.agentx.domain.container.model.ContainerEntity;
+import com.example.agentx.domain.container.service.ContainerDomainService;
+import com.example.agentx.infrastructure.docker.DockerService;
+import com.example.agentx.infrastructure.entity.Operator;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
  * 容器自动清理服务
  * <p>
- * 清理策略：
- * - 1天不使用 -> 暂停容器
- * - 5天不使用 -> 销毁容器
+ * 清理策略： - 1天不使用 -> 暂停容器 - 5天不使用 -> 销毁容器
  */
 @Service
 public class ContainerCleanupService {
@@ -67,8 +66,8 @@ public class ContainerCleanupService {
             try {
                 suspendContainer(container);
                 suspendedCount++;
-                logger.info("暂停空闲容器: {} (用户: {}, 最后访问: {})",
-                        container.getName(), container.getUserId(), container.getLastAccessedAt());
+                logger.info("暂停空闲容器: {} (用户: {}, 最后访问: {})", container.getName(), container.getUserId(),
+                        container.getLastAccessedAt());
             } catch (Exception e) {
                 logger.error("暂停容器失败: {}", container.getName(), e);
             }
@@ -93,8 +92,8 @@ public class ContainerCleanupService {
             try {
                 deleteContainer(container);
                 deletedCount++;
-                logger.info("销毁废弃容器: {} (用户: {}, 最后访问: {})",
-                        container.getName(), container.getUserId(), container.getLastAccessedAt());
+                logger.info("销毁废弃容器: {} (用户: {}, 最后访问: {})", container.getName(), container.getUserId(),
+                        container.getLastAccessedAt());
             } catch (Exception e) {
                 logger.error("销毁容器失败: {}", container.getName(), e);
             }
@@ -111,13 +110,15 @@ public class ContainerCleanupService {
      * 暂停单个容器
      */
     private void suspendContainer(ContainerEntity container) {
-        // 1.停止Docker容器
+        // 1. 停止Docker容器
         if (container.getDockerContainerId() != null) {
             dockerService.stopContainer(container.getDockerContainerId());
+            logger.debug("Docker容器已停止: {}", container.getDockerContainerId());
         }
 
         // 2. 更新容器状态为SUSPENDED
-        containerDomainService.updateContainerStatus(container.getId(), ContainerStatus.SUSPENDED, null);
+        containerDomainService.updateContainerStatus(container.getId(), ContainerStatus.SUSPENDED, Operator.ADMIN,
+                null);
     }
 
     /**
@@ -135,7 +136,7 @@ public class ContainerCleanupService {
         }
 
         // 2. 逻辑删除容器记录 - 设置状态为DELETED
-        containerDomainService.updateContainerStatus(container.getId(), ContainerStatus.DELETED, null);
+        containerDomainService.updateContainerStatus(container.getId(), ContainerStatus.DELETED, Operator.ADMIN, null);
     }
 
     /**

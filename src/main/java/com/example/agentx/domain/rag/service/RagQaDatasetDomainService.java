@@ -46,7 +46,8 @@ public class RagQaDatasetDomainService {
      */
     public RagQaDatasetEntity getDataset(String datasetId, String userId) {
         LambdaQueryWrapper<RagQaDatasetEntity> wrapper = Wrappers.<RagQaDatasetEntity>lambdaQuery()
-                .eq(RagQaDatasetEntity::getId, datasetId).eq(RagQaDatasetEntity::getUserId, userId);
+                .eq(RagQaDatasetEntity::getId, datasetId)
+                .eq(RagQaDatasetEntity::getUserId, userId);
         RagQaDatasetEntity dataset = ragQaDatasetRepository.selectOne(wrapper);
         if (dataset == null) {
             throw new BusinessException("数据集不存在");
@@ -63,7 +64,8 @@ public class RagQaDatasetDomainService {
      */
     public RagQaDatasetEntity findDataset(String datasetId, String userId) {
         LambdaQueryWrapper<RagQaDatasetEntity> wrapper = Wrappers.<RagQaDatasetEntity>lambdaQuery()
-                .eq(RagQaDatasetEntity::getId, datasetId).eq(RagQaDatasetEntity::getUserId, userId);
+                .eq(RagQaDatasetEntity::getId, datasetId)
+                .eq(RagQaDatasetEntity::getUserId, userId);
         return ragQaDatasetRepository.selectOne(wrapper);
     }
 
@@ -86,7 +88,8 @@ public class RagQaDatasetDomainService {
      */
     public boolean existsDataset(String datasetId, String userId) {
         LambdaQueryWrapper<RagQaDatasetEntity> wrapper = Wrappers.<RagQaDatasetEntity>lambdaQuery()
-                .eq(RagQaDatasetEntity::getId, datasetId).eq(RagQaDatasetEntity::getUserId, userId);
+                .eq(RagQaDatasetEntity::getId, datasetId)
+                .eq(RagQaDatasetEntity::getUserId, userId);
         return ragQaDatasetRepository.exists(wrapper);
     }
 
@@ -123,7 +126,8 @@ public class RagQaDatasetDomainService {
      */
     public void deleteDataset(String datasetId, String userId) {
         LambdaUpdateWrapper<RagQaDatasetEntity> wrapper = Wrappers.<RagQaDatasetEntity>lambdaUpdate()
-                .eq(RagQaDatasetEntity::getId, datasetId).eq(RagQaDatasetEntity::getUserId, userId);
+                .eq(RagQaDatasetEntity::getId, datasetId)
+                .eq(RagQaDatasetEntity::getUserId, userId);
         ragQaDatasetRepository.checkedDelete(wrapper);
     }
 
@@ -160,7 +164,8 @@ public class RagQaDatasetDomainService {
      */
     public List<RagQaDatasetEntity> listAllDatasets(String userId) {
         LambdaQueryWrapper<RagQaDatasetEntity> wrapper = Wrappers.<RagQaDatasetEntity>lambdaQuery()
-                .eq(RagQaDatasetEntity::getUserId, userId).orderByDesc(RagQaDatasetEntity::getCreatedAt);
+                .eq(RagQaDatasetEntity::getUserId, userId)
+                .orderByDesc(RagQaDatasetEntity::getCreatedAt);
         return ragQaDatasetRepository.selectList(wrapper);
     }
 
@@ -187,7 +192,8 @@ public class RagQaDatasetDomainService {
         }
 
         LambdaQueryWrapper<RagQaDatasetEntity> wrapper = Wrappers.<RagQaDatasetEntity>lambdaQuery()
-                .eq(RagQaDatasetEntity::getName, name).eq(RagQaDatasetEntity::getUserId, userId);
+                .eq(RagQaDatasetEntity::getName, name)
+                .eq(RagQaDatasetEntity::getUserId, userId);
 
         if (StringUtils.isNotBlank(excludeId)) {
             wrapper.ne(RagQaDatasetEntity::getId, excludeId);

@@ -82,10 +82,8 @@ public class AgentAppService {
         // 1. 创建计费上下文进行余额预检查
         RuleContext billingContext = RuleContext.builder().type(BillingType.AGENT_CREATION.getCode())
                 .serviceId("agent_creation") // 固定业务标识
-                .usageData(Map.of(UsageDataKeys.QUANTITY, 1))
-                .requestId(generateRequestId(userId, "creation"))
-                .userId(userId)
-                .build();
+                .usageData(Map.of(UsageDataKeys.QUANTITY, 1)).requestId(generateRequestId(userId, "creation"))
+                .userId(userId).build();
 
         // 2. 余额预检查 - 避免创建后发现余额不足
         if (!billingService.checkBalance(billingContext)) {
@@ -104,8 +102,8 @@ public class AgentAppService {
         // 4. 创建成功后执行计费扣费
         try {
             billingService.charge(billingContext);
-            logger.info("Agent创建及计费成功 - 用户: {}, AgentID: {}, 请求ID: {}",
-                    userId, agent.getId(), billingContext.getRequestId());
+            logger.info("Agent创建及计费成功 - 用户: {}, AgentID: {}, 请求ID: {}", userId, agent.getId(),
+                    billingContext.getRequestId());
         } catch (Exception e) {
             // 计费失败但Agent已创建，记录错误日志但不影响用户体验
             // 实际场景中可能需要考虑回滚Agent创建或者重试机制
@@ -137,6 +135,7 @@ public class AgentAppService {
     /**
      * 获取已上架的Agent列表，支持名称搜索
      */
+
     public List<AgentVersionDTO> getPublishedAgentsByName(SearchAgentsRequest searchAgentsRequest, String userId) {
         AgentEntity entity = AgentAssembler.toEntity(searchAgentsRequest);
         List<AgentVersionEntity> agentVersionEntities = agentServiceDomainService.getPublishedAgentsByName(entity);

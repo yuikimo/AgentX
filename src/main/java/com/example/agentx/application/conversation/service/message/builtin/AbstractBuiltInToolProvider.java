@@ -1,6 +1,5 @@
 package com.example.agentx.application.conversation.service.message.builtin;
 
-import com.example.agentx.domain.agent.model.AgentEntity;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.agent.tool.ToolSpecification;
@@ -8,6 +7,7 @@ import dev.langchain4j.service.tool.ToolExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
+import com.example.agentx.domain.agent.model.AgentEntity;
 
 import java.util.HashMap;
 import java.util.List;
@@ -71,6 +71,7 @@ public abstract class AbstractBuiltInToolProvider implements BuiltInToolProvider
 
             logger.debug("内置工具执行成功: {} for agent: {}", toolName, agent.getId());
             return result;
+
         } catch (IllegalArgumentException e) {
             logger.warn("内置工具参数错误: {} for agent: {} - {}", toolName, agent.getId(), e.getMessage());
             return formatError("参数错误: " + e.getMessage());

@@ -1,7 +1,7 @@
 package com.example.agentx.domain.rag.dto;
 
-import com.example.agentx.domain.rag.model.ModelConfig;
 import com.example.agentx.infrastructure.rag.factory.EmbeddingModelFactory;
+import com.example.agentx.domain.rag.model.ModelConfig;
 
 import java.util.List;
 

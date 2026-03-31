@@ -1,5 +1,7 @@
 package com.example.agentx.application.agent.service;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.example.agentx.application.agent.assembler.AgentWidgetAssembler;
 import com.example.agentx.application.agent.dto.AgentWidgetDTO;
 import com.example.agentx.application.llm.assembler.ModelAssembler;
@@ -16,8 +18,6 @@ import com.example.agentx.domain.llm.service.LLMDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.interfaces.dto.agent.request.CreateWidgetRequest;
 import com.example.agentx.interfaces.dto.agent.request.UpdateWidgetRequest;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -211,6 +211,7 @@ public class AgentWidgetAppService {
      */
     public AgentWidgetDTO getWidgetDetail(String widgetId, String userId) {
         AgentWidgetEntity widget = agentWidgetDomainService.getWidgetById(widgetId, userId);
+
         ModelEntity model = llmDomainService.getModelById(widget.getModelId());
         ProviderEntity provider = llmDomainService.getProvider(model.getProviderId());
 
@@ -246,16 +247,16 @@ public class AgentWidgetAppService {
      * @return 包含Agent配置信息的WidgetInfo
      */
     public WidgetInfoForPublicAccess getWidgetInfoForPublicAccess(String publicId) {
-        // 1.获取小组件配置
+        // 1. 获取小组件配置
         AgentWidgetEntity widget = agentWidgetDomainService.getEnabledWidgetByPublicId(publicId);
 
-        // 2.获取关联的Agent信息
+        // 2. 获取关联的Agent信息
         AgentEntity agent = agentRepository.selectById(widget.getAgentId());
         if (agent == null || agent.getDeletedAt() != null) {
             throw new BusinessException("关联的Agent不存在");
         }
 
-        // 3.构建完整的信息对象
+        // 3. 构建完整的信息对象
         WidgetInfoForPublicAccess info = new WidgetInfoForPublicAccess();
 
         // Widget基本信息
@@ -280,6 +281,7 @@ public class AgentWidgetAppService {
         if (agent.getKnowledgeBaseIds() != null) {
             info.setKnowledgeBaseIds(agent.getKnowledgeBaseIds());
         }
+
         return info;
     }
 

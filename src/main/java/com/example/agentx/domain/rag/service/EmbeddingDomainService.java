@@ -130,7 +130,8 @@ public class EmbeddingDomainService implements MetadataConstant {
                     .maxResults(searchLimit)
                     .minScore(finalMinScore)
                     .queryEmbedding(Embedding.from(embeddingModel.embed(question).content().vector()))
-                    .build());
+                    .build()
+            );
 
             List<EmbeddingMatch<TextSegment>> embeddingMatches = searchResult.matches();
 
@@ -140,8 +141,7 @@ public class EmbeddingDomainService implements MetadataConstant {
                 final EmbeddingSearchResult<TextSegment> fallbackResult = embeddingStore.search(EmbeddingSearchRequest
                         .builder()
                         .filter(new IsIn(DATA_SET_ID, dataSetIds))
-                        .maxResults(searchLimit)
-                        .minScore(0.3)
+                        .maxResults(searchLimit).minScore(0.3)
                         .queryEmbedding(Embedding.from(embeddingModel.embed(question).content().vector()))
                         .build());
                 embeddingMatches = fallbackResult.matches();
@@ -149,15 +149,18 @@ public class EmbeddingDomainService implements MetadataConstant {
             }
 
             // 转换为VectorStoreResult格式
-            List<VectorStoreResult> results = embeddingMatches.stream().limit(finalMaxResults).map(match -> {
-                VectorStoreResult result = new VectorStoreResult();
-                result.setEmbeddingId(match.embeddingId());
-                result.setText(match.embedded().text());
-                result.setMetadata(match.embedded().metadata().toMap());
-                result.setScore(match.score());
-                result.setSearchType(SearchType.VECTOR);
-                return result;
-            }).toList();
+            List<VectorStoreResult> results = embeddingMatches.stream()
+                    .limit(finalMaxResults)
+                    .map(match -> {
+                        VectorStoreResult result = new VectorStoreResult();
+                        result.setEmbeddingId(match.embeddingId());
+                        result.setText(match.embedded().text());
+                        result.setMetadata(match.embedded().metadata().toMap());
+                        result.setScore(match.score());
+                        result.setSearchType(SearchType.VECTOR);
+                        return result;
+                    })
+                    .toList();
 
             long totalTime = System.currentTimeMillis() - startTime;
             log.info("向量搜索完成，查询：'{}'，返回{}个文档，耗时{}ms", question, results.size(), totalTime);
@@ -196,7 +199,9 @@ public class EmbeddingDomainService implements MetadataConstant {
     private void indexEmbedding(List<DocumentUnitEntity> documentUnitEntityList) {
         Steam.of(documentUnitEntityList).forEach(documentUnit -> {
             MessageEnvelope<DocumentUnitEntity> env = MessageEnvelope.builder(documentUnit)
-                    .addEventType(EventType.DOC_SYNC_RAG).description("批量向量化入库任务").build();
+                    .addEventType(EventType.DOC_SYNC_RAG)
+                    .description("批量向量化入库任务")
+                    .build();
             messagePublisher.publish(RagDocSyncStorageEvent.route(), env);
         });
 
@@ -206,7 +211,6 @@ public class EmbeddingDomainService implements MetadataConstant {
      * 文本向量化
      */
     public void syncStorage(RagDocSyncStorageMessage ragDocSyncStorageMessage) {
-
         final String vectorId = ragDocSyncStorageMessage.getId();
         final FileDetailEntity fileDetailEntity = fileDetailRepository.selectById(ragDocSyncStorageMessage.getFileId());
 
@@ -249,9 +253,10 @@ public class EmbeddingDomainService implements MetadataConstant {
 
         if (anInt >= pageSize) {
             // 使用状态机设置完成状态
-            fileDetailRepository.update(
-                    Wrappers.lambdaUpdate(FileDetailEntity.class).eq(FileDetailEntity::getId, fileDetailEntity.getId())
-                            .set(FileDetailEntity::getProcessingStatus, FileProcessingStatusEnum.COMPLETED.getCode()));
+            fileDetailRepository.update(Wrappers.lambdaUpdate(FileDetailEntity.class)
+                    .eq(FileDetailEntity::getId, fileDetailEntity.getId())
+                    .set(FileDetailEntity::getProcessingStatus, FileProcessingStatusEnum.COMPLETED.getCode())
+            );
         }
 
     }
@@ -274,7 +279,6 @@ public class EmbeddingDomainService implements MetadataConstant {
     }
 
     private Metadata buildMetadata(RagDocSyncStorageMessage ragDocSyncStorageMessage) {
-
         final Metadata metadata = new Metadata();
         metadata.put(FILE_ID, ragDocSyncStorageMessage.getFileId());
         metadata.put(FILE_NAME, ragDocSyncStorageMessage.getFileName());

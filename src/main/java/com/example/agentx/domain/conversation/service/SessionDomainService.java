@@ -24,8 +24,7 @@ public class SessionDomainService {
      * @param agentId 助理id
      */
     public List<SessionEntity> getSessionsByAgentId(String agentId, String userId) {
-        return sessionRepository.selectList(Wrappers.<SessionEntity>lambdaQuery()
-                .eq(SessionEntity::getAgentId, agentId)
+        return sessionRepository.selectList(Wrappers.<SessionEntity>lambdaQuery().eq(SessionEntity::getAgentId, agentId)
                 .eq(SessionEntity::getUserId, userId)
                 .orderByDesc(SessionEntity::getCreatedAt)
         );
@@ -38,9 +37,9 @@ public class SessionDomainService {
      * @param userId    用户id
      */
     public void deleteSession(String sessionId, String userId) {
-        sessionRepository.checkedDelete(Wrappers.<SessionEntity>lambdaQuery()
-                .eq(SessionEntity::getId, sessionId)
-                .eq(SessionEntity::getUserId, userId));
+        sessionRepository.checkedDelete(Wrappers.<SessionEntity>lambdaQuery().eq(SessionEntity::getId, sessionId)
+                .eq(SessionEntity::getUserId, userId)
+        );
     }
 
     /**
@@ -57,7 +56,8 @@ public class SessionDomainService {
         session.setTitle(title);
         sessionRepository.checkedUpdate(session, Wrappers.<SessionEntity>lambdaUpdate()
                 .eq(SessionEntity::getId, sessionId)
-                .eq(SessionEntity::getUserId, userId));
+                .eq(SessionEntity::getUserId, userId)
+        );
     }
 
     /**
@@ -82,9 +82,7 @@ public class SessionDomainService {
      * @param userId    用户id
      */
     public void checkSessionExist(String sessionId, String userId) {
-        SessionEntity session = sessionRepository.selectOne(Wrappers.<SessionEntity>lambdaQuery()
-                .eq(SessionEntity::getId, sessionId)
-                .eq(SessionEntity::getUserId, userId));
+        SessionEntity session = this.find(sessionId, userId);
         if (session == null) {
             throw new BusinessException("会话不存在");
         }
@@ -101,9 +99,7 @@ public class SessionDomainService {
     }
 
     public SessionEntity getSession(String sessionId, String userId) {
-        SessionEntity session = sessionRepository.selectOne(Wrappers.<SessionEntity>lambdaQuery()
-                .eq(SessionEntity::getId, sessionId)
-                .eq(SessionEntity::getUserId, userId));
+        SessionEntity session = this.find(sessionId, userId);
         if (session == null) {
             throw new BusinessException("会话不存在");
         }

@@ -29,10 +29,10 @@ public class AgentWidgetDomainService {
      * @return 创建的小组件配置
      */
     public AgentWidgetEntity createWidget(AgentWidgetEntity widget) {
+        LambdaQueryWrapper<AgentWidgetEntity> queryWrapper = Wrappers.<AgentWidgetEntity>lambdaQuery()
+                .eq(AgentWidgetEntity::getPublicId, widget.getPublicId());
         // 检查公开ID是否唯一
-        while (agentWidgetRepository.exists(Wrappers.<AgentWidgetEntity>lambdaQuery()
-                .eq(AgentWidgetEntity::getPublicId, widget.getPublicId()))) {
-            // 如果存在，就换一个新的
+        while (agentWidgetRepository.exists(queryWrapper)) {
             widget.setPublicId(generateNewPublicId());
         }
 
@@ -125,9 +125,9 @@ public class AgentWidgetDomainService {
     }
 
     public void deleteWidgetById(String widgetId, String userId) {
-
         agentWidgetRepository.delete(Wrappers.<AgentWidgetEntity>lambdaUpdate().eq(AgentWidgetEntity::getId, widgetId)
-                .eq(AgentWidgetEntity::getUserId, userId));
+                .eq(AgentWidgetEntity::getUserId, userId)
+        );
     }
 
     /**

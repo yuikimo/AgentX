@@ -80,7 +80,8 @@ public class ApiKeyDomainService {
      */
     public void updateUsage(String apiKey) {
         LambdaUpdateWrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaUpdate()
-                .eq(ApiKeyEntity::getApiKey, apiKey).setSql("usage_count = usage_count + 1")
+                .eq(ApiKeyEntity::getApiKey, apiKey)
+                .setSql("usage_count = usage_count + 1")
                 .set(ApiKeyEntity::getLastUsedAt, LocalDateTime.now());
 
         apiKeyRepository.checkedUpdate(wrapper);
@@ -94,8 +95,8 @@ public class ApiKeyDomainService {
      * @return API密钥列表
      */
     public List<ApiKeyEntity> getUserApiKeys(String userId, QueryApiKeyRequest queryRequest) {
-        LambdaQueryWrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery().eq(ApiKeyEntity::getUserId,
-                userId);
+        LambdaQueryWrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery()
+                .eq(ApiKeyEntity::getUserId, userId);
 
         // 添加查询条件
         if (queryRequest != null) {
@@ -138,7 +139,8 @@ public class ApiKeyDomainService {
      */
     public List<ApiKeyEntity> getAgentApiKeys(String agentId, String userId) {
         LambdaQueryWrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery()
-                .eq(ApiKeyEntity::getAgentId, agentId).eq(ApiKeyEntity::getUserId, userId)
+                .eq(ApiKeyEntity::getAgentId, agentId)
+                .eq(ApiKeyEntity::getUserId, userId)
                 .orderByDesc(ApiKeyEntity::getCreatedAt);
         return apiKeyRepository.selectList(wrapper);
     }
@@ -151,7 +153,8 @@ public class ApiKeyDomainService {
      * @return API密钥实体
      */
     public ApiKeyEntity getApiKey(String apiKeyId, String userId) {
-        Wrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery().eq(ApiKeyEntity::getId, apiKeyId)
+        Wrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery()
+                .eq(ApiKeyEntity::getId, apiKeyId)
                 .eq(ApiKeyEntity::getUserId, userId);
 
         ApiKeyEntity apiKeyEntity = apiKeyRepository.selectOne(wrapper);
@@ -171,7 +174,8 @@ public class ApiKeyDomainService {
      */
     public void updateStatus(String apiKeyId, String userId, Boolean status) {
         LambdaUpdateWrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaUpdate()
-                .eq(ApiKeyEntity::getId, apiKeyId).eq(ApiKeyEntity::getUserId, userId)
+                .eq(ApiKeyEntity::getId, apiKeyId)
+                .eq(ApiKeyEntity::getUserId, userId)
                 .set(ApiKeyEntity::getStatus, status);
 
         apiKeyRepository.checkedUpdate(wrapper);
@@ -184,7 +188,8 @@ public class ApiKeyDomainService {
      * @param userId   用户ID
      */
     public void deleteApiKey(String apiKeyId, String userId) {
-        Wrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery().eq(ApiKeyEntity::getId, apiKeyId)
+        Wrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery()
+                .eq(ApiKeyEntity::getId, apiKeyId)
                 .eq(ApiKeyEntity::getUserId, userId);
 
         apiKeyRepository.checkedDelete(wrapper);
@@ -206,7 +211,8 @@ public class ApiKeyDomainService {
         apiKeyEntity.setLastUsedAt(null);
 
         LambdaUpdateWrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaUpdate()
-                .eq(ApiKeyEntity::getId, apiKeyId).eq(ApiKeyEntity::getUserId, userId);
+                .eq(ApiKeyEntity::getId, apiKeyId)
+                .eq(ApiKeyEntity::getUserId, userId);
 
         apiKeyRepository.update(apiKeyEntity, wrapper);
 

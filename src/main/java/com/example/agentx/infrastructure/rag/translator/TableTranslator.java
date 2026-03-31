@@ -1,8 +1,5 @@
 package com.example.agentx.infrastructure.rag.translator;
 
-import com.example.agentx.domain.rag.strategy.context.ProcessingContext;
-import com.example.agentx.infrastructure.llm.LLMProviderService;
-import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 import com.vladsch.flexmark.ext.tables.TableBlock;
 import com.vladsch.flexmark.util.ast.Node;
 import dev.langchain4j.data.message.UserMessage;
@@ -11,6 +8,9 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import com.example.agentx.domain.rag.strategy.context.ProcessingContext;
+import com.example.agentx.infrastructure.llm.LLMProviderService;
+import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 
 /**
  * 表格翻译器
@@ -56,7 +56,6 @@ public class TableTranslator implements NodeTranslator {
             return node.getChars().toString(); // 出错时返回原内容
         }
     }
-
 
     @Override
     public int getPriority() {

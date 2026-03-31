@@ -46,8 +46,9 @@ import com.example.agentx.infrastructure.rag.service.UserModelConfigResolver;
 /**
  * document预处理消费者
  */
-@RabbitListener(bindings = @QueueBinding(value = @Queue(RagDocSyncOcrEvent.QUEUE_NAME), exchange = @Exchange(value =
-        RagDocSyncOcrEvent.EXCHANGE_NAME, type = ExchangeTypes.TOPIC), key = RagDocSyncOcrEvent.ROUTE_KEY))
+@RabbitListener(bindings = @QueueBinding(value = @Queue(RagDocSyncOcrEvent.QUEUE_NAME),
+        exchange = @Exchange(value = RagDocSyncOcrEvent.EXCHANGE_NAME, type = ExchangeTypes.TOPIC),
+        key = RagDocSyncOcrEvent.ROUTE_KEY))
 @Component
 public class RagDocConsumer {
 
@@ -106,8 +107,8 @@ public class RagDocConsumer {
                 throw new BusinessException("文件扩展名不能为空");
             }
 
-            DocumentProcessingStrategy strategy = documentProcessingFactory
-                    .getDocumentStrategyHandler(fileExt.toUpperCase());
+            DocumentProcessingStrategy strategy =
+                    documentProcessingFactory.getDocumentStrategyHandler(fileExt.toUpperCase());
             if (strategy == null) {
                 throw new BusinessException("不支持的文件类型: " + fileExt);
             }
@@ -162,9 +163,12 @@ public class RagDocConsumer {
             log.info("自动启动向量化处理，文件ID: {}", fileId);
 
             // 检查是否有可用的文档单元进行向量化
-            List<DocumentUnitEntity> documentUnits = documentUnitRepository
-                    .selectList(Wrappers.lambdaQuery(DocumentUnitEntity.class).eq(DocumentUnitEntity::getFileId, fileId)
-                            .eq(DocumentUnitEntity::getIsOcr, true).eq(DocumentUnitEntity::getIsVector, false));
+            List<DocumentUnitEntity> documentUnits = documentUnitRepository.selectList(
+                    Wrappers.lambdaQuery(DocumentUnitEntity.class)
+                            .eq(DocumentUnitEntity::getFileId, fileId)
+                            .eq(DocumentUnitEntity::getIsOcr, true)
+                            .eq(DocumentUnitEntity::getIsVector, false)
+            );
 
             if (documentUnits.isEmpty()) {
                 log.warn("未找到用于向量化的文档单元，文件ID: {}", fileId);

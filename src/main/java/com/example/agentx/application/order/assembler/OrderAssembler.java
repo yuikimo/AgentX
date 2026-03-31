@@ -1,12 +1,12 @@
 package com.example.agentx.application.order.assembler;
 
+import org.springframework.beans.BeanUtils;
 import com.example.agentx.application.order.dto.OrderDTO;
 import com.example.agentx.domain.order.constant.OrderStatus;
 import com.example.agentx.domain.order.constant.OrderType;
 import com.example.agentx.domain.order.constant.PaymentPlatform;
 import com.example.agentx.domain.order.constant.PaymentType;
 import com.example.agentx.domain.order.model.OrderEntity;
-import org.springframework.beans.BeanUtils;
 
 import java.util.Collections;
 import java.util.List;

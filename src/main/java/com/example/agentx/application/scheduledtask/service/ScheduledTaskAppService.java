@@ -13,10 +13,13 @@ import com.example.agentx.interfaces.dto.scheduledtask.request.UpdateScheduledTa
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * 定时任务应用服务 职责： 1. 接收和验证来自接口层的请求 2. 将请求转换为领域对象或参数 3. 调用领域服务执行业务逻辑 4. 转换和返回结果给接口层
+ * 定时任务应用服务 职责：
+ * 1. 接收和验证来自接口层的请求
+ * 2. 将请求转换为领域对象或参数
+ * 3. 调用领域服务执行业务逻辑
+ * 4. 转换和返回结果给接口层
  */
 @Service
 public class ScheduledTaskAppService {
@@ -124,7 +127,7 @@ public class ScheduledTaskAppService {
      */
     public List<ScheduledTaskDTO> getUserTasks(String userId) {
         List<ScheduledTaskEntity> entities = scheduledTaskDomainService.getTasksByUserId(userId);
-        return entities.stream().map(ScheduledTaskAssembler::toDTO).collect(Collectors.toList());
+        return entities.stream().map(ScheduledTaskAssembler::toDTO).collect(java.util.stream.Collectors.toList());
     }
 
     /**
@@ -138,7 +141,7 @@ public class ScheduledTaskAppService {
         List<ScheduledTaskEntity> entities = scheduledTaskDomainService.getTasksBySessionId(sessionId);
         // 过滤出属于当前用户的任务
         return entities.stream().filter(entity -> userId.equals(entity.getUserId())).map(ScheduledTaskAssembler::toDTO)
-                .collect(Collectors.toList());
+                .collect(java.util.stream.Collectors.toList());
     }
 
     /**
@@ -152,7 +155,7 @@ public class ScheduledTaskAppService {
         List<ScheduledTaskEntity> entities = scheduledTaskDomainService.getTasksByAgentId(agentId);
         // 过滤出属于当前用户的任务
         return entities.stream().filter(entity -> userId.equals(entity.getUserId())).map(ScheduledTaskAssembler::toDTO)
-                .collect(Collectors.toList());
+                .collect(java.util.stream.Collectors.toList());
     }
 
     /**

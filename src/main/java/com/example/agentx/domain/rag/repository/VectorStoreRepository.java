@@ -10,6 +10,8 @@ import java.util.List;
 
 /**
  * vector_store表数据访问接口 提供向量检索和关键词检索的统一数据访问
+ *
+ * @author claude
  */
 @Mapper
 public interface VectorStoreRepository extends MyBatisPlusExtRepository<VectorStoreResult> {

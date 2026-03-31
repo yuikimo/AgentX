@@ -89,8 +89,8 @@ public class LLMDomainService {
      * @return 服务商聚合根列表
      */
     public List<ProviderAggregate> getAllProviders(String userId) {
-        Wrapper<ProviderEntity> wrapper = Wrappers.<ProviderEntity>lambdaQuery()
-                .eq(ProviderEntity::getUserId, userId).or().eq(ProviderEntity::getIsOfficial, true);
+        Wrapper<ProviderEntity> wrapper = Wrappers.<ProviderEntity>lambdaQuery().eq(ProviderEntity::getUserId, userId)
+                .or().eq(ProviderEntity::getIsOfficial, true);
         List<ProviderEntity> providers = providerRepository.selectList(wrapper);
 
         return buildProviderAggregatesWithActiveModels(providers);
@@ -116,8 +116,7 @@ public class LLMDomainService {
      * @return 用户自定义服务商聚合根列表
      */
     public List<ProviderAggregate> getCustomProviders(String userId) {
-        Wrapper<ProviderEntity> wrapper = Wrappers.<ProviderEntity>lambdaQuery()
-                .eq(ProviderEntity::getUserId, userId)
+        Wrapper<ProviderEntity> wrapper = Wrappers.<ProviderEntity>lambdaQuery().eq(ProviderEntity::getUserId, userId)
                 .eq(ProviderEntity::getIsOfficial, false);
         List<ProviderEntity> providers = providerRepository.selectList(wrapper);
 
@@ -162,9 +161,7 @@ public class LLMDomainService {
      * @param userId     用户id
      */
     public ProviderEntity getProvider(String providerId, String userId) {
-
-        Wrapper<ProviderEntity> wrapper = Wrappers.<ProviderEntity>lambdaQuery()
-                .eq(ProviderEntity::getId, providerId)
+        Wrapper<ProviderEntity> wrapper = Wrappers.<ProviderEntity>lambdaQuery().eq(ProviderEntity::getId, providerId)
                 .eq(ProviderEntity::getUserId, userId);
         ProviderEntity provider = providerRepository.selectOne(wrapper);
         if (provider == null) {
@@ -174,7 +171,6 @@ public class LLMDomainService {
     }
 
     public ProviderEntity getProvider(String providerId) {
-
         Wrapper<ProviderEntity> wrapper = Wrappers.<ProviderEntity>lambdaQuery().eq(ProviderEntity::getId, providerId);
         ProviderEntity provider = providerRepository.selectOne(wrapper);
         if (provider == null) {
@@ -232,9 +228,9 @@ public class LLMDomainService {
      * @return 激活的模型列表
      */
     public List<ModelEntity> getActiveModelList(String providerId, String userId) {
-        Wrapper<ModelEntity> wrapper = Wrappers.<ModelEntity>lambdaQuery()
-                .eq(ModelEntity::getProviderId, providerId)
-                .eq(ModelEntity::getUserId, userId).eq(ModelEntity::getStatus, true);
+        Wrapper<ModelEntity> wrapper = Wrappers.<ModelEntity>lambdaQuery().eq(ModelEntity::getProviderId, providerId)
+                .eq(ModelEntity::getUserId, userId)
+                .eq(ModelEntity::getStatus, true);
         return modelRepository.selectList(wrapper);
     }
 
@@ -250,14 +246,13 @@ public class LLMDomainService {
                 .eq(ModelEntity::getProviderId, providerId);
         List<ModelEntity> modelsToDelete = modelRepository.selectList(modelQueryWrapper);
 
-        Wrapper<ProviderEntity> wrapper = Wrappers.<ProviderEntity>lambdaQuery()
-                .eq(ProviderEntity::getId, providerId)
+        Wrapper<ProviderEntity> wrapper = Wrappers.<ProviderEntity>lambdaQuery().eq(ProviderEntity::getId, providerId)
                 .eq(operator.needCheckUserId(), ProviderEntity::getUserId, userId);
         providerRepository.checkedDelete(wrapper);
 
         // 删除模型
-        Wrapper<ModelEntity> modelWrapper = Wrappers.<ModelEntity>lambdaQuery()
-                .eq(ModelEntity::getProviderId, providerId);
+        Wrapper<ModelEntity> modelWrapper = Wrappers.<ModelEntity>lambdaQuery().eq(ModelEntity::getProviderId,
+                providerId);
         int delete = modelRepository.delete(modelWrapper);
 
         // 如果有模型被删除，发布批量删除事件
@@ -319,8 +314,7 @@ public class LLMDomainService {
      * @param model 模型信息
      */
     public void updateModel(ModelEntity model) {
-        Wrapper<ModelEntity> wrapper = Wrappers.<ModelEntity>lambdaQuery()
-                .eq(ModelEntity::getId, model.getId())
+        Wrapper<ModelEntity> wrapper = Wrappers.<ModelEntity>lambdaQuery().eq(ModelEntity::getId, model.getId())
                 .eq(ModelEntity::getUserId, model.getUserId());
         modelRepository.checkedUpdate(model, wrapper);
 
@@ -334,8 +328,7 @@ public class LLMDomainService {
      * @param modelId 模型id
      */
     public void deleteModel(String modelId, String userId, Operator operator) {
-        Wrapper<ModelEntity> wrapper = Wrappers.<ModelEntity>lambdaQuery()
-                .eq(ModelEntity::getId, modelId)
+        Wrapper<ModelEntity> wrapper = Wrappers.<ModelEntity>lambdaQuery().eq(ModelEntity::getId, modelId)
                 .eq(operator.needCheckUserId(), ModelEntity::getUserId, userId);
         modelRepository.checkedDelete(wrapper);
 
@@ -462,8 +455,7 @@ public class LLMDomainService {
      * @return 所有模型列表
      */
     public List<ModelEntity> getAllModelList(String providerId, String userId) {
-        Wrapper<ModelEntity> wrapper = Wrappers.<ModelEntity>lambdaQuery()
-                .eq(ModelEntity::getProviderId, providerId)
+        Wrapper<ModelEntity> wrapper = Wrappers.<ModelEntity>lambdaQuery().eq(ModelEntity::getProviderId, providerId)
                 .eq(ModelEntity::getUserId, userId);
         return modelRepository.selectList(wrapper);
     }
@@ -483,8 +475,8 @@ public class LLMDomainService {
         List<String> providerIds = providers.stream().map(ProviderEntity::getId).collect(Collectors.toList());
 
         // 批量查询所有模型（不过滤状态）
-        Wrapper<ModelEntity> modelWrapper = Wrappers.<ModelEntity>lambdaQuery().in(ModelEntity::getProviderId,
-                providerIds);
+        Wrapper<ModelEntity> modelWrapper = Wrappers.<ModelEntity>lambdaQuery()
+                .in(ModelEntity::getProviderId, providerIds);
         List<ModelEntity> allModels = modelRepository.selectList(modelWrapper);
 
         // 按服务商分组
@@ -504,8 +496,8 @@ public class LLMDomainService {
      * @return 官方服务商聚合根列表
      */
     public List<ProviderAggregate> getOfficialProvidersWithAllModels() {
-        Wrapper<ProviderEntity> wrapper = Wrappers.<ProviderEntity>lambdaQuery().eq(ProviderEntity::getIsOfficial,
-                true);
+        Wrapper<ProviderEntity> wrapper = Wrappers.<ProviderEntity>lambdaQuery()
+                .eq(ProviderEntity::getIsOfficial, true);
         List<ProviderEntity> providers = providerRepository.selectList(wrapper);
 
         return buildProviderAggregatesWithAllModels(providers);

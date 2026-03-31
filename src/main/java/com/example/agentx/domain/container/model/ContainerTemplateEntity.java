@@ -5,9 +5,9 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.agentx.domain.container.constant.ContainerType;
+import com.example.agentx.infrastructure.entity.BaseEntity;
 import com.example.agentx.infrastructure.converter.ContainerTypeConverter;
 import com.example.agentx.infrastructure.converter.JsonConverter;
-import com.example.agentx.infrastructure.entity.BaseEntity;
 
 import java.util.Map;
 

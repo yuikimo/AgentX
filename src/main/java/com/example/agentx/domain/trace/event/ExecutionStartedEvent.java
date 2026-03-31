@@ -1,7 +1,7 @@
 package com.example.agentx.domain.trace.event;
 
-import com.example.agentx.domain.trace.model.TraceContext;
 import org.springframework.context.ApplicationEvent;
+import com.example.agentx.domain.trace.model.TraceContext;
 
 import java.time.LocalDateTime;
 

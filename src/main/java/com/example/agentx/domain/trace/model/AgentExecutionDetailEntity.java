@@ -1,9 +1,6 @@
 package com.example.agentx.domain.trace.model;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import com.example.agentx.infrastructure.entity.BaseEntity;
 
 import java.time.LocalDateTime;
@@ -225,7 +222,8 @@ public class AgentExecutionDetailEntity extends BaseEntity {
     public static AgentExecutionDetailEntity createAiResponseStep(String sessionId, Integer sequenceNo,
                                                                   String aiResponse, String modelEndpoint,
                                                                   String providerName, Integer messageTokens,
-                                                                  Integer modelCallTime, LocalDateTime eventTime) {
+                                                                  Integer modelCallTime,
+                                                                  LocalDateTime eventTime) {
         AgentExecutionDetailEntity entity = new AgentExecutionDetailEntity();
         entity.setSessionId(sessionId);
         entity.setMessageContent(aiResponse);
@@ -281,8 +279,8 @@ public class AgentExecutionDetailEntity extends BaseEntity {
     /**
      * 设置模型降级信息
      */
-    public void setFallbackInfo(String reason, String fromEndpoint, String toEndpoint,
-                                String fromProvider, String toProvider) {
+    public void setFallbackInfo(String reason, String fromEndpoint, String toEndpoint, String fromProvider,
+                                String toProvider) {
         this.isFallbackUsed = true;
         this.fallbackReason = reason;
         this.fallbackFromEndpoint = fromEndpoint;

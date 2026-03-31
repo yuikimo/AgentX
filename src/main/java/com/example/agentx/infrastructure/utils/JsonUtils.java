@@ -3,10 +3,10 @@ package com.example.agentx.infrastructure.utils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,9 +46,7 @@ public class JsonUtils {
         }
 
         try {
-            System.out.println("JsonUtils Debug - toJsonString input: " + obj + " (type: " + obj.getClass() + ")");
             String result = objectMapper.writeValueAsString(obj);
-            System.out.println("JsonUtils Debug - toJsonString result: " + result);
             return result;
         } catch (Exception e) {
             log.error("JSON序列化失败: {}, 错误: {}", obj.getClass().getSimpleName(), e.getMessage(), e);
@@ -107,19 +105,18 @@ public class JsonUtils {
      */
     public static Map<String, Object> parseMap(String json) {
         if (json == null || json.isEmpty()) {
-            System.out.println("JsonUtils Debug - parseMap input is null or empty");
+
             return null;
         }
 
         try {
-            System.out.println("JsonUtils Debug - parseMap input: " + json);
+
             Map<String, Object> result = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {
             });
-            System.out.println("JsonUtils Debug - parseMap result: " + result);
+
             return result;
         } catch (Exception e) {
             log.error("JSON Map反序列化失败: {}", e.getMessage(), e);
-            System.out.println("JsonUtils Debug - parseMap failed for input: " + json + ", error: " + e.getMessage());
             return null;
         }
     }

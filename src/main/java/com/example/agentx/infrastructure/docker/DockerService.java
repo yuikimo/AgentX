@@ -1,6 +1,7 @@
 package com.example.agentx.infrastructure.docker;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
@@ -15,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import com.example.agentx.domain.container.model.ContainerTemplate;
+import com.example.agentx.infrastructure.config.ContainerConfig;
 import com.example.agentx.infrastructure.exception.BusinessException;
 
 import java.time.Duration;
@@ -30,24 +32,61 @@ public class DockerService {
 
     private static final Logger logger = LoggerFactory.getLogger(DockerService.class);
     private DockerClient dockerClient;
+    private final ContainerConfig containerConfig;
+
+    public DockerService(ContainerConfig containerConfig) {
+        this.containerConfig = containerConfig;
+    }
 
     @PostConstruct
     public void init() {
         try {
-            DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-                    .withDockerHost("unix:///var/run/docker.sock").build();
+            String dockerHost = containerConfig.getDockerHost();
+            logger.info("正在初始化Docker客户端，连接地址: {}", dockerHost);
 
-            ApacheDockerHttpClient httpClient = new ApacheDockerHttpClient.Builder().dockerHost(config.getDockerHost())
-                    .sslConfig(config.getSSLConfig()).maxConnections(100).connectionTimeout(Duration.ofSeconds(30))
+            DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
+                    .withDockerHost(dockerHost).build();
+
+            ApacheDockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
+                    .dockerHost(config.getDockerHost())
+                    .sslConfig(config.getSSLConfig()).maxConnections(100)
+                    .connectionTimeout(Duration.ofSeconds(30))
                     .responseTimeout(Duration.ofSeconds(45)).build();
 
             dockerClient = DockerClientImpl.getInstance(config, httpClient);
 
-            logger.info("Docker客户端初始化成功");
+            // 测试连接
+            dockerClient.pingCmd().exec();
+            logger.info("Docker客户端初始化成功，连接地址: {}", dockerHost);
         } catch (Exception e) {
-            logger.error("Docker客户端初始化失败", e);
-            throw new BusinessException("Docker服务不可用");
+            String dockerHost = containerConfig.getDockerHost();
+            String errorMsg = buildErrorDiagnosticMessage(dockerHost, e);
+            logger.error("Docker客户端初始化失败，连接地址: {}, 详细诊断: {}", dockerHost, errorMsg, e);
+            throw new BusinessException("Docker服务不可用: " + errorMsg);
         }
+    }
+
+    /**
+     * 构建错误诊断信息
+     */
+    private String buildErrorDiagnosticMessage(String dockerHost, Exception e) {
+        StringBuilder diagnosis = new StringBuilder();
+        diagnosis.append("连接失败原因: ").append(e.getMessage());
+
+        if (dockerHost.startsWith("unix://")) {
+            diagnosis.append("\n可能的解决方案:");
+            diagnosis.append("\n1. 检查Docker daemon是否运行: docker info");
+            diagnosis.append("\n2. 检查socket文件权限: ls -la /var/run/docker.sock");
+            diagnosis.append("\n3. 在容器环境中，确保挂载了Docker socket: -v /var/run/docker.sock:/var/run/docker.sock");
+            diagnosis.append("\n4. 检查用户组权限: sudo usermod -aG docker $USER");
+        } else if (dockerHost.startsWith("tcp://")) {
+            diagnosis.append("\n可能的解决方案:");
+            diagnosis.append("\n1. 检查Docker daemon TCP端口是否开启");
+            diagnosis.append("\n2. 检查网络连通性");
+            diagnosis.append("\n3. 检查TLS配置是否正确");
+        }
+
+        return diagnosis.toString();
     }
 
     @PreDestroy
@@ -88,14 +127,19 @@ public class DockerService {
             // 检查网络模式，host模式不需要端口绑定
             boolean isHostNetwork = "host".equals(template.getNetworkMode());
 
-            CreateContainerCmd createCmd = dockerClient.createContainerCmd(template.getImage()).withName(containerName)
-                    .withEnv(envVars).withBinds(bind).withRestartPolicy(RestartPolicy.unlessStoppedRestart())
+            CreateContainerCmd createCmd = dockerClient.createContainerCmd(template.getImage())
+                    .withName(containerName)
+                    .withEnv(envVars)
+                    .withBinds(bind)
+                    .withRestartPolicy(RestartPolicy.unlessStoppedRestart())
                     .withNetworkMode(template.getNetworkMode());
 
-            HostConfig hostConfig = HostConfig.newHostConfig().withBinds(bind)
+            HostConfig hostConfig = HostConfig.newHostConfig()
+                    .withBinds(bind)
                     .withMemory(template.getMemoryLimit() * 1024L * 1024L) // MB to bytes
                     .withCpuQuota(Math.round(template.getCpuLimit() * 100000L)) // CPU限制
-                    .withRestartPolicy(RestartPolicy.unlessStoppedRestart()).withNetworkMode(template.getNetworkMode());
+                    .withRestartPolicy(RestartPolicy.unlessStoppedRestart())
+                    .withNetworkMode(template.getNetworkMode());
 
             if (!isHostNetwork) {
                 // 非host网络模式才需要端口绑定
@@ -115,16 +159,16 @@ public class DockerService {
             CreateContainerResponse container = createCmd.withHostConfig(hostConfig).exec();
 
             String containerId = container.getId();
-            logger.info("容器创建成功: {} -> {}", containerName, containerId);
+            logger.info("成功创建容器: {} -> {}", containerName, containerId);
 
             // 启动容器
             dockerClient.startContainerCmd(containerId).exec();
-            logger.info("容器启动成功: {}", containerId);
+            logger.info("成功启动容器: {}", containerId);
 
             return containerId;
 
         } catch (DockerException e) {
-            logger.error("创建或启动容器失败: {}", containerName, e);
+            logger.error("容器创建或启动失败: {}", containerName, e);
             throw new BusinessException("容器创建失败: " + e.getMessage());
         }
     }
@@ -138,9 +182,9 @@ public class DockerService {
         try {
             dockerClient.stopContainerCmd(containerId).withTimeout(10) // 10秒超时
                     .exec();
-            logger.info("容器已停止: {}", containerId);
+            logger.info("成功停止容器: {}", containerId);
         } catch (Exception e) {
-            logger.error("停止容器失败: {}", containerId, e);
+            logger.error("容器停止失败: {}", containerId, e);
         }
     }
 
@@ -155,16 +199,16 @@ public class DockerService {
             String currentStatus = getContainerStatus(containerId);
 
             if ("running".equalsIgnoreCase(currentStatus)) {
-                logger.info("容器已经在运行中，无需重复启动: {}", containerId);
+                logger.info("容器已运行，无需启动: {}", containerId);
                 return;
             }
 
             // 只有在容器未运行时才启动
             dockerClient.startContainerCmd(containerId).exec();
-            logger.info("容器已启动: {}", containerId);
+            logger.info("成功启动容器: {}", containerId);
         } catch (DockerException e) {
-            logger.error("启动容器失败: {}", containerId, e);
-            throw new BusinessException("启动容器失败: " + e.getMessage());
+            logger.error("容器启动失败: {}", containerId, e);
+            throw new BusinessException("容器启动失败: " + e.getMessage());
         }
     }
 
@@ -181,12 +225,12 @@ public class DockerService {
                 try {
                     stopContainer(containerId);
                 } catch (Exception e) {
-                    logger.warn("停止容器时出现异常，继续删除: {}", containerId);
+                    logger.warn("容器停止异常，继续删除: {}", containerId);
                 }
             }
 
             dockerClient.removeContainerCmd(containerId).withForce(force).exec();
-            logger.info("容器已删除: {}", containerId);
+            logger.info("成功删除容器: {}", containerId);
         } catch (DockerException e) {
             logger.error("删除容器失败: {}", containerId, e);
         }
@@ -247,6 +291,33 @@ public class DockerService {
     }
 
     /**
+     * 通过容器名查找容器ID
+     *
+     * @param containerName 容器名称
+     * @return Docker容器ID，如果不存在返回null
+     */
+    public String findContainerByName(String containerName) {
+        try {
+            // 查找所有容器（包括停止的）
+            var containers = dockerClient.listContainersCmd()
+                    .withShowAll(true)
+                    .withNameFilter(List.of(containerName))
+                    .exec();
+
+            if (!containers.isEmpty()) {
+                String containerId = containers.get(0).getId();
+                logger.info("通过名称找到现有容器: name={}, id={}", containerName, containerId);
+                return containerId;
+            }
+
+            return null;
+        } catch (DockerException e) {
+            logger.warn("查找容器失败: name={}", containerName, e);
+            return null;
+        }
+    }
+
+    /**
      * 获取容器统计信息
      *
      * @param containerId Docker容器ID
@@ -257,8 +328,9 @@ public class DockerService {
             // 使用同步方式获取统计信息
             final Statistics[] result = new Statistics[1];
             try {
-                dockerClient.statsCmd(containerId).withNoStream(true)
-                        .exec(new com.github.dockerjava.api.async.ResultCallback.Adapter<Statistics>() {
+                dockerClient.statsCmd(containerId)
+                        .withNoStream(true)
+                        .exec(new ResultCallback.Adapter<Statistics>() {
                             @Override
                             public void onNext(Statistics stats) {
                                 result[0] = stats;
@@ -302,18 +374,18 @@ public class DockerService {
             List<Image> images = dockerClient.listImagesCmd().withImageNameFilter(image).exec();
 
             if (images.isEmpty()) {
-                logger.info("镜像不存在，开始拉取: {}", image);
+                logger.info("开始拉取镜像: {}", image);
                 try {
                     dockerClient.pullImageCmd(image).exec(new CustomPullImageResultCallback()).awaitCompletion();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     throw new BusinessException("镜像拉取被中断");
                 }
-                logger.info("镜像拉取完成: {}", image);
+                logger.info("完成镜像拉取: {}", image);
             }
         } catch (Exception e) {
-            logger.error("拉取镜像失败: {}", image, e);
-            throw new BusinessException("拉取镜像失败: " + e.getMessage());
+            logger.error("镜像拉取失败: {}", image, e);
+            throw new BusinessException("镜像拉取失败: " + e.getMessage());
         }
     }
 
@@ -488,6 +560,93 @@ public class DockerService {
     }
 
     /**
+     * 验证容器实际状态（区分容器不存在和状态异常）
+     *
+     * @param containerId Docker容器ID
+     * @return 容器实际状态信息
+     */
+    public ContainerActualStatus getContainerActualStatus(String containerId) {
+        if (containerId == null) {
+            return new ContainerActualStatus(false, null, "容器ID为空");
+        }
+
+        try {
+            InspectContainerResponse response = dockerClient.inspectContainerCmd(containerId).exec();
+            String status = response.getState().getStatus();
+            boolean isRunning = "running".equalsIgnoreCase(status);
+
+            logger.debug("容器实际状态检查: containerId={}, status={}, running={}", containerId, status, isRunning);
+
+            return new ContainerActualStatus(true, status, isRunning ? "容器运行正常" : "容器状态为: " + status);
+        } catch (DockerException e) {
+            logger.warn("容器不存在或无法访问: containerId={}", containerId, e);
+            return new ContainerActualStatus(false, null, "容器不存在: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 检查容器网络连通性
+     *
+     * @param ipAddress 容器IP地址
+     * @param port      容器端口
+     * @return 是否可连通
+     */
+    public boolean isContainerNetworkAccessible(String ipAddress, Integer port) {
+        if (ipAddress == null || port == null) {
+            return false;
+        }
+
+        try {
+            // 简单的TCP连接检查
+            java.net.Socket socket = new java.net.Socket();
+            socket.connect(new java.net.InetSocketAddress(ipAddress, port), 3000); // 3秒超时
+            socket.close();
+
+            logger.debug("容器网络连通性检查成功: {}:{}", ipAddress, port);
+            return true;
+        } catch (Exception e) {
+            logger.debug("容器网络连通性检查失败: {}:{}, error={}", ipAddress, port, e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * 强制检查并启动容器（如果存在但未运行）
+     *
+     * @param containerId Docker容器ID
+     * @return 操作结果
+     */
+    public ContainerRecoveryResult forceStartContainerIfExists(String containerId) {
+        ContainerActualStatus actualStatus = getContainerActualStatus(containerId);
+
+        if (!actualStatus.exists()) {
+            return new ContainerRecoveryResult(false, "CONTAINER_NOT_EXISTS", actualStatus.getMessage());
+        }
+
+        String currentStatus = actualStatus.getStatus();
+
+        if ("running".equalsIgnoreCase(currentStatus)) {
+            return new ContainerRecoveryResult(true, "ALREADY_RUNNING", "容器已在运行");
+        }
+
+        // 尝试启动容器
+        try {
+            startContainer(containerId);
+
+            // 再次检查状态确认启动成功
+            ContainerActualStatus newStatus = getContainerActualStatus(containerId);
+            if (newStatus.exists() && "running".equalsIgnoreCase(newStatus.getStatus())) {
+                return new ContainerRecoveryResult(true, "STARTED_SUCCESSFULLY", "容器启动成功");
+            } else {
+                return new ContainerRecoveryResult(false, "START_FAILED", "容器启动后状态异常: " + newStatus.getStatus());
+            }
+        } catch (Exception e) {
+            logger.error("强制启动容器失败: containerId={}", containerId, e);
+            return new ContainerRecoveryResult(false, "START_ERROR", "启动失败: " + e.getMessage());
+        }
+    }
+
+    /**
      * 获取Docker客户端（用于WebTerminal）
      *
      * @return Docker客户端
@@ -526,6 +685,64 @@ public class DockerService {
 
         public void setMemoryUsage(Double memoryUsage) {
             this.memoryUsage = memoryUsage;
+        }
+    }
+
+    /**
+     * 容器实际状态信息
+     */
+    public static class ContainerActualStatus {
+        private final boolean exists;
+        private final String status;
+        private final String message;
+
+        public ContainerActualStatus(boolean exists, String status, String message) {
+            this.exists = exists;
+            this.status = status;
+            this.message = message;
+        }
+
+        public boolean exists() {
+            return exists;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public boolean isRunning() {
+            return exists && "running".equalsIgnoreCase(status);
+        }
+    }
+
+    /**
+     * 容器恢复操作结果
+     */
+    public static class ContainerRecoveryResult {
+        private final boolean success;
+        private final String resultCode;
+        private final String message;
+
+        public ContainerRecoveryResult(boolean success, String resultCode, String message) {
+            this.success = success;
+            this.resultCode = resultCode;
+            this.message = message;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public String getResultCode() {
+            return resultCode;
+        }
+
+        public String getMessage() {
+            return message;
         }
     }
 }

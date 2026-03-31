@@ -254,8 +254,10 @@ public class RagDataAccessDomainService {
 
         // 动态计算实际页数 - 查询最大页码
         LambdaQueryWrapper<UserRagDocumentEntity> docWrapper = Wrappers.<UserRagDocumentEntity>lambdaQuery()
-                .eq(UserRagDocumentEntity::getUserRagFileId, userFileId).select(UserRagDocumentEntity::getPage)
-                .orderByDesc(UserRagDocumentEntity::getPage).last("LIMIT 1");
+                .eq(UserRagDocumentEntity::getUserRagFileId, userFileId)
+                .select(UserRagDocumentEntity::getPage)
+                .orderByDesc(UserRagDocumentEntity::getPage)
+                .last("LIMIT 1");
 
         List<UserRagDocumentEntity> docs = userRagDocumentRepository.selectList(docWrapper);
         int actualPageSize = docs.isEmpty() ? 0 : docs.get(0).getPage() + 1;
@@ -271,7 +273,8 @@ public class RagDataAccessDomainService {
      */
     private List<DocumentUnitEntity> getRealTimeDocumentsByFile(String fileId, String userId) {
         LambdaQueryWrapper<DocumentUnitEntity> wrapper = Wrappers.<DocumentUnitEntity>lambdaQuery()
-                .eq(DocumentUnitEntity::getFileId, fileId).orderByDesc(DocumentUnitEntity::getCreatedAt);
+                .eq(DocumentUnitEntity::getFileId, fileId)
+                .orderByDesc(DocumentUnitEntity::getCreatedAt);
 
         return documentUnitRepository.selectList(wrapper);
     }
@@ -282,7 +285,8 @@ public class RagDataAccessDomainService {
     private List<DocumentUnitEntity> getUserSnapshotDocumentsByUserFileId(String userRagId, String userFileId) {
         // 验证文件属于指定的用户RAG
         LambdaQueryWrapper<UserRagFileEntity> fileWrapper = Wrappers.<UserRagFileEntity>lambdaQuery()
-                .eq(UserRagFileEntity::getUserRagId, userRagId).eq(UserRagFileEntity::getId, userFileId);
+                .eq(UserRagFileEntity::getUserRagId, userRagId)
+                .eq(UserRagFileEntity::getId, userFileId);
 
         UserRagFileEntity userFile = userRagFileRepository.selectOne(fileWrapper);
         if (userFile == null) {

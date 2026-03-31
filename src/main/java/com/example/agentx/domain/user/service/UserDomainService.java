@@ -215,7 +215,7 @@ public class UserDomainService {
      * @return 用户分页数据
      */
     public Page<UserEntity> getUsers(QueryUserRequest queryUserRequest) {
-        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.<UserEntity>lambdaQuery();
+        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.lambdaQuery();
 
         // 关键词搜索：昵称、邮箱、手机号
         if (queryUserRequest.getKeyword() != null && !queryUserRequest.getKeyword().trim().isEmpty()) {

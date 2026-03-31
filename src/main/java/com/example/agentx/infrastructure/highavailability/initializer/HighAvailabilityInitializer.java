@@ -1,11 +1,11 @@
 package com.example.agentx.infrastructure.highavailability.initializer;
 
-import com.example.agentx.domain.llm.service.HighAvailabilityDomainService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
+import com.example.agentx.domain.llm.service.HighAvailabilityDomainService;
 
 /**
  * 高可用初始化器 在应用启动时初始化高可用项目和同步模型

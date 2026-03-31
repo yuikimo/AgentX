@@ -9,6 +9,9 @@ import com.example.agentx.domain.rag.service.state.FileProcessingStateProcessor;
 
 /**
  * 向量化处理中状态处理器
+ *
+ * @author zang
+ * @date 2025-07-17
  */
 @Component
 public class EmbeddingProcessingStateProcessor implements FileProcessingStateProcessor {

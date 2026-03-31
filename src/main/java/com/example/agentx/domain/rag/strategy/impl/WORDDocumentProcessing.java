@@ -1,30 +1,31 @@
 package com.example.agentx.domain.rag.strategy.impl;
 
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.example.agentx.domain.rag.message.RagDocMessage;
-import com.example.agentx.domain.rag.model.DocumentUnitEntity;
-import com.example.agentx.domain.rag.model.FileDetailEntity;
-import com.example.agentx.domain.rag.repository.DocumentUnitRepository;
-import com.example.agentx.domain.rag.repository.FileDetailRepository;
-import dev.langchain4j.data.document.Document;
-import dev.langchain4j.data.document.DocumentParser;
-import dev.langchain4j.data.document.parser.apache.poi.ApachePoiDocumentParser;
-import dev.langchain4j.data.document.splitter.DocumentBySentenceSplitter;
-import dev.langchain4j.data.segment.TextSegment;
-import jakarta.annotation.Resource;
-import org.dromara.streamquery.stream.core.stream.Steam;
-import org.dromara.x.file.storage.core.FileStorageService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.dromara.streamquery.stream.core.stream.Steam;
+import org.dromara.x.file.storage.core.FileStorageService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import com.example.agentx.domain.rag.message.RagDocMessage;
+import com.example.agentx.domain.rag.model.DocumentUnitEntity;
+import com.example.agentx.domain.rag.model.FileDetailEntity;
+import com.example.agentx.domain.rag.repository.DocumentUnitRepository;
+import com.example.agentx.domain.rag.repository.FileDetailRepository;
+
+import dev.langchain4j.data.document.Document;
+import dev.langchain4j.data.document.DocumentParser;
+import dev.langchain4j.data.document.parser.apache.poi.ApachePoiDocumentParser;
+import dev.langchain4j.data.document.splitter.DocumentBySentenceSplitter;
+import dev.langchain4j.data.segment.TextSegment;
+import jakarta.annotation.Resource;
 
 @Service("word")
 public class WORDDocumentProcessing extends AbstractDocumentProcessingStrategy {
@@ -128,14 +129,16 @@ public class WORDDocumentProcessing extends AbstractDocumentProcessingStrategy {
      */
     @Override
     public Map<Integer, String> processFile(byte[] fileBytes, int totalPages) {
-        log.info("Current file type is non-PDF, text is extracted directly ——————> Does not contain page numbers; the" +
-                " concept of page numbers serves as an index.");
+        log.info(
+                "Current file type is non-PDF, text is extracted directly ——————> Does not contain page numbers; the " +
+                        "concept of page numbers serves as an index.");
 
         DocumentParser parser = new ApachePoiDocumentParser();
         // 使用ByteArrayInputStream将字节数组转换为输入流
         InputStream inputStream = new ByteArrayInputStream(fileBytes);
 
         Document document;
+
         final HashMap<Integer, String> ocrData = new HashMap<>();
 
         try {
@@ -152,6 +155,7 @@ public class WORDDocumentProcessing extends AbstractDocumentProcessingStrategy {
             });
 
             return ocrData;
+
         } catch (Exception e) {
             log.error("Failed to process document", e);
         } finally {
@@ -161,6 +165,7 @@ public class WORDDocumentProcessing extends AbstractDocumentProcessingStrategy {
                 log.error("Failed to close the input stream", e);
             }
         }
+
         return ocrData;
     }
 
@@ -194,6 +199,7 @@ public class WORDDocumentProcessing extends AbstractDocumentProcessingStrategy {
             documentUnitRepository.checkInsert(documentUnitEntity);
             log.debug("保存第{}页内容完成", pageIndex + 1);
         }
+
         log.info("Word文档内容保存完成");
     }
 }

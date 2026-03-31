@@ -1,15 +1,14 @@
 package com.example.agentx.application.memory.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.stereotype.Service;
 import com.example.agentx.application.memory.assembler.MemoryAssembler;
-import com.example.agentx.application.memory.assembler.MemoryCommandAssembler;
 import com.example.agentx.application.memory.dto.MemoryItemDTO;
 import com.example.agentx.domain.memory.model.CandidateMemory;
 import com.example.agentx.domain.memory.model.MemoryItemEntity;
 import com.example.agentx.domain.memory.service.MemoryDomainService;
 import com.example.agentx.interfaces.dto.memory.CreateMemoryRequest;
 import com.example.agentx.interfaces.dto.memory.QueryMemoryRequest;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +38,7 @@ public class MemoryAppService {
      * 手动创建记忆
      */
     public List<String> createMemory(String userId, CreateMemoryRequest request) {
-        CandidateMemory cm = MemoryCommandAssembler.toCandidate(request);
+        CandidateMemory cm = com.example.agentx.application.memory.assembler.MemoryCommandAssembler.toCandidate(request);
         List<CandidateMemory> list = new ArrayList<>();
         list.add(cm);
         return memoryDomainService.saveMemories(userId, null, list);

@@ -32,8 +32,8 @@ public class ConversationEventListener {
     @Async
     public void chatEvent(ScheduledTaskExecuteEvent event) {
         try {
-            logger.info("接收到定时任务执行事件: taskId={}, userId={}, sessionId={}",
-                    event.getTaskId(), event.getUserId(), event.getSessionId());
+            logger.info("接收到定时任务执行事件: taskId={}, userId={}, sessionId={}", event.getTaskId(), event.getUserId(),
+                    event.getSessionId());
 
             // 创建聊天请求
             ChatRequest chatRequest = new ChatRequest();

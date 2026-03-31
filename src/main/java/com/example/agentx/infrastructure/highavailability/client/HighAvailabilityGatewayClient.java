@@ -1,5 +1,16 @@
 package com.example.agentx.infrastructure.highavailability.client;
 
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import com.example.agentx.infrastructure.config.HighAvailabilityProperties;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.infrastructure.highavailability.dto.request.ApiInstanceBatchCreateRequest;
@@ -12,20 +23,10 @@ import com.example.agentx.infrastructure.highavailability.dto.request.SelectInst
 import com.example.agentx.infrastructure.highavailability.dto.response.ApiInstanceDTO;
 import com.example.agentx.infrastructure.highavailability.dto.response.GatewayResult;
 import com.example.agentx.infrastructure.utils.JsonUtils;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import java.net.URI;
+
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -89,8 +90,8 @@ public class HighAvailabilityGatewayClient {
                     throw new BusinessException("解析API实例信息失败");
                 }
 
-                logger.info("成功选择实例: businessId={}, instanceId={}",
-                        selectedInstance.getBusinessId(), selectedInstance.getId());
+                logger.info("成功选择实例: businessId={}, instanceId={}", selectedInstance.getBusinessId(),
+                        selectedInstance.getId());
                 return selectedInstance;
             }
 
@@ -164,7 +165,7 @@ public class HighAvailabilityGatewayClient {
     }
 
     /**
-     * 更新API实例
+     * 更新API实例 修复：使用正确的路径参数和请求体类型
      */
     public void updateApiInstance(String apiType, String businessId, ApiInstanceUpdateRequest request) {
         if (!properties.isEnabled()) {
@@ -194,7 +195,7 @@ public class HighAvailabilityGatewayClient {
     }
 
     /**
-     * 删除API实例
+     * 删除API实例 修复：使用正确的路径参数顺序
      */
     public void deleteApiInstance(String apiType, String businessId) {
         if (!properties.isEnabled()) {
@@ -257,8 +258,8 @@ public class HighAvailabilityGatewayClient {
         }
 
         try {
-            String url = String.format("%s/instances/%s/%s/deactivate",
-                    properties.getGatewayUrl(), apiType, businessId);
+            String url = String.format("%s/instances/%s/%s/deactivate", properties.getGatewayUrl(), apiType,
+                    businessId);
 
             HttpPost httpPost = new HttpPost(url);
             httpPost.setHeader("Content-Type", "application/json");
@@ -379,6 +380,7 @@ public class HighAvailabilityGatewayClient {
                     logger.info("批量删除API实例成功，删除数量: {}", instances.size());
                 }
             }
+
         } catch (Exception e) {
             logger.error("批量删除API实例失败", e);
             // 删除失败不抛异常，避免影响主流程

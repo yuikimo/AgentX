@@ -5,7 +5,6 @@ import dev.langchain4j.model.chat.request.json.JsonBooleanSchema;
 import dev.langchain4j.model.chat.request.json.JsonIntegerSchema;
 import dev.langchain4j.model.chat.request.json.JsonNumberSchema;
 import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
-import dev.langchain4j.model.chat.request.json.JsonSchemaElement;
 import dev.langchain4j.model.chat.request.json.JsonStringSchema;
 
 import java.util.*;
@@ -38,12 +37,12 @@ public class ToolDefinition {
         JsonObjectSchema.Builder schemaBuilder = JsonObjectSchema.builder();
 
         // 添加参数定义
-        Map<String, JsonSchemaElement> properties = new HashMap<>();
+        Map<String, dev.langchain4j.model.chat.request.json.JsonSchemaElement> properties = new HashMap<>();
         for (Map.Entry<String, ParameterDefinition> entry : parameters.entrySet()) {
             String paramName = entry.getKey();
             ParameterDefinition paramDef = entry.getValue();
 
-            JsonSchemaElement schema = createJsonSchema(paramDef);
+            dev.langchain4j.model.chat.request.json.JsonSchemaElement schema = createJsonSchema(paramDef);
             properties.put(paramName, schema);
         }
 
@@ -56,17 +55,14 @@ public class ToolDefinition {
             schemaBuilder.required(requiredParameters.toArray(new String[0]));
         }
 
-        return ToolSpecification.builder()
-                .name(name)
-                .description(description)
-                .parameters(schemaBuilder.build())
+        return ToolSpecification.builder().name(name).description(description).parameters(schemaBuilder.build())
                 .build();
     }
 
     /**
      * 根据参数定义创建JSON Schema
      */
-    private JsonSchemaElement createJsonSchema(ParameterDefinition paramDef) {
+    private dev.langchain4j.model.chat.request.json.JsonSchemaElement createJsonSchema(ParameterDefinition paramDef) {
         switch (paramDef.type) {
             case STRING:
                 return JsonStringSchema.builder().description(paramDef.description).build();

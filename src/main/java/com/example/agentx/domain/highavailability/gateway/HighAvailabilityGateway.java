@@ -1,20 +1,17 @@
 package com.example.agentx.domain.highavailability.gateway;
 
-import com.example.agentx.infrastructure.highavailability.dto.request.ApiInstanceBatchDeleteRequest;
 import com.example.agentx.infrastructure.highavailability.dto.request.ApiInstanceCreateRequest;
 import com.example.agentx.infrastructure.highavailability.dto.request.ApiInstanceUpdateRequest;
 import com.example.agentx.infrastructure.highavailability.dto.request.ProjectCreateRequest;
 import com.example.agentx.infrastructure.highavailability.dto.request.ReportResultRequest;
 import com.example.agentx.infrastructure.highavailability.dto.request.SelectInstanceRequest;
+import com.example.agentx.infrastructure.highavailability.dto.request.ApiInstanceBatchDeleteRequest;
 import com.example.agentx.infrastructure.highavailability.dto.response.ApiInstanceDTO;
 
 import java.util.List;
 
 /**
  * 高可用网关接口 定义基础设施层需要实现的技术操作
- *
- * @author xhy
- * @since 1.0.0
  */
 public interface HighAvailabilityGateway {
 

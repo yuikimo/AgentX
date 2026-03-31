@@ -14,8 +14,6 @@ import java.util.List;
 
 /**
  * JSON类型转换处理器
- *
- * @param <T> 要转换的类型
  */
 @MappedJdbcTypes(JdbcType.VARCHAR)
 @MappedTypes(List.class)

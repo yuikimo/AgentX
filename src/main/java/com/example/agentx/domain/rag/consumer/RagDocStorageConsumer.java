@@ -35,8 +35,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rabbitmq.client.Channel;
 
 @RabbitListener(bindings = @QueueBinding(value = @Queue(RagDocSyncStorageEvent.QUEUE_NAME), exchange =
-@Exchange(value = RagDocSyncStorageEvent.EXCHANGE_NAME, type = ExchangeTypes.TOPIC), key =
-        RagDocSyncStorageEvent.ROUTE_KEY))
+@Exchange(value = RagDocSyncStorageEvent.EXCHANGE_NAME, type = ExchangeTypes.TOPIC),
+        key = RagDocSyncStorageEvent.ROUTE_KEY))
 @Component
 public class RagDocStorageConsumer {
 
@@ -105,10 +105,11 @@ public class RagDocStorageConsumer {
 
             if (totalPages != null && totalPages > 0) {
                 // 查询已完成向量化的页面数量
-                long completedVectorPages =
-                        documentUnitRepository.selectCount(Wrappers.<DocumentUnitEntity>lambdaQuery()
-                        .eq(DocumentUnitEntity::getFileId, fileId)
-                        .eq(DocumentUnitEntity::getIsVector, true));
+                long completedVectorPages = documentUnitRepository.selectCount(
+                        Wrappers.<DocumentUnitEntity>lambdaQuery()
+                                .eq(DocumentUnitEntity::getFileId, fileId)
+                                .eq(DocumentUnitEntity::getIsVector, true)
+                );
 
                 // 当前页面完成后的总完成页数
                 int currentCompletedPages = (int) (completedVectorPages + 1);
@@ -117,8 +118,8 @@ public class RagDocStorageConsumer {
                 double progress = ((double) currentCompletedPages / totalPages) * 100.0;
 
                 fileDetailDomainService.updateFileEmbeddingProgress(fileId, currentCompletedPages, progress);
-                log.debug("更新文件{}的嵌入进度: {}/{} ({}%)", fileId, currentCompletedPages, totalPages,
-                        String.format("%.1f", progress));
+                log.debug("更新文件{}的嵌入进度: {}/{} ({}%)",
+                        fileId, currentCompletedPages, totalPages, String.format("%.1f", progress));
 
                 // 检查是否所有页面都已完成向量化
                 if (currentCompletedPages >= totalPages) {

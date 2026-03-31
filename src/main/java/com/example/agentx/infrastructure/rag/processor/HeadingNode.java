@@ -5,8 +5,6 @@ import com.example.agentx.domain.rag.model.ProcessedSegment;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.agentx.domain.rag.model.enums.SegmentType.SECTION;
-
 /**
  * 标题节点 - 表示Markdown文档中的标题层次结构
  * <p>
@@ -167,10 +165,11 @@ public class HeadingNode {
 
         // 添加直接内容
         if (directContent.length() > 0) {
-            content.append(directContent);
+            content.append(directContent.toString());
         }
 
-        ProcessedSegment segment = new ProcessedSegment(content.toString().trim(), SECTION, null);
+        ProcessedSegment segment = new ProcessedSegment(content.toString().trim(),
+                com.example.agentx.domain.rag.model.enums.SegmentType.SECTION, null);
 
         return segment;
     }

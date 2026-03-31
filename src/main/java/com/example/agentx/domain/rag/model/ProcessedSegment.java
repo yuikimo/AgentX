@@ -7,6 +7,7 @@ import java.util.Map;
 
 /**
  * 处理后的Markdown段落
+ * <p>
  * 用于表示文档分段处理后的结果
  */
 public class ProcessedSegment {

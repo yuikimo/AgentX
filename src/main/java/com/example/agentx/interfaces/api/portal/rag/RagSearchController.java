@@ -6,6 +6,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import com.example.agentx.application.rag.dto.DocumentUnitDTO;
 import com.example.agentx.application.rag.dto.RagSearchRequest;
 import com.example.agentx.application.rag.dto.RagStreamChatRequest;
+import com.example.agentx.application.conversation.service.ConversationAppService;
 import com.example.agentx.application.rag.service.search.RAGSearchAppService;
 import com.example.agentx.infrastructure.auth.UserContext;
 import com.example.agentx.interfaces.api.common.Result;
@@ -20,9 +21,11 @@ import java.util.List;
 public class RagSearchController {
 
     private final RAGSearchAppService ragSearchAppService;
+    private final ConversationAppService conversationAppService;
 
-    public RagSearchController(RAGSearchAppService ragSearchAppService) {
+    public RagSearchController(RAGSearchAppService ragSearchAppService, ConversationAppService conversationAppService) {
         this.ragSearchAppService = ragSearchAppService;
+        this.conversationAppService = conversationAppService;
     }
 
     /**
@@ -39,7 +42,7 @@ public class RagSearchController {
     }
 
     /**
-     * RAG流式问答
+     * RAG流式问答 - 使用统一架构
      *
      * @param request 流式问答请求
      * @return 流式响应
@@ -47,7 +50,7 @@ public class RagSearchController {
     @PostMapping("/stream-chat")
     public SseEmitter ragStreamChat(@RequestBody @Validated RagStreamChatRequest request) {
         String userId = UserContext.getCurrentUserId();
-        return ragSearchAppService.ragStreamChat(request, userId);
+        return conversationAppService.ragStreamChat(request, userId);
     }
 
     /**
@@ -66,7 +69,7 @@ public class RagSearchController {
     }
 
     /**
-     * 基于已安装知识库的RAG流式问答
+     * 基于已安装知识库的RAG流式问答 - 使用统一架构
      *
      * @param userRagId 已安装的知识库ID
      * @param request   流式问答请求
@@ -76,7 +79,7 @@ public class RagSearchController {
     public SseEmitter ragStreamChatByUserRag(@PathVariable String userRagId,
                                              @RequestBody @Validated RagStreamChatRequest request) {
         String userId = UserContext.getCurrentUserId();
-        return ragSearchAppService.ragStreamChatByUserRag(request, userRagId, userId);
+        return conversationAppService.ragStreamChatByUserRag(request, userRagId, userId);
     }
 
 }

@@ -1,17 +1,18 @@
 package com.example.agentx.application.product.listener;
 
-import com.example.agentx.domain.order.constant.OrderType;
-import com.example.agentx.domain.order.event.PurchaseSuccessEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import com.example.agentx.domain.order.constant.OrderType;
+import com.example.agentx.domain.order.event.PurchaseSuccessEvent;
 
 import java.util.Map;
 
 /**
  * 商品购买事件监听器（示例） 监听购买成功事件，处理商品购买类型的订单
+ * <p>
  * 这是一个扩展示例，展示如何为不同的订单类型添加处理逻辑
  */
 @Component
@@ -34,8 +35,8 @@ public class ProductPurchaseEventListener {
                 return;
             }
 
-            logger.info("开始处理商品购买: userId={}, orderNo={}, amount={}",
-                    event.getUserId(), event.getOrderNo(), event.getAmount());
+            logger.info("开始处理商品购买: userId={}, orderNo={}, amount={}", event.getUserId(), event.getOrderNo(),
+                    event.getAmount());
 
             // 这里可以实现商品发货逻辑
             // 例如：
@@ -54,9 +55,12 @@ public class ProductPurchaseEventListener {
                 // 示例：调用商品服务
                 // productService.deliverProduct(productId, quantity, event.getUserId());
             }
+
             logger.info("商品购买处理完成: userId={}, orderNo={}", event.getUserId(), event.getOrderNo());
+
         } catch (Exception e) {
             logger.error("商品购买处理失败: userId={}, orderNo={}", event.getUserId(), event.getOrderNo(), e);
+
             // 这里可以添加失败处理逻辑，如发送告警、重试等
             // 由于使用了@Async，异常不会影响主流程
         }

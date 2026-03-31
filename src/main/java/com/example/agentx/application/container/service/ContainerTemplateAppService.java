@@ -1,17 +1,17 @@
 package com.example.agentx.application.container.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.example.agentx.application.container.assembler.ContainerTemplateAssembler;
 import com.example.agentx.application.container.dto.ContainerTemplateDTO;
 import com.example.agentx.domain.container.constant.ContainerType;
+import com.example.agentx.interfaces.dto.container.request.CreateContainerTemplateRequest;
+import com.example.agentx.interfaces.dto.container.request.UpdateContainerTemplateRequest;
+import com.example.agentx.interfaces.dto.container.request.QueryContainerTemplateRequest;
 import com.example.agentx.domain.container.model.ContainerTemplateEntity;
 import com.example.agentx.domain.container.service.ContainerTemplateDomainService;
 import com.example.agentx.infrastructure.entity.Operator;
-import com.example.agentx.interfaces.dto.container.request.CreateContainerTemplateRequest;
-import com.example.agentx.interfaces.dto.container.request.QueryContainerTemplateRequest;
-import com.example.agentx.interfaces.dto.container.request.UpdateContainerTemplateRequest;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ public class ContainerTemplateAppService {
     @Transactional
     public ContainerTemplateDTO createTemplate(CreateContainerTemplateRequest request, String userId) {
         ContainerTemplateEntity template = ContainerTemplateAssembler.toEntity(request, userId);
-        ContainerTemplateEntity createdTemplate = templateDomainService.createTemplate(template);
+        ContainerTemplateEntity createdTemplate = templateDomainService.createTemplate(template, Operator.USER);
 
         logger.info("用户{}创建容器模板: {}", userId, createdTemplate.getName());
         return ContainerTemplateAssembler.toDTO(createdTemplate);
@@ -59,7 +59,8 @@ public class ContainerTemplateAppService {
     public ContainerTemplateDTO updateTemplate(String templateId, UpdateContainerTemplateRequest request,
                                                String userId) {
         ContainerTemplateEntity updates = ContainerTemplateAssembler.toEntity(request);
-        ContainerTemplateEntity updatedTemplate = templateDomainService.updateTemplate(templateId, updates);
+        ContainerTemplateEntity updatedTemplate = templateDomainService.updateTemplate(templateId, updates,
+                Operator.USER);
 
         logger.info("用户{}更新容器模板: {}", userId, updatedTemplate.getName());
         return ContainerTemplateAssembler.toDTO(updatedTemplate);
@@ -73,7 +74,7 @@ public class ContainerTemplateAppService {
      */
     @Transactional
     public void deleteTemplate(String templateId, String userId) {
-        templateDomainService.deleteTemplate(templateId);
+        templateDomainService.deleteTemplate(templateId, Operator.USER);
         logger.info("用户{}删除容器模板: {}", userId, templateId);
     }
 
@@ -86,7 +87,7 @@ public class ContainerTemplateAppService {
      */
     @Transactional
     public void toggleTemplateStatus(String templateId, boolean enabled, String userId) {
-        templateDomainService.toggleTemplateStatus(templateId, enabled);
+        templateDomainService.toggleTemplateStatus(templateId, enabled, Operator.USER);
         logger.info("用户{}{}容器模板: {}", userId, enabled ? "启用" : "禁用", templateId);
     }
 
@@ -98,7 +99,7 @@ public class ContainerTemplateAppService {
      */
     @Transactional
     public void setDefaultTemplate(String templateId, String userId) {
-        templateDomainService.setDefaultTemplate(templateId);
+        templateDomainService.setDefaultTemplate(templateId, Operator.USER);
         logger.info("用户{}设置默认容器模板: {}", userId, templateId);
     }
 
@@ -162,9 +163,8 @@ public class ContainerTemplateAppService {
     public Page<ContainerTemplateDTO> getTemplatesPage(QueryContainerTemplateRequest queryRequest) {
         Page<ContainerTemplateEntity> page = new Page<>(queryRequest.getPage(), queryRequest.getPageSize());
 
-        Page<ContainerTemplateEntity> entityPage = templateDomainService.getTemplatesPage(
-                page, queryRequest.getKeyword(), queryRequest.getType(), queryRequest.getEnabled()
-        );
+        Page<ContainerTemplateEntity> entityPage = templateDomainService.getTemplatesPage(page,
+                queryRequest.getKeyword(), queryRequest.getType(), queryRequest.getEnabled());
 
         return ContainerTemplateAssembler.toDTOPage(entityPage);
     }
@@ -189,7 +189,7 @@ public class ContainerTemplateAppService {
     @Transactional
     public ContainerTemplateDTO adminCreateTemplate(CreateContainerTemplateRequest request) {
         ContainerTemplateEntity template = ContainerTemplateAssembler.toEntity(request, "ADMIN");
-        ContainerTemplateEntity createdTemplate = templateDomainService.createTemplate(template);
+        ContainerTemplateEntity createdTemplate = templateDomainService.createTemplate(template, Operator.ADMIN);
 
         logger.info("管理员创建容器模板: {}", createdTemplate.getName());
         return ContainerTemplateAssembler.toDTO(createdTemplate);
@@ -205,7 +205,8 @@ public class ContainerTemplateAppService {
     @Transactional
     public ContainerTemplateDTO adminUpdateTemplate(String templateId, UpdateContainerTemplateRequest request) {
         ContainerTemplateEntity updates = ContainerTemplateAssembler.toEntity(request);
-        ContainerTemplateEntity updatedTemplate = templateDomainService.updateTemplate(templateId, updates);
+        ContainerTemplateEntity updatedTemplate = templateDomainService.updateTemplate(templateId, updates,
+                Operator.ADMIN);
 
         logger.info("管理员更新容器模板: {}", updatedTemplate.getName());
         return ContainerTemplateAssembler.toDTO(updatedTemplate);
@@ -218,7 +219,7 @@ public class ContainerTemplateAppService {
      */
     @Transactional
     public void adminDeleteTemplate(String templateId) {
-        templateDomainService.deleteTemplate(templateId);
+        templateDomainService.deleteTemplate(templateId, Operator.ADMIN);
         logger.info("管理员删除容器模板: {}", templateId);
     }
 
@@ -230,7 +231,7 @@ public class ContainerTemplateAppService {
      */
     @Transactional
     public void adminToggleTemplateStatus(String templateId, boolean enabled) {
-        templateDomainService.toggleTemplateStatus(templateId, enabled);
+        templateDomainService.toggleTemplateStatus(templateId, enabled, Operator.ADMIN);
         logger.info("管理员{}容器模板: {}", enabled ? "启用" : "禁用", templateId);
     }
 
@@ -241,7 +242,7 @@ public class ContainerTemplateAppService {
      */
     @Transactional
     public void adminSetDefaultTemplate(String templateId) {
-        templateDomainService.setDefaultTemplate(templateId);
+        templateDomainService.setDefaultTemplate(templateId, Operator.ADMIN);
         logger.info("管理员设置默认容器模板: {}", templateId);
     }
 }

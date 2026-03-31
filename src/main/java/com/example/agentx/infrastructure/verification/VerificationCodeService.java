@@ -1,9 +1,9 @@
 package com.example.agentx.infrastructure.verification;
 
-import com.example.agentx.infrastructure.exception.BusinessException;
-import com.example.agentx.infrastructure.verification.storage.CodeStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.example.agentx.infrastructure.exception.BusinessException;
+import com.example.agentx.infrastructure.verification.storage.CodeStorage;
 
 import java.util.Map;
 import java.util.Random;
@@ -40,13 +40,16 @@ public class VerificationCodeService {
         this.codeStorage = codeStorage;
     }
 
-    /** 生成邮箱验证码
-     * @param email 邮箱
-     * @param captchaUuid 图形验证码UUID
-     * @param captchaCode 用户输入的图形验证码
-     * @param ip 用户IP
+    /**
+     * 生成邮箱验证码
+     *
+     * @param email        邮箱
+     * @param captchaUuid  图形验证码UUID
+     * @param captchaCode  用户输入的图形验证码
+     * @param ip           用户IP
      * @param businessType 业务类型（注册/重置密码等）
-     * @return 生成的验证码 */
+     * @return 生成的验证码
+     */
     public String generateCode(String email, String captchaUuid, String captchaCode, String ip, String businessType) {
         // 验证图形验证码
         if (!CaptchaUtils.verifyCaptcha(captchaUuid, captchaCode)) {
@@ -87,27 +90,36 @@ public class VerificationCodeService {
         return code.toString();
     }
 
-    /** 兼容原有接口，默认使用注册业务类型 */
+    /**
+     * 兼容原有接口，默认使用注册业务类型
+     */
     public String generateCode(String email, String captchaUuid, String captchaCode, String ip) {
         return generateCode(email, captchaUuid, captchaCode, ip, BUSINESS_TYPE_REGISTER);
     }
 
-    /** 验证验证码
-     * @param email 邮箱
-     * @param code 验证码
+    /**
+     * 验证验证码
+     *
+     * @param email        邮箱
+     * @param code         验证码
      * @param businessType 业务类型
-     * @return 验证结果 */
+     * @return 验证结果
+     */
     public boolean verifyCode(String email, String code, String businessType) {
         String storageKey = generateStorageKey(email, businessType);
         return codeStorage.verifyCode(storageKey, code);
     }
 
-    /** 兼容原有接口，默认使用注册业务类型 */
+    /**
+     * 兼容原有接口，默认使用注册业务类型
+     */
     public boolean verifyCode(String email, String code) {
         return verifyCode(email, code, BUSINESS_TYPE_REGISTER);
     }
 
-    /** 生成用于存储的key，包含业务类型前缀 */
+    /**
+     * 生成用于存储的key，包含业务类型前缀
+     */
     private String generateStorageKey(String email, String businessType) {
         return businessType + ":" + email;
     }

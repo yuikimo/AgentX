@@ -1,9 +1,9 @@
 package com.example.agentx.infrastructure.rag.processor;
 
-import com.example.agentx.infrastructure.rag.config.MarkdownProcessorProperties;
 import com.vladsch.flexmark.ast.Heading;
 import com.vladsch.flexmark.util.ast.Node;
 import org.springframework.stereotype.Component;
+import com.example.agentx.infrastructure.rag.config.MarkdownProcessorProperties;
 
 import java.util.Stack;
 

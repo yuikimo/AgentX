@@ -1,5 +1,6 @@
 package com.example.agentx.infrastructure.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +17,8 @@ public class ContainerConfig {
     /**
      * Docker连接配置
      */
-    private String dockerHost = "unix:///var/run/docker.sock";
+    @Value("${agentx.container.docker-host:${AGENTX_CONTAINER_DOCKER_HOST:unix:///var/run/docker.sock}}")
+    private String dockerHost;
 
     /**
      * 用户数据卷基础路径
@@ -26,7 +28,7 @@ public class ContainerConfig {
     /**
      * 默认MCP网关镜像
      */
-    private String defaultMcpGatewayImage = "ghcr.io/lucky-aeon/mcp-gateway:latest";
+    private String defaultMcpGatewayImage = "ghcr.nju.edu.cn/lucky-aeon/mcp-gateway:latest";
 
     /**
      * 容器监控间隔（毫秒）

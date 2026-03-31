@@ -26,8 +26,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         logger.info("注册WebSocket处理器: /ws/terminal");
-        registry.addHandler(terminalWebSocketHandler, "/ws/terminal").setAllowedOriginPatterns("*"); //
-        // 开发环境允许所有来源，生产环境应该限制
+        registry.addHandler(terminalWebSocketHandler, "/ws/terminal")
+                .setAllowedOriginPatterns("*"); // 开发环境允许所有来源，生产环境应该限制
         logger.info("WebSocket处理器注册完成");
     }
 }

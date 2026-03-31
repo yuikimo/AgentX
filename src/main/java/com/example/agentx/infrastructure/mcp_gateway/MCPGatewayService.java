@@ -1,10 +1,5 @@
 package com.example.agentx.infrastructure.mcp_gateway;
 
-import com.example.agentx.domain.tool.model.config.ToolDefinition;
-import com.example.agentx.domain.tool.model.config.ToolSpecificationConverter;
-import com.example.agentx.infrastructure.config.MCPGatewayProperties;
-import com.example.agentx.infrastructure.exception.BusinessException;
-import com.example.agentx.infrastructure.utils.JsonUtils;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
@@ -20,8 +15,13 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import com.example.agentx.domain.tool.model.config.ToolDefinition;
+import com.example.agentx.domain.tool.model.config.ToolSpecificationConverter;
+import com.example.agentx.infrastructure.config.MCPGatewayProperties;
+import com.example.agentx.infrastructure.exception.BusinessException;
 
 import jakarta.annotation.PostConstruct;
+import com.example.agentx.infrastructure.utils.JsonUtils;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -73,7 +73,7 @@ public class MCPGatewayService {
      */
     public String buildUserContainerUrl(String mcpServerName, String containerIp, Integer containerPort) {
         String containerBaseUrl = "http://" + containerIp + ":" + containerPort;
-        return containerBaseUrl + "/" + mcpServerName + "/sse/sse?api_key=" + properties.getApiKey();
+        return containerBaseUrl + "/" + mcpServerName + "/sse?api_key=" + properties.getApiKey();
     }
 
     /**
@@ -83,7 +83,7 @@ public class MCPGatewayService {
      * @return 全局工具SSE URL
      */
     public String buildGlobalSSEUrl(String mcpServerName) {
-        return properties.getBaseUrl() + "/" + mcpServerName + "/sse/sse?api_key=" + properties.getApiKey();
+        return properties.getBaseUrl() + "/" + mcpServerName + "/sse?api_key=" + properties.getApiKey();
     }
 
     /**
@@ -131,7 +131,7 @@ public class MCPGatewayService {
                 if (statusCode >= 200 && statusCode < 300 && responseBody != null) {
                     Map result = JsonUtils.parseObject(responseBody, Map.class);
                     logger.info("部署响应: {}", result);
-                    return result.containsKey("success") && Boolean.TRUE.equals(result.get("success"));
+                    return result.containsKey("success");
                 } else {
                     String errorMsg = String.format("工具部署失败，状态码: %d，响应: %s", statusCode, responseBody);
                     logger.error(errorMsg);
@@ -190,7 +190,8 @@ public class MCPGatewayService {
                 .sseUrl(url)
                 .timeout(Duration.ofSeconds(10))
                 .logRequests(false)
-                .logResponses(true).build();
+                .logResponses(true)
+                .build();
         McpClient client = new DefaultMcpClient.Builder().transport(transport).build();
         try {
             List<ToolSpecification> toolSpecifications = client.listTools();
@@ -218,4 +219,5 @@ public class MCPGatewayService {
 
         return HttpClients.custom().setDefaultRequestConfig(config).build();
     }
+
 }

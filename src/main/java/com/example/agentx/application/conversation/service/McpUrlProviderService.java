@@ -101,6 +101,7 @@ public class McpUrlProviderService {
 
             logger.info("用户容器工具连接就绪: userId={}, url={}", userId, maskSensitiveInfo(sseUrl));
             return sseUrl;
+
         } catch (Exception e) {
             logger.error("构建用户容器SSE URL失败: userId={}, tool={}", userId, mcpServerName, e);
             throw new BusinessException("无法连接用户工具：" + e.getMessage());
@@ -170,8 +171,8 @@ public class McpUrlProviderService {
         boolean basicHealthy = isRunning && hasNetworkInfo && hasDockerContainerId;
 
         if (!basicHealthy) {
-            logger.warn("容器基础健康检查失败: containerId={}, running={}, networkInfo={}, dockerId={}",
-                    container.getId(), isRunning, hasNetworkInfo, hasDockerContainerId);
+            logger.warn("容器基础健康检查失败: containerId={}, running={}, networkInfo={}, dockerId={}", container.getId(),
+                    isRunning, hasNetworkInfo, hasDockerContainerId);
         }
 
         return basicHealthy;

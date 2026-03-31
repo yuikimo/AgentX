@@ -8,15 +8,15 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+import org.dromara.x.file.storage.core.FileInfo;
+import org.dromara.x.file.storage.core.FileStorageService;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.rag.constant.FileProcessingEventEnum;
 import com.example.agentx.domain.rag.constant.FileProcessingStatusEnum;
 import com.example.agentx.domain.rag.model.FileDetailEntity;
 import com.example.agentx.domain.rag.repository.FileDetailRepository;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import org.apache.commons.lang3.StringUtils;
-import org.dromara.x.file.storage.core.FileInfo;
-import org.dromara.x.file.storage.core.FileStorageService;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -52,6 +52,7 @@ public class FileDetailDomainService {
             throw new BusinessException("数据集ID不能为空");
         }
 
+        // 文件上传
         final FileInfo upload = fileStorageService.of(fileDetailEntity.getMultipartFile())
                 .setMetadata(Map.of("dataset", fileDetailEntity.getDataSetId(), "userid", fileDetailEntity.getUserId()))
                 .upload();
@@ -153,7 +154,6 @@ public class FileDetailDomainService {
             // 记录日志但不影响数据库删除
             // log.warn("删除存储文件失败: {}", file.getUrl(), e);
         }
-
     }
 
     /**
@@ -316,8 +316,8 @@ public class FileDetailDomainService {
      */
     public boolean startFileEmbeddingProcessing(String fileId, String userId) {
         FileDetailEntity fileEntity = getFile(fileId, userId);
-        boolean success = stateMachineService.handleEvent(fileEntity,
-                FileProcessingEventEnum.START_EMBEDDING_PROCESSING);
+        boolean success =
+                stateMachineService.handleEvent(fileEntity, FileProcessingEventEnum.START_EMBEDDING_PROCESSING);
         if (success) {
             updateFile(fileEntity);
         }
@@ -333,8 +333,8 @@ public class FileDetailDomainService {
      */
     public boolean completeFileEmbeddingProcessing(String fileId, String userId) {
         FileDetailEntity fileEntity = getFile(fileId, userId);
-        boolean success = stateMachineService.handleEvent(fileEntity,
-                FileProcessingEventEnum.COMPLETE_EMBEDDING_PROCESSING);
+        boolean success =
+                stateMachineService.handleEvent(fileEntity, FileProcessingEventEnum.COMPLETE_EMBEDDING_PROCESSING);
         if (success) {
             updateFile(fileEntity);
         }
@@ -350,8 +350,8 @@ public class FileDetailDomainService {
      */
     public boolean failFileEmbeddingProcessing(String fileId, String userId) {
         FileDetailEntity fileEntity = getFile(fileId, userId);
-        boolean success = stateMachineService.handleEvent(fileEntity,
-                FileProcessingEventEnum.FAIL_EMBEDDING_PROCESSING);
+        boolean success =
+                stateMachineService.handleEvent(fileEntity, FileProcessingEventEnum.FAIL_EMBEDDING_PROCESSING);
         if (success) {
             updateFile(fileEntity);
         }

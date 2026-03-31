@@ -1,14 +1,14 @@
 package com.example.agentx.application.account.listener;
 
-import com.example.agentx.application.account.service.AccountAppService;
-import com.example.agentx.domain.order.constant.OrderType;
-import com.example.agentx.domain.order.event.PurchaseSuccessEvent;
-import com.example.agentx.interfaces.dto.account.request.RechargeRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import com.example.agentx.application.account.service.AccountAppService;
+import com.example.agentx.domain.order.constant.OrderType;
+import com.example.agentx.domain.order.event.PurchaseSuccessEvent;
+import com.example.agentx.interfaces.dto.account.request.RechargeRequest;
 
 /**
  * 余额充值事件监听器 监听购买成功事件，处理余额充值类型的订单
@@ -39,8 +39,8 @@ public class RechargeEventListener {
                 return;
             }
 
-            logger.info("开始处理余额充值: userId={}, orderNo={}, amount={}",
-                    event.getUserId(), event.getOrderNo(), event.getAmount());
+            logger.info("开始处理余额充值: userId={}, orderNo={}, amount={}", event.getUserId(), event.getOrderNo(),
+                    event.getAmount());
 
             // 构建充值请求
             RechargeRequest rechargeRequest = new RechargeRequest();
@@ -49,11 +49,14 @@ public class RechargeEventListener {
 
             // 执行余额充值
             accountAppService.recharge(event.getUserId(), rechargeRequest.getAmount());
-            logger.info("余额充值成功: userId={}, orderNo={}, amount={}, title={}",
-                    event.getUserId(), event.getOrderNo(), event.getAmount(), event.getTitle());
+
+            logger.info("余额充值成功: userId={}, orderNo={}, amount={}, title={}", event.getUserId(), event.getOrderNo(),
+                    event.getAmount(), event.getTitle());
+
         } catch (Exception e) {
-            logger.error("余额充值失败: userId={}, orderNo={}, amount={}",
-                    event.getUserId(), event.getOrderNo(), event.getAmount(), e);
+            logger.error("余额充值失败: userId={}, orderNo={}, amount={}", event.getUserId(), event.getOrderNo(),
+                    event.getAmount(), e);
+
             // 这里可以考虑添加重试机制或者发送告警
             // 由于使用了@Async，异常不会影响主流程
             throw e; // 重新抛出异常，便于Spring的异常处理机制处理

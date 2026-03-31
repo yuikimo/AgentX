@@ -1,17 +1,17 @@
 package com.example.agentx.application.conversation.service.message.builtin.rag;
 
-import com.example.agentx.application.conversation.service.message.builtin.AbstractBuiltInToolProvider;
-import com.example.agentx.application.conversation.service.message.builtin.BuiltInTool;
-import com.example.agentx.application.conversation.service.message.builtin.ToolDefinition;
-import com.example.agentx.application.rag.dto.DocumentUnitDTO;
-import com.example.agentx.application.rag.dto.RagSearchRequest;
-import com.example.agentx.application.rag.service.search.RAGSearchAppService;
-import com.example.agentx.domain.agent.model.AgentEntity;
-import com.example.agentx.domain.rag.service.management.UserRagDomainService;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
+import com.example.agentx.application.conversation.service.message.builtin.AbstractBuiltInToolProvider;
+import com.example.agentx.application.conversation.service.message.builtin.BuiltInTool;
+import com.example.agentx.application.conversation.service.message.builtin.ToolDefinition;
+import com.example.agentx.application.rag.service.search.RAGSearchAppService;
+import com.example.agentx.application.rag.dto.DocumentUnitDTO;
+import com.example.agentx.application.rag.dto.RagSearchRequest;
+import com.example.agentx.domain.agent.model.AgentEntity;
+import com.example.agentx.domain.rag.service.management.UserRagDomainService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -66,9 +66,7 @@ public class RagBuiltInToolProvider extends AbstractBuiltInToolProvider {
                 description += "。可用的知识库包括：" + String.join("、", knowledgeBaseNames);
             }
 
-            ToolDefinition ragTool = ToolDefinition.builder()
-                    .name("knowledge_search")
-                    .description(description)
+            ToolDefinition ragTool = ToolDefinition.builder().name("knowledge_search").description(description)
                     .addRequiredStringParameter("query", "搜索查询内容，描述用户想要了解的问题或关键词")
                     .addIntegerParameter("maxResults", "最大返回结果数量，默认为10，范围1-20")
                     .addNumberParameter("minScore", "最小相似度阈值，默认为0.5，范围0.0-1.0，值越高结果越精确")
@@ -76,6 +74,7 @@ public class RagBuiltInToolProvider extends AbstractBuiltInToolProvider {
 
             log.info("为Agent {} 定义RAG工具成功，关联知识库数量: {}", agent.getId(), validKnowledgeBaseIds.size());
             return List.of(ragTool);
+
         } catch (Exception e) {
             log.error("为Agent {} 定义RAG工具失败: {}", agent.getId(), e.getMessage(), e);
             return Collections.emptyList();
@@ -117,8 +116,9 @@ public class RagBuiltInToolProvider extends AbstractBuiltInToolProvider {
             validateRange(maxResults, 1, 20, "maxResults");
             validateRange(minScore, 0.0, 1.0, "minScore");
 
-            log.debug("RAG搜索参数 - query: {}, maxResults: {}, minScore: {}, enableRerank: {}, enableQueryExpansion: {}," +
-                            " knowledgeBaseCount: {}",
+            log.debug(
+                    "RAG搜索参数 - query: {}, maxResults: {}, minScore: {}, enableRerank: {}, enableQueryExpansion: {}, " +
+                            "knowledgeBaseCount: {}",
                     query, maxResults, minScore, enableRerank, enableQueryExpansion, validKnowledgeBaseIds.size());
 
             // 构建RAG搜索请求，支持多个知识库
@@ -141,8 +141,8 @@ public class RagBuiltInToolProvider extends AbstractBuiltInToolProvider {
             // 格式化搜索结果
             String formattedResults = formatSearchResults(searchResults, query);
 
-            log.info("RAG搜索完成，knowledgeBaseIds: {}, query: {}, 找到文档数量: {}",
-                    validKnowledgeBaseIds, query, searchResults.size());
+            log.info("RAG搜索完成，knowledgeBaseIds: {}, query: {}, 找到文档数量: {}", validKnowledgeBaseIds, query,
+                    searchResults.size());
 
             return formattedResults;
 

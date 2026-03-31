@@ -52,8 +52,8 @@ public class HighAvailabilityDomainServiceImpl implements HighAvailabilityDomain
         }
 
         try {
-            ApiInstanceCreateRequest request = new ApiInstanceCreateRequest(model.getUserId(), model.getModelId(),
-                    "MODEL", model.getId());
+            ApiInstanceCreateRequest request =
+                    new ApiInstanceCreateRequest(model.getUserId(), model.getModelId(), "MODEL", model.getId());
 
             gateway.createApiInstance(request);
 
@@ -138,8 +138,8 @@ public class HighAvailabilityDomainServiceImpl implements HighAvailabilityDomain
             // 设置降级链（从参数传入，而不是内部获取）
             if (fallbackChain != null && !fallbackChain.isEmpty()) {
                 request.setFallbackChain(fallbackChain);
-                logger.debug("启用降级链: userId={}, primaryModel={}, fallbackModels={}", userId, model.getModelId(),
-                        fallbackChain);
+                logger.debug("启用降级链: userId={}, primaryModel={}, fallbackModels={}",
+                        userId, model.getModelId(), fallbackChain);
             }
 
             // 通过高可用网关选择最佳实例
@@ -195,8 +195,8 @@ public class HighAvailabilityDomainServiceImpl implements HighAvailabilityDomain
 
             gateway.reportResult(request);
 
-            logger.debug("成功上报调用结果: instanceId={}, modelId={}, success={}, latency={}ms", instanceId, modelId, success,
-                    latencyMs);
+            logger.debug("成功上报调用结果: instanceId={}, modelId={}, success={}, latency={}ms",
+                    instanceId, modelId, success, latencyMs);
 
         } catch (Exception e) {
             logger.error("上报调用结果失败: instanceId={}, modelId={}", instanceId, modelId, e);
@@ -212,8 +212,8 @@ public class HighAvailabilityDomainServiceImpl implements HighAvailabilityDomain
 
         try {
             // 创建项目
-            ProjectCreateRequest projectRequest = new ProjectCreateRequest("AgentX", "AgentX高可用项目",
-                    properties.getApiKey());
+            ProjectCreateRequest projectRequest =
+                    new ProjectCreateRequest("AgentX", "AgentX高可用项目", properties.getApiKey());
 
             gateway.createProject(projectRequest);
 

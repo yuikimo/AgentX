@@ -112,7 +112,8 @@ public class DocumentUnitDomainService {
      */
     public List<DocumentUnitEntity> listVectorizedDocumentsByFile(String fileId) {
         LambdaQueryWrapper<DocumentUnitEntity> wrapper = Wrappers.<DocumentUnitEntity>lambdaQuery()
-                .eq(DocumentUnitEntity::getFileId, fileId).eq(DocumentUnitEntity::getIsVector, true);
+                .eq(DocumentUnitEntity::getFileId, fileId)
+                .eq(DocumentUnitEntity::getIsVector, true);
         return documentUnitRepository.selectList(wrapper);
     }
 

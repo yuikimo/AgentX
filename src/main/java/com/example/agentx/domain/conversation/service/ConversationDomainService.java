@@ -30,10 +30,11 @@ public class ConversationDomainService {
      * @return 消息列表
      */
     public List<MessageEntity> getConversationMessages(String sessionId) {
-        return messageRepository.selectList(Wrappers.<MessageEntity>lambdaQuery()
-                .eq(MessageEntity::getSessionId, sessionId)
+        return messageRepository.selectList(Wrappers.<MessageEntity>lambdaQuery().
+                eq(MessageEntity::getSessionId, sessionId)
                 .ne(MessageEntity::getRole, Role.SUMMARY)
-                .orderByAsc(MessageEntity::getCreatedAt));
+                .orderByAsc(MessageEntity::getCreatedAt)
+        );
     }
 
     public void insertBathMessage(List<MessageEntity> messages) {

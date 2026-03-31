@@ -166,7 +166,8 @@ public class SummarizeTokenOverflowStrategy implements TokenOverflowStrategy {
 
         // 找到历史消息中的最早时间
         LocalDateTime earliestTime = historyMessages.stream()
-                .filter(message -> !message.getRole().equals(Role.SUMMARY.name())).map(TokenMessage::getCreatedAt)
+                .filter(message -> !message.getRole().equals(Role.SUMMARY.name()))
+                .map(TokenMessage::getCreatedAt)
                 .min(LocalDateTime::compareTo).orElse(LocalDateTime.now());
 
         // 设置创建时间和更新时间为最早时间的前一秒

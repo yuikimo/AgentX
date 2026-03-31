@@ -1,12 +1,12 @@
 package com.example.agentx.infrastructure.ratelimit.service;
 
-import com.example.agentx.infrastructure.ratelimit.config.RateLimitConfig;
 import com.google.common.util.concurrent.RateLimiter;
-import dev.langchain4j.exception.RateLimitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import com.example.agentx.infrastructure.exception.RateLimitException;
+import com.example.agentx.infrastructure.ratelimit.config.RateLimitConfig;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentHashMap;
@@ -112,7 +112,6 @@ public class RateLimitService {
      * 用户限流器包装类
      */
     private static class UserRateLimiter {
-        // 限制单位时间内的请求频率
         private final RateLimiter rateLimiter;
         private volatile LocalDateTime lastAccessTime;
 

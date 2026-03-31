@@ -11,12 +11,9 @@ import java.util.logging.Logger;
  * 基于内存的验证码存储实现
  */
 public class MemoryCodeStorage implements CodeStorage {
-
     private static final Logger logger = Logger.getLogger(MemoryCodeStorage.class.getName());
-
     // 存储验证码的Map，键为存储键，值为验证码信息
     private final Map<String, CodeInfo> codeMap = new ConcurrentHashMap<>();
-
     // 定时任务执行器
     private final ScheduledExecutorService scheduler;
     // 清理任务执行间隔（分钟）
@@ -26,12 +23,8 @@ public class MemoryCodeStorage implements CodeStorage {
         // 初始化定时任务
         scheduler = Executors.newSingleThreadScheduledExecutor();
         // 定期执行清理任务，每5分钟清理一次过期验证码
-        scheduler.scheduleAtFixedRate(
-                this::cleanExpiredCodes,
-                CLEANUP_INTERVAL_MINUTES,
-                CLEANUP_INTERVAL_MINUTES,
-                TimeUnit.MINUTES
-        );
+        scheduler.scheduleAtFixedRate(this::cleanExpiredCodes, CLEANUP_INTERVAL_MINUTES, CLEANUP_INTERVAL_MINUTES,
+                TimeUnit.MINUTES);
         logger.info("验证码过期清理任务已启动，每" + CLEANUP_INTERVAL_MINUTES + "分钟执行一次");
     }
 

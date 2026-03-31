@@ -1,11 +1,11 @@
 package com.example.agentx.application.product.assembler;
 
+import org.springframework.beans.BeanUtils;
 import com.example.agentx.application.product.dto.ProductDTO;
 import com.example.agentx.domain.product.constant.BillingType;
 import com.example.agentx.domain.product.model.ProductEntity;
 import com.example.agentx.interfaces.dto.product.request.CreateProductRequest;
 import com.example.agentx.interfaces.dto.product.request.UpdateProductRequest;
-import org.springframework.beans.BeanUtils;
 
 import java.util.Collections;
 import java.util.List;

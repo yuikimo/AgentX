@@ -58,10 +58,7 @@ public class EmbeddingModelFactory {
      * @return OpenAiEmbeddingModel实例
      */
     public OpenAiEmbeddingModel createEmbeddingModel(EmbeddingConfig config) {
-        return OpenAiEmbeddingModel.builder()
-                .apiKey(config.getApiKey())
-                .baseUrl(config.getBaseUrl())
-                .modelName(config.getModelEndpoint())
-                .build();
+        return OpenAiEmbeddingModel.builder().apiKey(config.getApiKey()).baseUrl(config.getBaseUrl())
+                .modelName(config.getModelEndpoint()).build();
     }
 }

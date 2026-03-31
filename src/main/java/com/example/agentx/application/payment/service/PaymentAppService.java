@@ -1,5 +1,11 @@
 package com.example.agentx.application.payment.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import jakarta.servlet.http.HttpServletRequest;
 import com.example.agentx.application.payment.assembler.PaymentAssembler;
 import com.example.agentx.domain.order.constant.OrderStatus;
 import com.example.agentx.domain.order.constant.OrderType;
@@ -10,27 +16,21 @@ import com.example.agentx.domain.order.model.OrderEntity;
 import com.example.agentx.domain.order.service.OrderDomainService;
 import com.example.agentx.infrastructure.auth.UserContext;
 import com.example.agentx.infrastructure.exception.BusinessException;
+import com.example.agentx.infrastructure.ratelimit.service.RateLimitService;
 import com.example.agentx.infrastructure.payment.factory.PaymentProviderFactory;
 import com.example.agentx.infrastructure.payment.model.PaymentCallback;
 import com.example.agentx.infrastructure.payment.model.PaymentRequest;
 import com.example.agentx.infrastructure.payment.model.PaymentResult;
 import com.example.agentx.infrastructure.payment.provider.PaymentProvider;
-import com.example.agentx.infrastructure.ratelimit.service.RateLimitService;
 import com.example.agentx.interfaces.dto.account.request.RechargeRequest;
+import com.example.agentx.interfaces.dto.account.response.PaymentResponseDTO;
 import com.example.agentx.interfaces.dto.account.response.OrderStatusResponseDTO;
 import com.example.agentx.interfaces.dto.account.response.PaymentMethodDTO;
-import com.example.agentx.interfaces.dto.account.response.PaymentResponseDTO;
-import jakarta.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.ArrayList;
 
 /**
  * 支付应用服务
@@ -100,6 +100,7 @@ public class PaymentAppService {
                     order.getProviderOrderId(), order.getProviderOrderId());
 
             return response;
+
         } catch (Exception e) {
             logger.error("充值支付处理异常: userId={}, orderId={}", userId, order.getId(), e);
             throw new BusinessException("支付处理失败: " + e.getMessage());
@@ -157,19 +158,23 @@ public class PaymentAppService {
      * 更新订单的支付平台信息
      */
     private void updateOrderProviderInfo(OrderEntity order, PaymentResult paymentResult) {
-        // 只有当有支付平台信息时才能更新
+        // 只有当有支付平台信息时才更新
         if (paymentResult.getProviderOrderId() == null && paymentResult.getProviderPaymentId() == null) {
             return;
         }
 
+        logger.info("更新订单的支付平台信息: orderId={}, providerOrderId={}, providerPaymentId={}", order.getId(),
+                paymentResult.getProviderOrderId(), paymentResult.getProviderPaymentId());
+
         // 更新数据库中的订单信息
-        orderDomainService.updateOrderStatusAndProviderInfo(order.getId(), order.getStatus(),
+        orderDomainService.updateOrderStatusAndProviderInfo(order.getId(), order.getStatus(), // 保持当前状态
                 paymentResult.getProviderOrderId());
 
         // 同时更新内存中的订单对象
         if (paymentResult.getProviderOrderId() != null) {
             order.setProviderOrderId(paymentResult.getProviderOrderId());
         }
+
     }
 
     /**
@@ -190,11 +195,16 @@ public class PaymentAppService {
         // 设置回调URL，使用平台代码作为路径参数
         String platformCode = order.getPaymentPlatform().getCode();
         paymentRequest.setNotifyUrl(
-                "https://www.example/api/payments/callback/" + platformCode);
+                "https://www.bilibili.com/video/BV1nL8NzkEaH/?spm_id_from=333.1007.tianma.1-3-3" +
+                        ".click&vd_source=884a1f9702167e8936a8d6d773a193ae/api/payments/callback/"
+                        + platformCode);
         paymentRequest.setSuccessUrl(
-                "https://www.example/api/payments/success");
+                "https://www.bilibili.com/video/BV1nL8NzkEaH/?spm_id_from=333.1007.tianma.1-3-3" +
+                        ".click&vd_source=884a1f9702167e8936a8d6d773a193ae/api/payments/success");
         paymentRequest.setCancelUrl(
-                "https://www.example/api/payments/cancel");
+                "https://www.bilibili.com/video/BV1nL8NzkEaH/?spm_id_from=333.1007.tianma.1-3-3" +
+                        ".click&vd_source=884a1f9702167e8936a8d6d773a193ae/api/payments/cancel");
+
         return paymentRequest;
     }
 
@@ -215,7 +225,7 @@ public class PaymentAppService {
     /**
      * 处理支付回调（新接口，直接处理HTTP请求）
      *
-     * @param paymentPlatform 支付平台代码4
+     * @param paymentPlatform 支付平台代码
      * @param request         HTTP请求对象
      * @return 回调响应字符串
      */
@@ -232,13 +242,15 @@ public class PaymentAppService {
                 // 更新订单状态
                 updateOrderStatus(callback);
 
-                logger.info("支付回调处理成功: platform={}, orderNo={}, success={}",
-                        paymentPlatform, callback.getOrderNo(), callback.isPaymentSuccess());
+                logger.info("支付回调处理成功: platform={}, orderNo={}, success={}", paymentPlatform, callback.getOrderNo(),
+                        callback.isPaymentSuccess());
             } else {
                 logger.warn("支付回调验签失败: platform={}, orderNo={}", paymentPlatform, callback.getOrderNo());
             }
+
             // 返回平台要求的响应格式
             return provider.getCallbackResponse(callback.isSignatureValid() && callback.isPaymentSuccess());
+
         } catch (Exception e) {
             logger.error("支付回调处理异常: platform={}", paymentPlatform, e);
             // 返回失败响应，避免重复回调
@@ -276,8 +288,8 @@ public class PaymentAppService {
             OrderStatus newStatus;
             if (callback.isPaymentSuccess()) {
                 newStatus = OrderStatus.PAID;
-                logger.info("订单支付成功: orderNo={}, amount={}, providerOrderId={}, providerPaymentId={}",
-                        orderNo, callback.getAmount(), callback.getProviderOrderId(), callback.getProviderPaymentId());
+                logger.info("订单支付成功: orderNo={}, amount={}, providerOrderId={}, providerPaymentId={}", orderNo,
+                        callback.getAmount(), callback.getProviderOrderId(), callback.getProviderPaymentId());
             } else {
                 newStatus = OrderStatus.CANCELLED;
                 logger.info("订单支付失败: orderNo={}", orderNo);
@@ -298,8 +310,8 @@ public class PaymentAppService {
 
             // 如果订单支付成功，发布购买成功事件
             if (newStatus == OrderStatus.PAID) {
-                logger.info("订单支付成功，发布购买成功事件: orderNo={}, orderType={}, amount={}",
-                        orderNo, order.getOrderType(), order.getAmount());
+                logger.info("订单支付成功，发布购买成功事件: orderNo={}, orderType={}, amount={}", orderNo, order.getOrderType(),
+                        order.getAmount());
                 PurchaseSuccessEvent event = new PurchaseSuccessEvent(order);
                 eventPublisher.publishEvent(event);
             }
@@ -309,7 +321,6 @@ public class PaymentAppService {
             throw new BusinessException("订单状态更新失败: " + e.getMessage());
         }
     }
-
 
     /**
      * 查询订单状态（根据订单号）
@@ -406,8 +417,8 @@ public class PaymentAppService {
         OrderStatus oldStatus = order.getStatus();
 
         logger.info(
-                "订单状态不一致，更新本地状态: orderNo={}, localStatus={}, platformStatus={}, " +
-                        "rawStatus={}, providerOrderId={}, providerPaymentId={}",
+                "订单状态不一致，更新本地状态: orderNo={}, localStatus={}, platformStatus={}, rawStatus={}, providerOrderId={}, " +
+                        "providerPaymentId={}",
                 order.getOrderNo(), oldStatus, newStatus, platformResult.getStatus(),
                 platformResult.getProviderOrderId(), platformResult.getProviderPaymentId());
 
@@ -564,4 +575,5 @@ public class PaymentAppService {
                 return "在线支付";
         }
     }
+
 }

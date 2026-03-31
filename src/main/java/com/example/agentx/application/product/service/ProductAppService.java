@@ -1,23 +1,23 @@
 package com.example.agentx.application.product.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.example.agentx.application.product.assembler.ProductAssembler;
 import com.example.agentx.application.product.dto.ProductDTO;
-import com.example.agentx.domain.llm.model.ModelEntity;
-import com.example.agentx.domain.llm.model.ProviderEntity;
-import com.example.agentx.domain.llm.service.LLMDomainService;
 import com.example.agentx.domain.product.model.ProductEntity;
 import com.example.agentx.domain.product.service.ProductDomainService;
 import com.example.agentx.domain.rule.service.RuleDomainService;
+import com.example.agentx.domain.llm.service.LLMDomainService;
+import com.example.agentx.domain.llm.model.ModelEntity;
+import com.example.agentx.domain.llm.model.ProviderEntity;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.interfaces.dto.product.request.CreateProductRequest;
 import com.example.agentx.interfaces.dto.product.request.QueryProductRequest;
 import com.example.agentx.interfaces.dto.product.request.UpdateProductRequest;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -158,8 +158,7 @@ public class ProductAppService {
      */
     private void enrichModelInfo(List<ProductDTO> productDTOs) {
         // 筛选出模型类型的商品
-        List<ProductDTO> modelProducts = productDTOs.stream()
-                .filter(product -> "MODEL_USAGE".equals(product.getType()))
+        List<ProductDTO> modelProducts = productDTOs.stream().filter(product -> "MODEL_USAGE".equals(product.getType()))
                 .collect(Collectors.toList());
 
         if (modelProducts.isEmpty()) {

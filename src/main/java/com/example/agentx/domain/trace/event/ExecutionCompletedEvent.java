@@ -1,8 +1,8 @@
 package com.example.agentx.domain.trace.event;
 
+import org.springframework.context.ApplicationEvent;
 import com.example.agentx.domain.trace.constant.ExecutionPhase;
 import com.example.agentx.domain.trace.model.TraceContext;
-import org.springframework.context.ApplicationEvent;
 
 /**
  * 执行完成事件

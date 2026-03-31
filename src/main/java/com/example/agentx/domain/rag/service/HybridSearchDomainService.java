@@ -58,6 +58,7 @@ public class HybridSearchDomainService {
      * @return 混合检索结果列表
      */
     public List<DocumentUnitEntity> hybridSearch(HybridSearchConfig config) {
+
         // 参数验证
         if (config == null) {
             log.warn("混合搜索配置为空");
@@ -85,10 +86,10 @@ public class HybridSearchDomainService {
                     config.getChatModelConfig());
             config.setQuestion(hypotheticalDocument);
 
-            CompletableFuture<List<VectorStoreResult>> vectorSearchFuture =
-                    CompletableFuture.supplyAsync(() -> embeddingDomainService.vectorSearch(config.getDataSetIds(),
-                            config.getQuestion(), finalMaxResults * 2, finalMinScore,
-                            false, config.getCandidateMultiplier(), config.getEmbeddingConfig()));
+            CompletableFuture<List<VectorStoreResult>> vectorSearchFuture = CompletableFuture
+                    .supplyAsync(() -> embeddingDomainService.vectorSearch(config.getDataSetIds(), config.getQuestion(),
+                            finalMaxResults * 2, finalMinScore, false, config.getCandidateMultiplier(),
+                            config.getEmbeddingConfig()));
 
             CompletableFuture<List<VectorStoreResult>> keywordSearchFuture = CompletableFuture
                     .supplyAsync(() -> keywordSearchDomainService.keywordSearch(config.getDataSetIds(),
@@ -168,8 +169,8 @@ public class HybridSearchDomainService {
                     documentMap.put(documentId, result);
                 }
 
-                log.debug("Vector result {}: docId={}, originalScore={}, rrfContribution={}", i + 1, documentId,
-                        result.getScore(), rrfScore);
+                log.debug("Vector result {}: docId={}, originalScore={}, rrfContribution={}",
+                        i + 1, documentId, result.getScore(), rrfScore);
             }
         }
 
@@ -195,7 +196,9 @@ public class HybridSearchDomainService {
 
         // 按RRF分数排序并返回
         List<VectorStoreResult> fusedResults = rrfScores.entrySet().stream()
-                .sorted(Map.Entry.<String, Double>comparingByValue().reversed()).limit(maxResults).map(entry -> {
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .limit(maxResults)
+                .map(entry -> {
                     String documentId = entry.getKey();
                     Double rrfScore = entry.getValue();
                     VectorStoreResult result = documentMap.get(documentId);
@@ -249,10 +252,10 @@ public class HybridSearchDomainService {
                 .collect(Collectors.toMap(DocumentUnitEntity::getId, doc -> doc, (existing, replacement) -> existing));
 
         // 创建分数映射
-        Map<String, Double> scoreMap = vectorStoreResults.stream()
-                .collect(Collectors.toMap(VectorStoreResult::getDocumentId, VectorStoreResult::getScore,
-                        (existing, replacement) -> existing) // 保留第一个值，避免重复Key
-                );
+        Map<String, Double> scoreMap = vectorStoreResults.stream().collect(Collectors.toMap(
+                VectorStoreResult::getDocumentId, VectorStoreResult::getScore, (existing, replacement) -> existing //
+                // 保留第一个值，避免重复key
+        ));
 
         List<DocumentUnitEntity> orderedDocuments = new ArrayList<>();
         Set<String> addedDocumentIds = new LinkedHashSet<>();
@@ -309,8 +312,8 @@ public class HybridSearchDomainService {
         for (DocumentUnitEntity doc : documents) {
             try {
                 // 查询相邻页面片段（前一页、当前页、后一页）
-                List<DocumentUnitEntity> adjacentChunks = documentUnitRepository.selectList(
-                        Wrappers.<DocumentUnitEntity>lambdaQuery()
+                List<DocumentUnitEntity> adjacentChunks =
+                        documentUnitRepository.selectList(Wrappers.<DocumentUnitEntity>lambdaQuery()
                                 .eq(DocumentUnitEntity::getFileId, doc.getFileId())
                                 .between(DocumentUnitEntity::getPage, Math.max(1, doc.getPage() - 1), doc.getPage() + 1)
                                 .eq(DocumentUnitEntity::getIsVector, true));
@@ -324,6 +327,7 @@ public class HybridSearchDomainService {
                         } else {
                             chunk.setSimilarityScore(0.5);
                         }
+
                         expandedDocuments.add(chunk);
                         expandedIds.add(chunk.getId());
                     }
@@ -362,13 +366,13 @@ public class HybridSearchDomainService {
             // 根据重排序索引重新排列结果
             List<VectorStoreResult> rerankedResults = rerankedIndices.stream()
                     .filter(index -> index >= 0 && index < fusedResults.size()) // 确保索引有效
-                    .map(fusedResults::get).collect(Collectors.toList());
+                    .map(fusedResults::get)
+                    .collect(Collectors.toList());
 
             long rerankTime = System.currentTimeMillis() - rerankStartTime;
             log.info("对查询'{}'的融合结果应用重排序，{}个结果，耗时{}ms", question, rerankedResults.size(), rerankTime);
 
             return rerankedResults;
-
         } catch (Exception e) {
             long rerankTime = System.currentTimeMillis() - rerankStartTime;
             log.error("对查询'{}'的融合结果重排序失败，耗时{}ms", question, rerankTime, e);

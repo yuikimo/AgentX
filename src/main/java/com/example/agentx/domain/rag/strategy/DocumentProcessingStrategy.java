@@ -11,4 +11,5 @@ public interface DocumentProcessingStrategy {
      * @param strategy             策略
      */
     void handle(RagDocMessage ragDocSyncOcrMessage, String strategy) throws Exception;
+
 }

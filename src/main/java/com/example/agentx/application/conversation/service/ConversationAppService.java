@@ -49,6 +49,7 @@ import com.example.agentx.domain.token.model.TokenProcessResult;
 import com.example.agentx.domain.token.model.config.TokenOverflowConfig;
 import com.example.agentx.domain.token.service.TokenDomainService;
 import com.example.agentx.domain.tool.model.UserToolEntity;
+import com.example.agentx.domain.tool.service.ToolDomainService;
 import com.example.agentx.domain.tool.service.UserToolDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.infrastructure.llm.config.ProviderConfig;
@@ -941,7 +942,6 @@ public class ConversationAppService {
         List<String> fallbackChain = userSettingsDomainService.getUserFallbackChain(creatorUserId);
         HighAvailabilityResult result = highAvailabilityDomainService.selectBestProvider(model, creatorUserId,
                 sessionId, fallbackChain);
-
         ProviderEntity provider = result.getProvider();
         ModelEntity selectedModel = result.getModel();
         String instanceId = result.getInstanceId();

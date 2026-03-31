@@ -120,7 +120,8 @@ public class ContainerDomainService {
     public ContainerEntity findReviewContainer() {
         LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
                 .eq(ContainerEntity::getType, ContainerType.REVIEW)
-                .ne(ContainerEntity::getStatus, ContainerStatus.DELETED).orderByDesc(ContainerEntity::getCreatedAt);
+                .ne(ContainerEntity::getStatus, ContainerStatus.DELETED)
+                .orderByDesc(ContainerEntity::getCreatedAt);
 
         List<ContainerEntity> containers = containerRepository.selectList(wrapper);
         return containers.isEmpty() ? null : containers.get(0);
@@ -188,6 +189,23 @@ public class ContainerDomainService {
         }
 
         container.setIpAddress(ipAddress);
+        containerRepository.updateById(container);
+    }
+
+    /**
+     * 更新容器外部端口
+     *
+     * @param containerId  容器ID
+     * @param externalPort 外部端口
+     * @param operator     操作者
+     */
+    public void updateContainerExternalPort(String containerId, Integer externalPort, Operator operator) {
+        ContainerEntity container = containerRepository.selectById(containerId);
+        if (container == null) {
+            throw new BusinessException("容器不存在");
+        }
+
+        container.setExternalPort(externalPort);
         containerRepository.updateById(container);
     }
 
@@ -274,7 +292,8 @@ public class ContainerDomainService {
      */
     public void updateContainerLastAccessed(String containerId) {
         LambdaUpdateWrapper<ContainerEntity> updateWrapper = Wrappers.<ContainerEntity>lambdaUpdate()
-                .eq(ContainerEntity::getId, containerId).set(ContainerEntity::getLastAccessedAt, LocalDateTime.now());
+                .eq(ContainerEntity::getId, containerId)
+                .set(ContainerEntity::getLastAccessedAt, LocalDateTime.now());
 
         containerRepository.update(null, updateWrapper);
     }
@@ -303,6 +322,68 @@ public class ContainerDomainService {
     }
 
     /**
+     * 查找运行中的容器（用于启动时状态同步）
+     *
+     * @return 运行中容器列表
+     */
+    public List<ContainerEntity> findRunningContainers() {
+        return containerRepository.findByStatus(ContainerStatus.RUNNING);
+    }
+
+    /**
+     * 查找所有活跃容器（运行中、创建中、已暂停）
+     *
+     * @return 活跃容器列表
+     */
+    public List<ContainerEntity> findActiveContainers() {
+        LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
+                .in(ContainerEntity::getStatus, ContainerStatus.RUNNING, ContainerStatus.CREATING,
+                        ContainerStatus.SUSPENDED)
+                .orderByDesc(ContainerEntity::getUpdatedAt);
+
+        return containerRepository.selectList(wrapper);
+    }
+
+    /**
+     * 查找所有容器
+     *
+     * @return 所有容器列表
+     */
+    public List<ContainerEntity> findAllContainers() {
+        LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
+                .ne(ContainerEntity::getStatus, ContainerStatus.DELETED)
+                .orderByDesc(ContainerEntity::getUpdatedAt);
+
+        return containerRepository.selectList(wrapper);
+    }
+
+    /**
+     * 查找错误状态的容器
+     *
+     * @return 错误容器列表
+     */
+    public List<ContainerEntity> findErrorContainers() {
+        LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
+                .eq(ContainerEntity::getStatus, ContainerStatus.ERROR)
+                .orderByDesc(ContainerEntity::getUpdatedAt);
+
+        return containerRepository.selectList(wrapper);
+    }
+
+    /**
+     * 查找已停止的容器
+     *
+     * @return 已停止容器列表
+     */
+    public List<ContainerEntity> findStoppedContainers() {
+        LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
+                .eq(ContainerEntity::getStatus, ContainerStatus.STOPPED)
+                .orderByDesc(ContainerEntity::getUpdatedAt);
+
+        return containerRepository.selectList(wrapper);
+    }
+
+    /**
      * 根据状态获取容器列表
      *
      * @param status 容器状态
@@ -319,7 +400,8 @@ public class ContainerDomainService {
      */
     public List<ContainerEntity> getAllActiveContainers() {
         LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
-                .ne(ContainerEntity::getStatus, ContainerStatus.DELETED).orderByAsc(ContainerEntity::getLastAccessedAt);
+                .ne(ContainerEntity::getStatus, ContainerStatus.DELETED)
+                .orderByAsc(ContainerEntity::getLastAccessedAt);
         return containerRepository.selectList(wrapper);
     }
 
@@ -331,7 +413,8 @@ public class ContainerDomainService {
     public List<ContainerEntity> getContainersNeedingSuspension() {
         LocalDateTime oneDayAgo = LocalDateTime.now().minusDays(1);
         LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
-                .lt(ContainerEntity::getLastAccessedAt, oneDayAgo).orderByAsc(ContainerEntity::getLastAccessedAt);
+                .lt(ContainerEntity::getLastAccessedAt, oneDayAgo)
+                .orderByAsc(ContainerEntity::getLastAccessedAt);
         return containerRepository.selectList(wrapper);
     }
 
@@ -343,7 +426,8 @@ public class ContainerDomainService {
     public List<ContainerEntity> getContainersNeedingDeletion() {
         LocalDateTime fiveDaysAgo = LocalDateTime.now().minusDays(5);
         LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
-                .lt(ContainerEntity::getLastAccessedAt, fiveDaysAgo).orderByAsc(ContainerEntity::getLastAccessedAt);
+                .lt(ContainerEntity::getLastAccessedAt, fiveDaysAgo)
+                .orderByAsc(ContainerEntity::getLastAccessedAt);
         return containerRepository.selectList(wrapper);
     }
 

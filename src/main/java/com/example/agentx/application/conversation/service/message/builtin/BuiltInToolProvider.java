@@ -1,8 +1,8 @@
 package com.example.agentx.application.conversation.service.message.builtin;
 
-import com.example.agentx.domain.agent.model.AgentEntity;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.service.tool.ToolExecutor;
+import com.example.agentx.domain.agent.model.AgentEntity;
 
 import java.util.HashMap;
 import java.util.List;
@@ -59,8 +59,8 @@ public interface BuiltInToolProvider {
 
         for (ToolDefinition definition : definitions) {
             ToolSpecification spec = definition.toSpecification();
-            ToolExecutor executor = (request, memoryId) ->
-                    executeTools(request.name(), request.arguments(), agent, memoryId);
+            ToolExecutor executor = (request, memoryId) -> executeTools(request.name(), request.arguments(), agent,
+                    memoryId);
             tools.put(spec, executor);
         }
 

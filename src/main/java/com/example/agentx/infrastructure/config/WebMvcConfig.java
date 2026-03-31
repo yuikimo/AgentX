@@ -31,6 +31,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/send-email-code", "/verify-email-code", "/get-captcha", "/reset-password",
                         "/send-reset-password-code", "/oauth/github/authorize", "/oauth/github/callback", "/sso/**", 
                         // SSO相关接口
+                        "/widget/**", // Widget公开API接口，无需认证
                         "/v1/**", "/payments/callback/**"); // 外部API接口，使用专门的API
         // Key拦截器
 

@@ -10,8 +10,6 @@ import dev.langchain4j.service.tool.ToolProvider;
 import org.springframework.stereotype.Component;
 import com.example.agentx.application.conversation.service.handler.context.ChatContext;
 import com.example.agentx.application.conversation.service.McpUrlProviderService;
-import com.example.agentx.application.conversation.service.message.agent.tool.RagToolManager;
-import com.example.agentx.domain.agent.model.AgentEntity;
 import com.example.agentx.infrastructure.utils.JsonUtils;
 
 import java.time.Duration;
@@ -26,11 +24,9 @@ import java.util.Map;
 public class AgentToolManager {
 
     private final McpUrlProviderService mcpUrlProviderService;
-    private final RagToolManager ragToolManager;
 
-    public AgentToolManager(McpUrlProviderService mcpUrlProviderService, RagToolManager ragToolManager) {
+    public AgentToolManager(McpUrlProviderService mcpUrlProviderService) {
         this.mcpUrlProviderService = mcpUrlProviderService;
-        this.ragToolManager = ragToolManager;
     }
 
     /**
@@ -52,12 +48,8 @@ public class AgentToolManager {
 
         for (String mcpServerName : mcpServerNames) {
             String sseUrl = mcpUrlProviderService.getMcpToolUrl(mcpServerName, userId);
-            McpTransport transport = new HttpMcpTransport.Builder()
-                    .sseUrl(sseUrl)
-                    .logRequests(true)
-                    .logResponses(true)
-                    .timeout(Duration.ofHours(1))
-                    .build();
+            McpTransport transport = new HttpMcpTransport.Builder().sseUrl(sseUrl).logRequests(true).logResponses(true)
+                    .timeout(Duration.ofHours(1)).build();
 
             McpClient mcpClient = new DefaultMcpClient.Builder().transport(transport).build();
 
@@ -65,6 +57,7 @@ public class AgentToolManager {
             if (toolPresetParams != null && toolPresetParams.containsKey(mcpServerName)) {
                 List<PresetParameter> presetParameters = new ArrayList<>();
                 for (String key : toolPresetParams.keySet()) {
+
                     toolPresetParams.get(key).forEach((k, v) -> {
                         presetParameters.add(new PresetParameter(k, JsonUtils.toJsonString(v)));
                     });

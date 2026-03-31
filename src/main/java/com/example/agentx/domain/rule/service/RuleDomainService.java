@@ -4,11 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.rule.constant.RuleHandlerKey;
 import com.example.agentx.domain.rule.model.RuleEntity;
 import com.example.agentx.domain.rule.repository.RuleRepository;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -55,8 +55,9 @@ public class RuleDomainService {
             return null;
         }
 
-        LambdaQueryWrapper<RuleEntity> wrapper = Wrappers.<RuleEntity>lambdaQuery()
-                .eq(RuleEntity::getHandlerKey, ruleHandlerKey);
+        LambdaQueryWrapper<RuleEntity> wrapper = Wrappers.<RuleEntity>lambdaQuery().eq(RuleEntity::getHandlerKey,
+                ruleHandlerKey);
+
         return ruleRepository.selectOne(wrapper);
     }
 
@@ -132,6 +133,7 @@ public class RuleDomainService {
     public List<RuleEntity> getAllRules() {
         LambdaQueryWrapper<RuleEntity> wrapper = Wrappers.<RuleEntity>lambdaQuery()
                 .orderByDesc(RuleEntity::getCreatedAt);
+
         return ruleRepository.selectList(wrapper);
     }
 

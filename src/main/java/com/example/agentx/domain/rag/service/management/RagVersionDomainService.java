@@ -136,7 +136,8 @@ public class RagVersionDomainService {
      */
     private void copyDocumentUnits(String originalFileId, String ragVersionId, String ragVersionFileId) {
         LambdaQueryWrapper<DocumentUnitEntity> docWrapper = Wrappers.<DocumentUnitEntity>lambdaQuery()
-                .eq(DocumentUnitEntity::getFileId, originalFileId).orderByAsc(DocumentUnitEntity::getPage)
+                .eq(DocumentUnitEntity::getFileId, originalFileId)
+                .orderByAsc(DocumentUnitEntity::getPage)
                 .orderByAsc(DocumentUnitEntity::getCreatedAt);
         List<DocumentUnitEntity> documents = documentUnitRepository.selectList(docWrapper);
 
@@ -188,7 +189,8 @@ public class RagVersionDomainService {
      */
     private void validateVersionUniqueness(String ragId, String version) {
         LambdaQueryWrapper<RagVersionEntity> wrapper = Wrappers.<RagVersionEntity>lambdaQuery()
-                .eq(RagVersionEntity::getOriginalRagId, ragId).eq(RagVersionEntity::getVersion, version);
+                .eq(RagVersionEntity::getOriginalRagId, ragId)
+                .eq(RagVersionEntity::getVersion, version);
         if (ragVersionRepository.exists(wrapper)) {
             throw new BusinessException("版本号已存在");
         }
@@ -371,7 +373,8 @@ public class RagVersionDomainService {
      */
     public RagVersionEntity findVersionByOriginalRagIdAndVersion(String originalRagId, String version, String userId) {
         LambdaQueryWrapper<RagVersionEntity> wrapper = Wrappers.<RagVersionEntity>lambdaQuery()
-                .eq(RagVersionEntity::getOriginalRagId, originalRagId).eq(RagVersionEntity::getVersion, version)
+                .eq(RagVersionEntity::getOriginalRagId, originalRagId)
+                .eq(RagVersionEntity::getVersion, version)
                 .eq(RagVersionEntity::getUserId, userId);
 
         return ragVersionRepository.selectOne(wrapper);
@@ -388,8 +391,10 @@ public class RagVersionDomainService {
      */
     public void updateVersionBasicInfo(String versionId, String name, String description, String icon, String userId) {
         LambdaUpdateWrapper<RagVersionEntity> wrapper = Wrappers.<RagVersionEntity>lambdaUpdate()
-                .eq(RagVersionEntity::getId, versionId).eq(RagVersionEntity::getUserId, userId)
-                .set(RagVersionEntity::getName, name).set(RagVersionEntity::getDescription, description)
+                .eq(RagVersionEntity::getId, versionId)
+                .eq(RagVersionEntity::getUserId, userId)
+                .set(RagVersionEntity::getName, name)
+                .set(RagVersionEntity::getDescription, description)
                 .set(RagVersionEntity::getIcon, icon);
 
         ragVersionRepository.update(null, wrapper);

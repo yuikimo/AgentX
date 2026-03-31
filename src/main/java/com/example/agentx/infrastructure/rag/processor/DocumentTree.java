@@ -6,8 +6,6 @@ import com.example.agentx.infrastructure.rag.config.MarkdownProcessorProperties;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.agentx.domain.rag.model.enums.SegmentType.SECTION;
-
 /**
  * 文档树 - 表示整个Markdown文档的层次结构
  * <p>
@@ -211,7 +209,8 @@ public class DocumentTree {
      */
     private ProcessedSegment createSegmentFromNode(HeadingNode node) {
         String fullContent = node.generateFullContent();
-        ProcessedSegment segment = new ProcessedSegment(fullContent, SECTION, null);
+        ProcessedSegment segment = new ProcessedSegment(fullContent, com.example.agentx.domain.rag.model.enums.SegmentType.SECTION,
+                null);
 
         return segment;
     }
@@ -266,8 +265,8 @@ public class DocumentTree {
             maxDepth = Math.max(maxDepth, getDepth(root, 1));
         }
 
-        return String.format("DocumentTree{rootNodes=%d, totalNodes=%d, maxDepth=%d}",
-                rootNodes.size(), totalNodes, maxDepth);
+        return String.format("DocumentTree{rootNodes=%d, totalNodes=%d, maxDepth=%d}", rootNodes.size(), totalNodes,
+                maxDepth);
     }
 
     /**

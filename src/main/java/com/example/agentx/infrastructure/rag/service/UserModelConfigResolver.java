@@ -13,7 +13,10 @@ import com.example.agentx.infrastructure.exception.BusinessException;
 
 /**
  * 用户模型配置解析器 - Infrastructure层服务
+ * <p>
  * 解决Domain层需要获取用户模型配置的问题
+ *
+ * @author shilong.zang
  */
 @Service
 public class UserModelConfigResolver {
@@ -176,10 +179,11 @@ public class UserModelConfigResolver {
                     providerEntity.getConfig().getBaseUrl(), modelEntity.getType(), providerEntity.getProtocol(),
                     modelEntity.getModelEndpoint());
 
-            log.info("成功获取用户{}的模型配置: modelId={}, baseUrl={}",
-                    userId, modelEntity.getModelId(), providerEntity.getConfig().getBaseUrl());
+            log.info("成功获取用户{}的模型配置: modelId={}, baseUrl={}", userId, modelEntity.getModelId(),
+                    providerEntity.getConfig().getBaseUrl());
 
             return modelConfig;
+
         } catch (BusinessException e) {
             // 重新抛出业务异常
             throw e;

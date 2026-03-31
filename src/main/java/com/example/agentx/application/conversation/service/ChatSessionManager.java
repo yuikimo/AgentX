@@ -1,11 +1,10 @@
 package com.example.agentx.application.conversation.service;
 
-import com.example.agentx.infrastructure.transport.SseEmitterUtils;
-import org.jacoco.agent.rt.internal_035b120.core.data.SessionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import com.example.agentx.infrastructure.transport.SseEmitterUtils;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -17,6 +16,43 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ChatSessionManager {
 
     private static final Logger logger = LoggerFactory.getLogger(ChatSessionManager.class);
+
+    /**
+     * 会话信息
+     */
+    public static class SessionInfo {
+        private final String sessionId;
+        private final SseEmitter emitter;
+        private final AtomicBoolean interrupted;
+        private final long startTime;
+
+        public SessionInfo(String sessionId, SseEmitter emitter) {
+            this.sessionId = sessionId;
+            this.emitter = emitter;
+            this.interrupted = new AtomicBoolean(false);
+            this.startTime = System.currentTimeMillis();
+        }
+
+        public String getSessionId() {
+            return sessionId;
+        }
+
+        public SseEmitter getEmitter() {
+            return emitter;
+        }
+
+        public boolean isInterrupted() {
+            return interrupted.get();
+        }
+
+        public void setInterrupted() {
+            interrupted.set(true);
+        }
+
+        public long getStartTime() {
+            return startTime;
+        }
+    }
 
     // 使用sessionId作为key，存储正在进行的对话会话
     private final ConcurrentHashMap<String, SessionInfo> activeSessions = new ConcurrentHashMap<>();
@@ -86,10 +122,8 @@ public class ChatSessionManager {
             SseEmitter emitter = sessionInfo.getEmitter();
 
             // 直接尝试发送中断消息，如果连接已关闭会自动处理
-            SseEmitterUtils.safeSend(emitter, SseEmitter.event()
-                    .name("interrupt")
-                    .data("{\"interrupted\": true, \"message\": \"对话已被中断\"}")
-            );
+            SseEmitterUtils.safeSend(emitter,
+                    SseEmitter.event().name("interrupt").data("{\"interrupted\": true, \"message\": \"对话已被中断\"}"));
 
             // 安全完成SSE连接
             SseEmitterUtils.safeComplete(emitter);
@@ -130,42 +164,5 @@ public class ChatSessionManager {
      */
     public boolean hasSession(String sessionId) {
         return activeSessions.containsKey(sessionId);
-    }
-
-    /**
-     * 会话信息
-     */
-    public static class SessionInfo {
-        private final String sessionId;
-        private final SseEmitter emitter;
-        private final AtomicBoolean interrupted;
-        private final long startTime;
-
-        public SessionInfo(String sessionId, SseEmitter emitter) {
-            this.sessionId = sessionId;
-            this.emitter = emitter;
-            this.interrupted = new AtomicBoolean(false);
-            this.startTime = System.currentTimeMillis();
-        }
-
-        public String getSessionId() {
-            return sessionId;
-        }
-
-        public SseEmitter getEmitter() {
-            return emitter;
-        }
-
-        public boolean isInterrupted() {
-            return interrupted.get();
-        }
-
-        public void setInterrupted() {
-            interrupted.set(true);
-        }
-
-        public long getStartTime() {
-            return startTime;
-        }
     }
 }

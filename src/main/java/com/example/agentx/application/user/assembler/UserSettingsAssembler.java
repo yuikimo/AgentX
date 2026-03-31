@@ -5,14 +5,10 @@ import com.example.agentx.application.user.dto.UserSettingsDTO;
 import com.example.agentx.domain.user.model.UserSettingsEntity;
 import com.example.agentx.interfaces.dto.user.request.UserSettingsUpdateRequest;
 
-/**
- * 用户设置转换器
- */
+/** 用户设置转换器 */
 public class UserSettingsAssembler {
 
-    /**
-     * 实体转DTO
-     */
+    /** 实体转DTO */
     public static UserSettingsDTO toDTO(UserSettingsEntity entity) {
         if (entity == null) {
             return null;
@@ -22,9 +18,7 @@ public class UserSettingsAssembler {
         return dto;
     }
 
-    /**
-     * 请求转实体
-     */
+    /** 请求转实体 */
     public static UserSettingsEntity toEntity(UserSettingsUpdateRequest request, String userId) {
         if (request == null) {
             return null;

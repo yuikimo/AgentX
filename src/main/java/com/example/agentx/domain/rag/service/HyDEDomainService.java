@@ -16,8 +16,6 @@ import java.util.Arrays;
 
 /**
  * HyDE（假设文档嵌入）领域服务 使用用户配置的LLM生成假设文档来改善RAG检索效果
- *
- * @author claude
  */
 @Service
 public class HyDEDomainService {

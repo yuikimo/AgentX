@@ -2,8 +2,7 @@ package com.example.agentx.infrastructure.entity;
 
 public enum Operator {
 
-    USER,
-    ADMIN;
+    USER, ADMIN;
 
     public boolean needCheckUserId() {
         return this == Operator.USER;

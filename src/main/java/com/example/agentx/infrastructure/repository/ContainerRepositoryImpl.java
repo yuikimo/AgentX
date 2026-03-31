@@ -4,13 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
+import org.springframework.stereotype.Repository;
 import com.example.agentx.domain.container.constant.ContainerStatus;
 import com.example.agentx.domain.container.constant.ContainerType;
 import com.example.agentx.domain.container.model.ContainerEntity;
 import com.example.agentx.domain.container.repository.ContainerRepository;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
@@ -24,10 +24,8 @@ public interface ContainerRepositoryImpl extends ContainerRepository {
     @Override
     default ContainerEntity findByUserIdAndType(String userId, ContainerType type) {
         LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
-                .eq(ContainerEntity::getUserId, userId)
-                .eq(ContainerEntity::getType, type)
-                .ne(ContainerEntity::getStatus, ContainerStatus.DELETED)
-                .orderByDesc(ContainerEntity::getCreatedAt);
+                .eq(ContainerEntity::getUserId, userId).eq(ContainerEntity::getType, type)
+                .ne(ContainerEntity::getStatus, ContainerStatus.DELETED).orderByDesc(ContainerEntity::getCreatedAt);
 
         return selectOne(wrapper);
     }
@@ -51,8 +49,7 @@ public interface ContainerRepositoryImpl extends ContainerRepository {
     @Override
     default List<ContainerEntity> findByUserId(String userId) {
         LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
-                .eq(ContainerEntity::getUserId, userId)
-                .ne(ContainerEntity::getStatus, ContainerStatus.DELETED)
+                .eq(ContainerEntity::getUserId, userId).ne(ContainerEntity::getStatus, ContainerStatus.DELETED)
                 .orderByDesc(ContainerEntity::getCreatedAt);
 
         return selectList(wrapper);
@@ -73,20 +70,20 @@ public interface ContainerRepositoryImpl extends ContainerRepository {
 
         // 关键词搜索：容器名称、用户ID、Docker容器ID
         if (StringUtils.isNotBlank(keyword)) {
-            wrapper.and(w -> w.like(ContainerEntity::getName, keyword)
-                    .or().like(ContainerEntity::getUserId, keyword)
-                    .or().like(ContainerEntity::getDockerContainerId, keyword)
-            );
+            wrapper.and(w -> w.like(ContainerEntity::getName, keyword).or().like(ContainerEntity::getUserId, keyword)
+                    .or().like(ContainerEntity::getDockerContainerId, keyword));
         }
 
         // 状态过滤
         if (status != null) {
             wrapper.eq(ContainerEntity::getStatus, status);
         }
+
         // 类型过滤
         if (type != null) {
             wrapper.eq(ContainerEntity::getType, type);
         }
+
         // 按创建时间倒序排列
         wrapper.orderByDesc(ContainerEntity::getCreatedAt);
 
@@ -96,8 +93,7 @@ public interface ContainerRepositoryImpl extends ContainerRepository {
     @Override
     default boolean isPortOccupied(Integer port) {
         LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
-                .eq(ContainerEntity::getExternalPort, port)
-                .ne(ContainerEntity::getStatus, ContainerStatus.DELETED);
+                .eq(ContainerEntity::getExternalPort, port).ne(ContainerEntity::getStatus, ContainerStatus.DELETED);
 
         return selectCount(wrapper) > 0;
     }
@@ -115,8 +111,7 @@ public interface ContainerRepositoryImpl extends ContainerRepository {
     @Override
     default long countByUserId(String userId) {
         LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
-                .eq(ContainerEntity::getUserId, userId)
-                .ne(ContainerEntity::getStatus, ContainerStatus.DELETED);
+                .eq(ContainerEntity::getUserId, userId).ne(ContainerEntity::getStatus, ContainerStatus.DELETED);
 
         return selectCount(wrapper);
     }

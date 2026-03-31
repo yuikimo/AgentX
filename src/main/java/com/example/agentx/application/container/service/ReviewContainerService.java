@@ -1,10 +1,10 @@
 package com.example.agentx.application.container.service;
 
-import com.example.agentx.application.container.dto.ContainerDTO;
-import com.example.agentx.infrastructure.exception.BusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import com.example.agentx.application.container.dto.ContainerDTO;
+import com.example.agentx.infrastructure.exception.BusinessException;
 
 /**
  * 审核容器服务
@@ -35,18 +35,17 @@ public class ReviewContainerService {
 
             // 二次验证容器信息完整性（防御性编程）
             if (reviewContainer.getIpAddress() == null || reviewContainer.getExternalPort() == null) {
-                logger.error("审核容器网络信息不完整: ip={}, port={}, status={}",
-                        reviewContainer.getIpAddress(), reviewContainer.getExternalPort(), reviewContainer.getStatus()
-                );
+                logger.error("审核容器网络信息不完整: ip={}, port={}, status={}", reviewContainer.getIpAddress(),
+                        reviewContainer.getExternalPort(), reviewContainer.getStatus());
                 throw new BusinessException("审核容器网络配置不完整，容器状态: " + reviewContainer.getStatus());
             }
 
-            logger.info("获取审核容器连接信息: {}:{} ({})",
-                    reviewContainer.getIpAddress(), reviewContainer.getExternalPort(), reviewContainer.getStatus()
-            );
+            logger.info("获取审核容器连接信息: {}:{} ({})", reviewContainer.getIpAddress(), reviewContainer.getExternalPort(),
+                    reviewContainer.getStatus());
 
             return new ReviewContainerConnection(reviewContainer.getIpAddress(), reviewContainer.getExternalPort(),
                     reviewContainer.getId(), reviewContainer.getName());
+
         } catch (BusinessException e) {
             // 重新抛出业务异常，保持原始错误信息
             throw e;
@@ -101,7 +100,7 @@ public class ReviewContainerService {
     }
 
     /**
-     * 检查容器是否健康
+     * 检查容器是否健康（使用统一的健康检查标准）
      */
     private boolean isContainerHealthy(ContainerDTO container) {
         if (container == null) {
@@ -114,7 +113,17 @@ public class ReviewContainerService {
         // 检查必要的网络信息是否存在
         boolean hasNetworkInfo = container.getIpAddress() != null && container.getExternalPort() != null;
 
-        return isRunning && hasNetworkInfo;
+        // 检查Docker容器ID是否存在
+        boolean hasDockerContainerId = container.getDockerContainerId() != null;
+
+        boolean basicHealthy = isRunning && hasNetworkInfo && hasDockerContainerId;
+
+        if (!basicHealthy) {
+            logger.debug("审核容器基础健康检查: containerId={}, running={}, networkInfo={}, dockerId={}", container.getId(),
+                    isRunning, hasNetworkInfo, hasDockerContainerId);
+        }
+
+        return basicHealthy;
     }
 
     /**
@@ -189,5 +198,4 @@ public class ReviewContainerService {
             return container;
         }
     }
-
 }

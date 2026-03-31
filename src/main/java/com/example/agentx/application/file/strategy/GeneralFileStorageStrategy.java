@@ -1,20 +1,19 @@
 package com.example.agentx.application.file.strategy;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.lang.Dict;
-import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.dromara.x.file.storage.core.FileInfo;
+import org.springframework.stereotype.Component;
 import com.example.agentx.domain.rag.model.FileDetailEntity;
 import com.example.agentx.domain.rag.repository.FileDetailRepository;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.dromara.x.file.storage.core.FileInfo;
-import org.dromara.x.file.storage.core.hash.HashInfo;
-import org.springframework.stereotype.Component;
 
-import java.util.Map;
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.lang.Dict;
+import cn.hutool.core.util.StrUtil;
 
 /**
  * 通用文件存储策略
@@ -64,9 +63,8 @@ public class GeneralFileStorageStrategy implements FileStorageStrategy {
     @Override
     public FileInfo getByUrl(String url) {
         try {
-            FileDetailEntity fileDetailEntity = fileDetailRepository.selectOne(
-                    Wrappers.<FileDetailEntity>lambdaQuery().eq(FileDetailEntity::getUrl, url)
-            );
+            FileDetailEntity fileDetailEntity = fileDetailRepository
+                    .selectOne(Wrappers.<FileDetailEntity>lambdaQuery().eq(FileDetailEntity::getUrl, url));
 
             if (fileDetailEntity == null) {
                 return null;
@@ -80,9 +78,8 @@ public class GeneralFileStorageStrategy implements FileStorageStrategy {
 
     @Override
     public boolean delete(String url) {
-        FileDetailEntity fileDetailEntity = fileDetailRepository.selectOne(
-                Wrappers.lambdaQuery(FileDetailEntity.class).eq(FileDetailEntity::getUrl, url)
-        );
+        FileDetailEntity fileDetailEntity = fileDetailRepository
+                .selectOne(Wrappers.lambdaQuery(FileDetailEntity.class).eq(FileDetailEntity::getUrl, url));
 
         if (fileDetailEntity == null) {
             return false;
@@ -97,8 +94,8 @@ public class GeneralFileStorageStrategy implements FileStorageStrategy {
      * 将FileInfo转换为FileDetailEntity
      */
     private FileDetailEntity convertToFileDetailEntity(FileInfo fileInfo) throws JsonProcessingException {
-        FileDetailEntity fileDetailEntity = BeanUtil.copyProperties(fileInfo, FileDetailEntity.class,
-                "metadata", "userMetadata", "thMetadata", "thUserMetadata", "attr", "hashInfo");
+        FileDetailEntity fileDetailEntity = BeanUtil.copyProperties(fileInfo, FileDetailEntity.class, "metadata",
+                "userMetadata", "thMetadata", "thUserMetadata", "attr", "hashInfo");
 
         // 设置基本信息
         if (fileInfo.getMetadata() != null) {
@@ -125,8 +122,8 @@ public class GeneralFileStorageStrategy implements FileStorageStrategy {
      * 将FileDetailEntity转换为FileInfo
      */
     private FileInfo convertToFileInfo(FileDetailEntity fileDetailEntity) throws JsonProcessingException {
-        FileInfo fileInfo = BeanUtil.copyProperties(fileDetailEntity, FileInfo.class,
-                "metadata", "userMetadata", "thMetadata", "thUserMetadata", "attr", "hashInfo");
+        FileInfo fileInfo = BeanUtil.copyProperties(fileDetailEntity, FileInfo.class, "metadata", "userMetadata",
+                "thMetadata", "thUserMetadata", "attr", "hashInfo");
 
         // 转换JSON字符串为对象
         fileInfo.setMetadata(jsonToMetadata(fileDetailEntity.getMetadata()));
@@ -137,7 +134,8 @@ public class GeneralFileStorageStrategy implements FileStorageStrategy {
 
         // 哈希信息处理需要特殊的类型转换
         if (StrUtil.isNotBlank(fileDetailEntity.getHashInfo())) {
-            fileInfo.setHashInfo(objectMapper.readValue(fileDetailEntity.getHashInfo(), HashInfo.class));
+            fileInfo.setHashInfo(objectMapper.readValue(fileDetailEntity.getHashInfo(),
+                    org.dromara.x.file.storage.core.hash.HashInfo.class));
         }
 
         return fileInfo;
@@ -156,7 +154,7 @@ public class GeneralFileStorageStrategy implements FileStorageStrategy {
     /**
      * 将JSON字符串转换为元数据Map
      */
-    private Map<String, String> jsonToMetadata(String json) throws JsonProcessingException {
+    private java.util.Map<String, String> jsonToMetadata(String json) throws JsonProcessingException {
         if (StrUtil.isBlank(json)) {
             return null;
         }

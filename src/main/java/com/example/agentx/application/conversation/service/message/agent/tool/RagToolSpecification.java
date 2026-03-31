@@ -10,21 +10,32 @@ import dev.langchain4j.model.chat.request.json.JsonStringSchema;
 import java.util.List;
 import java.util.Map;
 
-/** RAG工具规范定义 定义RAG工具的MCP规范，包括工具名称、描述和参数 */
+/**
+ * RAG工具规范定义 定义RAG工具的MCP规范，包括工具名称、描述和参数
+ */
 public class RagToolSpecification {
 
-    /** RAG工具名称 */
+    /**
+     * RAG工具名称
+     */
     public static final String TOOL_NAME = "knowledge_search";
 
-    /** RAG工具显示名称 */
+    /**
+     * RAG工具显示名称
+     */
     public static final String TOOL_DISPLAY_NAME = "知识库搜索";
 
-    /** RAG工具描述 */
+    /**
+     * RAG工具描述
+     */
     public static final String TOOL_DESCRIPTION = "在配置的知识库中搜索相关信息，用于回答用户问题";
 
-    /** 创建RAG工具规范
+    /**
+     * 创建RAG工具规范
+     *
      * @param knowledgeBaseNames 知识库名称列表，用于工具描述
-     * @return ToolSpecification */
+     * @return ToolSpecification
+     */
     public static ToolSpecification createToolSpecification(List<String> knowledgeBaseNames) {
         // 构建工具描述，包含可用的知识库信息
         String description = buildToolDescription(knowledgeBaseNames);
@@ -33,9 +44,12 @@ public class RagToolSpecification {
                 .build();
     }
 
-    /** 构建工具描述
+    /**
+     * 构建工具描述
+     *
      * @param knowledgeBaseNames 知识库名称列表
-     * @return 工具描述字符串 */
+     * @return 工具描述字符串
+     */
     private static String buildToolDescription(List<String> knowledgeBaseNames) {
         StringBuilder description = new StringBuilder(TOOL_DESCRIPTION);
 
@@ -52,8 +66,11 @@ public class RagToolSpecification {
         return description.toString();
     }
 
-    /** 创建参数模式
-     * @return JsonObjectSchema */
+    /**
+     * 创建参数模式
+     *
+     * @return JsonObjectSchema
+     */
     private static JsonObjectSchema createParameterSchema() {
         return JsonObjectSchema.builder()
                 .addProperties(Map.of("query", JsonStringSchema.builder().description("搜索查询内容，描述用户想要了解的问题或关键词").build(),
@@ -64,21 +81,30 @@ public class RagToolSpecification {
                 .build();
     }
 
-    /** 获取工具名称
-     * @return 工具名称 */
+    /**
+     * 获取工具名称
+     *
+     * @return 工具名称
+     */
     public static String getToolName() {
         return TOOL_NAME;
     }
 
-    /** 获取工具显示名称
-     * @return 工具显示名称 */
+    /**
+     * 获取工具显示名称
+     *
+     * @return 工具显示名称
+     */
     public static String getToolDisplayName() {
         return TOOL_DISPLAY_NAME;
     }
 
-    /** 检查是否为RAG工具
+    /**
+     * 检查是否为RAG工具
+     *
      * @param toolName 工具名称
-     * @return 是否为RAG工具 */
+     * @return 是否为RAG工具
+     */
     public static boolean isRagTool(String toolName) {
         return TOOL_NAME.equals(toolName);
     }

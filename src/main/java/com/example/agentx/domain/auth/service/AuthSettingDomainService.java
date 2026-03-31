@@ -32,7 +32,8 @@ public class AuthSettingDomainService {
      */
     public List<AuthSettingEntity> getEnabledFeatures(FeatureType featureType) {
         LambdaQueryWrapper<AuthSettingEntity> wrapper = Wrappers.<AuthSettingEntity>lambdaQuery()
-                .eq(AuthSettingEntity::getFeatureType, featureType.getCode()).eq(AuthSettingEntity::getEnabled, true)
+                .eq(AuthSettingEntity::getFeatureType, featureType.getCode())
+                .eq(AuthSettingEntity::getEnabled, true)
                 .orderByAsc(AuthSettingEntity::getDisplayOrder);
 
         return authSettingRepository.selectList(wrapper);
@@ -72,7 +73,8 @@ public class AuthSettingDomainService {
      */
     public boolean isFeatureEnabled(AuthFeatureKey featureKey) {
         LambdaQueryWrapper<AuthSettingEntity> wrapper = Wrappers.<AuthSettingEntity>lambdaQuery()
-                .eq(AuthSettingEntity::getFeatureKey, featureKey.getCode()).eq(AuthSettingEntity::getEnabled, true);
+                .eq(AuthSettingEntity::getFeatureKey, featureKey.getCode())
+                .eq(AuthSettingEntity::getEnabled, true);
 
         return authSettingRepository.selectCount(wrapper) > 0;
     }
@@ -114,7 +116,8 @@ public class AuthSettingDomainService {
         AuthSettingEntity entity = getById(id);
 
         LambdaUpdateWrapper<AuthSettingEntity> updateWrapper = Wrappers.<AuthSettingEntity>lambdaUpdate()
-                .eq(AuthSettingEntity::getId, id).set(AuthSettingEntity::getEnabled, !entity.getEnabled());
+                .eq(AuthSettingEntity::getId, id)
+                .set(AuthSettingEntity::getEnabled, !entity.getEnabled());
 
         authSettingRepository.checkedUpdate(null, updateWrapper);
 

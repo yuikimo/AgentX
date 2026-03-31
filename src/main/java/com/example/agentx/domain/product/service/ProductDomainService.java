@@ -3,15 +3,15 @@ package com.example.agentx.domain.product.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.springframework.stereotype.Service;
 import com.example.agentx.domain.product.constant.BillingType;
 import com.example.agentx.domain.product.model.ProductEntity;
 import com.example.agentx.domain.product.repository.ProductRepository;
 import com.example.agentx.infrastructure.exception.BusinessException;
-import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.Collections;
 
 /**
  * 商品领域服务 处理商品相关的核心业务逻辑
@@ -59,6 +59,7 @@ public class ProductDomainService {
         LambdaQueryWrapper<ProductEntity> wrapper = Wrappers.<ProductEntity>lambdaQuery()
                 .eq(ProductEntity::getType, billingType)
                 .eq(ProductEntity::getServiceId, serviceId);
+
 
         return productRepository.selectOne(wrapper);
     }
@@ -142,6 +143,7 @@ public class ProductDomainService {
         if (type != null && !type.trim().isEmpty()) {
             wrapper.eq(ProductEntity::getType, type);
         }
+
         return productRepository.selectList(wrapper);
     }
 
@@ -162,6 +164,7 @@ public class ProductDomainService {
         LambdaUpdateWrapper<ProductEntity> updateWrapper = Wrappers.<ProductEntity>lambdaUpdate()
                 .eq(ProductEntity::getId, productId)
                 .set(ProductEntity::getStatus, status);
+
         productRepository.checkedUpdate(updateWrapper);
     }
 
@@ -235,8 +238,9 @@ public class ProductDomainService {
             return Collections.emptyList();
         }
 
-        LambdaQueryWrapper<ProductEntity> wrapper = Wrappers.<ProductEntity>lambdaQuery()
-                .in(ProductEntity::getId, productIds);
+        LambdaQueryWrapper<ProductEntity> wrapper = Wrappers.<ProductEntity>lambdaQuery().in(ProductEntity::getId,
+                productIds);
+
         return productRepository.selectList(wrapper);
     }
 }

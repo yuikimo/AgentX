@@ -1,14 +1,13 @@
 package com.example.agentx.application.conversation.service.message.agent;
 
-import com.example.agentx.application.conversation.service.ChatSessionManager;
-import com.example.agentx.application.conversation.service.message.builtin.BuiltInToolRegistry;
 import dev.langchain4j.service.tool.ToolProvider;
 import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.example.agentx.application.conversation.service.handler.context.ChatContext;
 import com.example.agentx.application.conversation.service.message.TracingMessageHandler;
-import com.example.agentx.application.conversation.service.message.agent.tool.RagToolManager;
+import com.example.agentx.application.conversation.service.message.builtin.BuiltInToolRegistry;
+import com.example.agentx.application.conversation.service.ChatSessionManager;
 import com.example.agentx.application.trace.collector.TraceCollector;
 import com.example.agentx.domain.conversation.service.MessageDomainService;
 import com.example.agentx.domain.conversation.service.SessionDomainService;

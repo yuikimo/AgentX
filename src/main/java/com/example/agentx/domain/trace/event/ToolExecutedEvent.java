@@ -1,8 +1,8 @@
 package com.example.agentx.domain.trace.event;
 
+import org.springframework.context.ApplicationEvent;
 import com.example.agentx.domain.trace.model.ToolCallInfo;
 import com.example.agentx.domain.trace.model.TraceContext;
-import org.springframework.context.ApplicationEvent;
 
 import java.time.LocalDateTime;
 

@@ -2,6 +2,13 @@ package com.example.agentx.application.conversation.service.message.rag;
 
 import com.example.agentx.application.conversation.service.handler.context.ChatContext;
 import com.example.agentx.application.rag.dto.RagSearchRequest;
+import com.example.agentx.domain.agent.model.AgentEntity;
+import com.example.agentx.domain.conversation.model.ContextEntity;
+import com.example.agentx.domain.conversation.model.MessageEntity;
+import com.example.agentx.domain.llm.model.ModelEntity;
+import com.example.agentx.domain.llm.model.ProviderEntity;
+
+import java.util.List;
 
 /**
  * RAG专用的聊天上下文 继承ChatContext，添加RAG特定的配置
@@ -87,27 +94,27 @@ public class RagChatContext extends ChatContext {
             return this;
         }
 
-        public Builder agent(com.example.agentx.domain.agent.model.AgentEntity agent) {
+        public Builder agent(AgentEntity agent) {
             context.setAgent(agent);
             return this;
         }
 
-        public Builder model(com.example.agentx.domain.llm.model.ModelEntity model) {
+        public Builder model(ModelEntity model) {
             context.setModel(model);
             return this;
         }
 
-        public Builder provider(com.example.agentx.domain.llm.model.ProviderEntity provider) {
+        public Builder provider(ProviderEntity provider) {
             context.setProvider(provider);
             return this;
         }
 
-        public Builder contextEntity(com.example.agentx.domain.conversation.model.ContextEntity contextEntity) {
+        public Builder contextEntity(ContextEntity contextEntity) {
             context.setContextEntity(contextEntity);
             return this;
         }
 
-        public Builder messageHistory(java.util.List<com.example.agentx.domain.conversation.model.MessageEntity> messageHistory) {
+        public Builder messageHistory(List<MessageEntity> messageHistory) {
             context.setMessageHistory(messageHistory);
             return this;
         }

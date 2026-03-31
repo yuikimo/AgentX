@@ -92,6 +92,7 @@ public class ProcessingContext {
             }
 
             return new ProcessingContext(embeddingConfig, llmConfig, visionModelConfig, userId, message.getFileId());
+
         } catch (Exception e) {
             log.error("从消息创建ProcessingContext失败: {}", e.getMessage(), e);
             // 创建一个空配置的上下文作为回退

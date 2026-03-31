@@ -19,6 +19,6 @@ public interface LLMRequestService {
      * @param topP          topP参数
      * @return 构建好的领域请求对象
      */
-    LLMRequest buildRequest(ContextProcessor.ContextResult contextResult, String userMessage, String systemPrompt,
-                            String modelId, float temperature, float topP);
+    LLMRequest buildRequest(ContextProcessor.ContextResult contextResult, String userMessage,
+                            String systemPrompt, String modelId, float temperature, float topP);
 }

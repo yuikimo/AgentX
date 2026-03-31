@@ -1,8 +1,5 @@
 package com.example.agentx.infrastructure.rag.translator;
 
-import com.example.agentx.domain.rag.strategy.context.ProcessingContext;
-import com.example.agentx.infrastructure.llm.LLMProviderService;
-import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 import com.vladsch.flexmark.ast.Text;
 import com.vladsch.flexmark.util.ast.Node;
 import dev.langchain4j.data.message.UserMessage;
@@ -11,9 +8,13 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import com.example.agentx.domain.rag.strategy.context.ProcessingContext;
+import com.example.agentx.infrastructure.llm.LLMProviderService;
+import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 
 /**
  * 公式翻译器
+ * <p>
  * 将数学公式翻译为自然语言描述，便于RAG检索
  */
 @Component
@@ -50,10 +51,11 @@ public class FormulaTranslator implements NodeTranslator {
             // 增强内容：保留原始公式 + 添加LLM解释
             String enhancedContent = String.format("%s\n\n公式解释：%s", originalContent, formulaAnalysis);
 
-            log.debug("Enhanced formula: original_length={}, enhanced_length={}",
-                    originalContent.length(), enhancedContent.length());
+            log.debug("Enhanced formula: original_length={}, enhanced_length={}", originalContent.length(),
+                    enhancedContent.length());
 
             return enhancedContent;
+
         } catch (Exception e) {
             log.error("Failed to translate formula content: {}", e.getMessage(), e);
             return node.getChars().toString(); // 出错时返回原内容
@@ -98,6 +100,7 @@ public class FormulaTranslator implements NodeTranslator {
             log.debug("Generated formula analysis: {}", analysis);
 
             return analysis;
+
         } catch (Exception e) {
             log.warn("Failed to analyze formula with LLM: {}", e.getMessage());
             return generateFallbackFormulaDescription(formulaContent);

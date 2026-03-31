@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import com.example.agentx.domain.tool.model.ToolVersionEntity;
@@ -35,16 +37,16 @@ public class ToolVersionDomainService {
         List<ToolVersionEntity> allPublicList = toolVersionRepository.selectList(wrapper);
         // 2. 按tool_id分组，取每组created_at最大的一条
         Map<String, ToolVersionEntity> latestMap = allPublicList.stream()
-                .collect(java.util.stream.Collectors.toMap(ToolVersionEntity::getToolId, v -> v,
+                .collect(Collectors.toMap(ToolVersionEntity::getToolId, v -> v,
                         (v1, v2) -> v1.getCreatedAt().isAfter(v2.getCreatedAt()) ? v1 : v2));
-        List<ToolVersionEntity> latestList = new java.util.ArrayList<>(latestMap.values());
+        List<ToolVersionEntity> latestList = new ArrayList<>(latestMap.values());
         // 3. 按创建时间倒序排列
         latestList.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
         // 4. 手动分页
         int fromIndex = (int) ((page - 1) * pageSize);
         int toIndex = Math.min(fromIndex + (int) pageSize, latestList.size());
         List<ToolVersionEntity> pageList = fromIndex >= latestList.size()
-                ? new java.util.ArrayList<>()
+                ? new ArrayList<>()
                 : latestList.subList(fromIndex, toIndex);
         Page<ToolVersionEntity> resultPage = new Page<>(page, pageSize, latestList.size());
         resultPage.setRecords(pageList);
@@ -80,7 +82,8 @@ public class ToolVersionDomainService {
      */
     private ToolVersionEntity getToolVersionWithoutPermissionCheck(String toolId, String version) {
         Wrapper<ToolVersionEntity> wrapper = Wrappers.<ToolVersionEntity>lambdaQuery()
-                .eq(ToolVersionEntity::getToolId, toolId).eq(ToolVersionEntity::getVersion, version);
+                .eq(ToolVersionEntity::getToolId, toolId)
+                .eq(ToolVersionEntity::getVersion, version);
         ToolVersionEntity toolVersionEntity = toolVersionRepository.selectOne(wrapper);
         if (toolVersionEntity == null) {
             throw new BusinessException("工具版本不存在: " + toolId + " " + version);
@@ -108,7 +111,9 @@ public class ToolVersionDomainService {
     public ToolVersionEntity findLatestToolVersion(String toolId, String userId) {
 
         LambdaQueryWrapper<ToolVersionEntity> queryWrapper = Wrappers.<ToolVersionEntity>lambdaQuery()
-                .eq(ToolVersionEntity::getToolId, toolId).orderByDesc(ToolVersionEntity::getCreatedAt).last("LIMIT 1");
+                .eq(ToolVersionEntity::getToolId, toolId)
+                .orderByDesc(ToolVersionEntity::getCreatedAt)
+                .last("LIMIT 1");
 
         ToolVersionEntity toolVersionEntity = toolVersionRepository.selectOne(queryWrapper);
         if (toolVersionEntity == null) {
@@ -127,7 +132,9 @@ public class ToolVersionDomainService {
     public List<ToolVersionEntity> getToolVersions(String toolId, String userId) {
         // 先查询工具的创建者是谁
         LambdaQueryWrapper<ToolVersionEntity> creatorQuery = Wrappers.<ToolVersionEntity>lambdaQuery()
-                .eq(ToolVersionEntity::getToolId, toolId).orderByDesc(ToolVersionEntity::getCreatedAt).last("LIMIT 1");
+                .eq(ToolVersionEntity::getToolId, toolId)
+                .orderByDesc(ToolVersionEntity::getCreatedAt)
+                .last("LIMIT 1");
         ToolVersionEntity tool = toolVersionRepository.selectOne(creatorQuery);
 
         // 如果工具不存在，返回空列表
@@ -136,7 +143,8 @@ public class ToolVersionDomainService {
         }
 
         LambdaQueryWrapper<ToolVersionEntity> queryWrapper = Wrappers.<ToolVersionEntity>lambdaQuery()
-                .eq(ToolVersionEntity::getToolId, toolId).orderByDesc(ToolVersionEntity::getCreatedAt);
+                .eq(ToolVersionEntity::getToolId, toolId)
+                .orderByDesc(ToolVersionEntity::getCreatedAt);
 
         // 如果当前用户是创建者，返回所有版本；否则只返回公开版本
         if (!userId.equals(tool.getUserId())) {
@@ -148,8 +156,10 @@ public class ToolVersionDomainService {
 
     public void updateToolVersionStatus(String toolId, String version, String userId, Boolean publishStatus) {
         Wrapper<ToolVersionEntity> wrapper = Wrappers.<ToolVersionEntity>lambdaUpdate()
-                .eq(ToolVersionEntity::getToolId, toolId).eq(ToolVersionEntity::getVersion, version)
-                .eq(ToolVersionEntity::getUserId, userId).set(ToolVersionEntity::getPublicStatus, publishStatus);
+                .eq(ToolVersionEntity::getToolId, toolId)
+                .eq(ToolVersionEntity::getVersion, version)
+                .eq(ToolVersionEntity::getUserId, userId)
+                .set(ToolVersionEntity::getPublicStatus, publishStatus);
         toolVersionRepository.checkedUpdate(wrapper);
     }
 }

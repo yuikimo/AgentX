@@ -22,6 +22,7 @@ import com.example.agentx.infrastructure.transport.MessageTransport;
 import com.example.agentx.application.billing.service.BillingService;
 import com.example.agentx.domain.user.service.AccountDomainService;
 
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**

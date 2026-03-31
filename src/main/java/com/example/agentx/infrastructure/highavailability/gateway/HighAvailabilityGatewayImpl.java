@@ -1,15 +1,15 @@
 package com.example.agentx.infrastructure.highavailability.gateway;
 
+import org.springframework.stereotype.Component;
 import com.example.agentx.domain.highavailability.gateway.HighAvailabilityGateway;
 import com.example.agentx.infrastructure.highavailability.client.HighAvailabilityGatewayClient;
-import com.example.agentx.infrastructure.highavailability.dto.request.ApiInstanceBatchDeleteRequest;
 import com.example.agentx.infrastructure.highavailability.dto.request.ApiInstanceCreateRequest;
 import com.example.agentx.infrastructure.highavailability.dto.request.ApiInstanceUpdateRequest;
 import com.example.agentx.infrastructure.highavailability.dto.request.ProjectCreateRequest;
 import com.example.agentx.infrastructure.highavailability.dto.request.ReportResultRequest;
 import com.example.agentx.infrastructure.highavailability.dto.request.SelectInstanceRequest;
+import com.example.agentx.infrastructure.highavailability.dto.request.ApiInstanceBatchDeleteRequest;
 import com.example.agentx.infrastructure.highavailability.dto.response.ApiInstanceDTO;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
