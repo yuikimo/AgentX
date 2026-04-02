@@ -498,7 +498,9 @@ public abstract class AbstractMessageHandler {
      * 初始化内存
      */
     protected MessageWindowChatMemory initMemory() {
-        return MessageWindowChatMemory.builder().maxMessages(1000).chatMemoryStore(new InMemoryChatMemoryStore())
+        return MessageWindowChatMemory.builder()
+                .maxMessages(1000)
+                .chatMemoryStore(new InMemoryChatMemoryStore())
                 .build();
     }
 
@@ -556,7 +558,8 @@ public abstract class AbstractMessageHandler {
     protected void buildHistoryMessage(ChatContext chatContext, MessageWindowChatMemory memory) {
         // String summary = chatContext.getContextEntity().getSummary();
         String summary = Optional.ofNullable(this.getSummaryFromHistory(chatContext.getMessageHistory()))
-                .map(MessageEntity::getContent).orElse("");
+                .map(MessageEntity::getContent)
+                .orElse("");
         if (StringUtils.isNotEmpty(summary)) {
             // 添加为AI消息，但明确标识这是摘要
             memory.add(new AiMessage(summary));

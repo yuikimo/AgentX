@@ -28,8 +28,9 @@ public class AgentPromptTemplates {
     /**
      * 根据预设的工具参数生成系统提示词中关于“可直接调用工具”的部分。
      *
-     * @param toolPresetParams 一个 Map 结构，表示预设的工具及其参数。 外层 key 是 mcpServerName（例如 "surge"）， 内层 key 是工具名称（例如
-     *                         "surge_login"）， 最内层是工具的参数 Map。
+     * @param toolPresetParams 一个 Map 结构，表示预设的工具及其参数。
+     *                         外层 key 是 mcpServerName（例如 "surge"），内层 key 是工具名称（例如"surge_login"），
+     *                         最内层是工具的参数 Map。
      * @return 包含预设工具列表的字符串，如果 toolPresetParams 为空或null，则返回空字符串。
      */
     public static String generatePresetToolPrompt(Map<String, Map<String, Map<String, String>>> toolPresetParams) {

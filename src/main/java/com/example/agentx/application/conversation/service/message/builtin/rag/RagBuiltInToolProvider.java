@@ -141,8 +141,8 @@ public class RagBuiltInToolProvider extends AbstractBuiltInToolProvider {
             // 格式化搜索结果
             String formattedResults = formatSearchResults(searchResults, query);
 
-            log.info("RAG搜索完成，knowledgeBaseIds: {}, query: {}, 找到文档数量: {}", validKnowledgeBaseIds, query,
-                    searchResults.size());
+            log.info("RAG搜索完成，knowledgeBaseIds: {}, query: {}, 找到文档数量: {}",
+                    validKnowledgeBaseIds, query, searchResults.size());
 
             return formattedResults;
 

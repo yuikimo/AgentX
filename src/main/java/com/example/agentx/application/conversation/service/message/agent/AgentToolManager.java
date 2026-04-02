@@ -48,8 +48,12 @@ public class AgentToolManager {
 
         for (String mcpServerName : mcpServerNames) {
             String sseUrl = mcpUrlProviderService.getMcpToolUrl(mcpServerName, userId);
-            McpTransport transport = new HttpMcpTransport.Builder().sseUrl(sseUrl).logRequests(true).logResponses(true)
-                    .timeout(Duration.ofHours(1)).build();
+            McpTransport transport = new HttpMcpTransport.Builder()
+                    .sseUrl(sseUrl)
+                    .logRequests(true)
+                    .logResponses(true)
+                    .timeout(Duration.ofHours(1))
+                    .build();
 
             McpClient mcpClient = new DefaultMcpClient.Builder().transport(transport).build();
 
