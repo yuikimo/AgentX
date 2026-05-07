@@ -5,6 +5,9 @@ import java.io.IOException;
 
 import org.apache.tika.Tika;
 
+/** @author shilong.zang
+ * @date 11:32 <br/>
+ */
 public class TikaFileTypeDetector {
 
     public static String detectFileType(byte[] data) {

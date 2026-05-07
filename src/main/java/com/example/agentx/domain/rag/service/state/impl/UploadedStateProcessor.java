@@ -7,9 +7,10 @@ import com.example.agentx.domain.rag.constant.FileProcessingStatusEnum;
 import com.example.agentx.domain.rag.model.FileDetailEntity;
 import com.example.agentx.domain.rag.service.state.FileProcessingStateProcessor;
 
-/**
- * 已上传状态处理器
- */
+/** 已上传状态处理器
+ * 
+ * @author zang
+ * @date 2025-07-17 */
 @Component
 public class UploadedStateProcessor implements FileProcessingStateProcessor {
 

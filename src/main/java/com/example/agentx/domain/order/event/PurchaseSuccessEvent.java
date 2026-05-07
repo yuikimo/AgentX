@@ -6,54 +6,34 @@ import com.example.agentx.domain.order.model.OrderEntity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * 购买成功事件 统一的订单支付成功事件，各业务模块根据订单类型自主判断是否处理
- */
+/** 购买成功事件 统一的订单支付成功事件，各业务模块根据订单类型自主判断是否处理 */
 public class PurchaseSuccessEvent {
 
-    /**
-     * 订单ID
-     */
+    /** 订单ID */
     private String orderId;
 
-    /**
-     * 用户ID
-     */
+    /** 用户ID */
     private String userId;
 
-    /**
-     * 订单号
-     */
+    /** 订单号 */
     private String orderNo;
 
-    /**
-     * 订单类型 - 关键字段，用于监听器判断是否需要处理
-     */
+    /** 订单类型 - 关键字段，用于监听器判断是否需要处理 */
     private OrderType orderType;
 
-    /**
-     * 订单金额
-     */
+    /** 订单金额 */
     private BigDecimal amount;
 
-    /**
-     * 订单标题
-     */
+    /** 订单标题 */
     private String title;
 
-    /**
-     * 订单描述
-     */
+    /** 订单描述 */
     private String description;
 
-    /**
-     * 完整的订单实体信息
-     */
+    /** 完整的订单实体信息 */
     private OrderEntity orderEntity;
 
-    /**
-     * 事件发生时间
-     */
+    /** 事件发生时间 */
     private LocalDateTime occurredAt;
 
     public PurchaseSuccessEvent() {

@@ -18,6 +18,7 @@ import com.example.agentx.domain.rag.model.DocumentUnitEntity;
 import com.example.agentx.domain.rag.model.FileDetailEntity;
 import com.example.agentx.domain.rag.repository.DocumentUnitRepository;
 import com.example.agentx.domain.rag.repository.FileDetailRepository;
+import com.example.agentx.domain.prompt.RagPromptTemplates;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.infrastructure.llm.LLMProviderService;
 import com.example.agentx.infrastructure.llm.config.ProviderConfig;
@@ -32,7 +33,7 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import jakarta.annotation.Resource;
 
-import static com.example.agentx.domain.rag.strategy.context.RAGSystemPrompt.OCR_PROMPT;
+import static com.example.agentx.domain.prompt.RagPromptTemplates.OCR_PROMPT;
 
 @Service("pdf")
 public class PDFRagDocDocumentProcessing extends AbstractDocumentProcessingStrategy {
@@ -50,17 +51,14 @@ public class PDFRagDocDocumentProcessing extends AbstractDocumentProcessingStrat
     private String currentProcessingFileId;
 
     public PDFRagDocDocumentProcessing(DocumentUnitRepository documentUnitRepository,
-                                       FileDetailRepository fileDetailRepository) {
+            FileDetailRepository fileDetailRepository) {
         this.documentUnitRepository = documentUnitRepository;
         this.fileDetailRepository = fileDetailRepository;
     }
 
-    /**
-     * 处理消息，增加进度更新功能
-     *
+    /** 处理消息，增加进度更新功能
      * @param ragDocMessage 消息数据
-     * @param strategy      当前策略
-     */
+     * @param strategy 当前策略 */
     @Override
     public void handle(RagDocMessage ragDocMessage, String strategy) throws Exception {
         // 设置当前处理的文件ID，用于进度更新
@@ -70,9 +68,7 @@ public class PDFRagDocDocumentProcessing extends AbstractDocumentProcessingStrat
         super.handle(ragDocMessage, strategy);
     }
 
-    /**
-     * 获取文件页数
-     */
+    /** 获取文件页数 */
     @Override
     public void pushPageSize(byte[] bytes, RagDocMessage ragDocSyncOcrMessage) {
 
@@ -95,12 +91,10 @@ public class PDFRagDocDocumentProcessing extends AbstractDocumentProcessingStrat
 
     }
 
-    /**
-     * 获取文件
+    /** 获取文件
      *
      * @param ragDocSyncOcrMessage 消息数据
-     * @param strategy             当前策略
-     */
+     * @param strategy 当前策略 */
     @Override
     public byte[] getFileData(RagDocMessage ragDocSyncOcrMessage, String strategy) {
 
@@ -109,32 +103,21 @@ public class PDFRagDocDocumentProcessing extends AbstractDocumentProcessingStrat
         return fileStorageService.download(fileDetailEntity.getUrl()).bytes();
     }
 
-    /**
-     * 处理PDF文件 - 按页处理逻辑
-     */
-    @Override
-    public Map<Integer, String> processFile(byte[] fileBytes, int totalPages) {
-        return processFile(fileBytes, totalPages, null);
-    }
-
-    /**
-     * 处理PDF文件 - 按页处理逻辑（带消息参数）
-     */
+    /** 处理PDF文件 - 按页处理逻辑（带消息参数） */
     @Override
     public Map<Integer, String> processFile(byte[] fileBytes, int totalPages, RagDocMessage ragDocSyncOcrMessage) {
 
         final HashMap<Integer, String> ocrData = new HashMap<>();
+        ChatModel ocrModel = createOcrModelFromMessage(ragDocSyncOcrMessage);
         for (int pageIndex = 0; pageIndex < totalPages; pageIndex++) {
             try {
                 // 单独处理每一页以减少内存使用
                 String base64 = PdfToBase64Converter.processPdfPageToBase64(fileBytes, pageIndex, "jpg");
+                var promptSpec = RagPromptTemplates.ocrPromptSpec();
 
                 final UserMessage userMessage = UserMessage.userMessage(
                         ImageContent.from(base64, TikaFileTypeDetector.detectFileType(Base64.decode(base64))),
-                        TextContent.from(OCR_PROMPT));
-
-                /** 创建OCR处理的模型配置 - 从消息中获取用户配置的OCR模型 */
-                ChatModel ocrModel = createOcrModelFromMessage(ragDocSyncOcrMessage);
+                        TextContent.from(promptSpec.getInstructionPrompt()));
 
                 final ChatResponse chat = ocrModel.chat(userMessage);
 
@@ -145,16 +128,6 @@ public class PDFRagDocDocumentProcessing extends AbstractDocumentProcessingStrat
 
                 log.info("处理第{}/{}页，当前内存使用: {} MB", (pageIndex + 1), totalPages,
                         (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024));
-
-                if ((pageIndex + 1) % 10 == 0) {
-                    System.gc();
-                }
-
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
 
                 log.info("第{}页处理完成", (pageIndex + 1));
             } catch (Exception e) {
@@ -167,12 +140,10 @@ public class PDFRagDocDocumentProcessing extends AbstractDocumentProcessingStrat
 
     }
 
-    /**
-     * 保存数据
+    /** 保存数据
      *
      * @param ragDocSyncOcrMessage 消息数据
-     * @param ocrData              ocr数据
-     */
+     * @param ocrData ocr数据 */
     @Override
     public void insertData(RagDocMessage ragDocSyncOcrMessage, Map<Integer, String> ocrData) {
 
@@ -184,6 +155,7 @@ public class PDFRagDocDocumentProcessing extends AbstractDocumentProcessingStrat
 
             documentUnitDO.setContent(content);
             documentUnitDO.setPage(pageIndex);
+            documentUnitDO.setChunkIndex(pageIndex);
             documentUnitDO.setFileId(ragDocSyncOcrMessage.getFileId());
             documentUnitDO.setIsVector(false);
             documentUnitDO.setIsOcr(true);
@@ -213,12 +185,9 @@ public class PDFRagDocDocumentProcessing extends AbstractDocumentProcessingStrat
         return result.trim();
     }
 
-    /**
-     * 更新处理进度
-     *
+    /** 更新处理进度
      * @param currentPage 当前页数
-     * @param totalPages  总页数
-     */
+     * @param totalPages 总页数 */
     private void updateProcessProgress(int currentPage, int totalPages) {
         if (currentProcessingFileId == null) {
             return;
@@ -242,13 +211,11 @@ public class PDFRagDocDocumentProcessing extends AbstractDocumentProcessingStrat
         }
     }
 
-    /**
-     * 从消息中创建OCR模型
-     *
+    /** 从消息中创建OCR模型
+     * 
      * @param ragDocSyncOcrMessage OCR消息
      * @return ChatModel实例
-     * @throws RuntimeException 如果没有配置OCR模型或创建失败
-     */
+     * @throws RuntimeException 如果没有配置OCR模型或创建失败 */
     private ChatModel createOcrModelFromMessage(RagDocMessage ragDocSyncOcrMessage) {
         // 检查消息和模型配置是否存在
         if (ragDocSyncOcrMessage == null || ragDocSyncOcrMessage.getOcrModelConfig() == null) {
@@ -260,11 +227,14 @@ public class PDFRagDocDocumentProcessing extends AbstractDocumentProcessingStrat
 
         try {
             var modelConfig = ragDocSyncOcrMessage.getOcrModelConfig();
+            ProviderProtocol protocol = modelConfig.getProtocol() != null ? modelConfig.getProtocol()
+                    : ProviderProtocol.OPENAI;
 
             ProviderConfig ocrProviderConfig = new ProviderConfig(modelConfig.getApiKey(), modelConfig.getBaseUrl(),
-                    modelConfig.getModelEndpoint(), ProviderProtocol.OPENAI);
+                    modelConfig.getModelEndpoint(), protocol);
+            ocrProviderConfig.setDisableEnableThinking(true);
 
-            ChatModel ocrModel = LLMProviderService.getStrand(ProviderProtocol.OPENAI, ocrProviderConfig);
+            ChatModel ocrModel = LLMProviderService.getStrand(protocol, ocrProviderConfig);
 
             log.info("成功为用户{}创建OCR模型: {}", ragDocSyncOcrMessage.getUserId(), modelConfig.getModelEndpoint());
             return ocrModel;

@@ -6,9 +6,7 @@ import com.example.agentx.domain.trace.model.TraceContext;
 
 import java.time.LocalDateTime;
 
-/**
- * 模型调用事件
- */
+/** 模型调用事件 */
 public class ModelCalledEvent extends ApplicationEvent {
 
     private final TraceContext traceContext;
@@ -25,7 +23,7 @@ public class ModelCalledEvent extends ApplicationEvent {
     }
 
     public ModelCalledEvent(Object source, TraceContext traceContext, String aiResponse, ModelCallInfo modelCallInfo,
-                            LocalDateTime aiResponseStartTime) {
+            LocalDateTime aiResponseStartTime) {
         super(source);
         this.traceContext = traceContext;
         this.aiResponse = aiResponse;

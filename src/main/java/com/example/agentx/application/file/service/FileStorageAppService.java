@@ -14,11 +14,12 @@ import com.example.agentx.domain.file.constant.FileTypeEnum;
 
 import cn.hutool.core.util.StrUtil;
 
-/**
- * 文件存储应用服务
- * <p>
+/** 文件存储应用服务
+ * 
  * 实现 X-File-Storage 的 FileRecorder 接口，作为文件存储的统一入口， 根据文件类型选择合适的处理策略
- */
+ * 
+ * @author shilong.zang
+ * @date 2024-12-09 */
 @Service
 public class FileStorageAppService implements FileRecorder {
 
@@ -134,12 +135,10 @@ public class FileStorageAppService implements FileRecorder {
         log.debug("文件分片删除请求（暂未实现）：{}", uploadId);
     }
 
-    /**
-     * 根据文件信息判断文件类型
-     *
+    /** 根据文件信息判断文件类型
+     * 
      * @param fileInfo 文件信息
-     * @return 文件类型
-     */
+     * @return 文件类型 */
     private FileTypeEnum determineFileType(FileInfo fileInfo) {
 
         // 通过文件扩展名判断
@@ -162,12 +161,10 @@ public class FileStorageAppService implements FileRecorder {
         return FileTypeEnum.GENERAL;
     }
 
-    /**
-     * 提取文件扩展名
-     *
+    /** 提取文件扩展名
+     * 
      * @param filename 文件名
-     * @return 文件扩展名
-     */
+     * @return 文件扩展名 */
     private String extractFileExtension(String filename) {
         if (StrUtil.isBlank(filename)) {
             return null;
@@ -181,12 +178,10 @@ public class FileStorageAppService implements FileRecorder {
         return null;
     }
 
-    /**
-     * 根据文件URL判断文件类型
-     *
+    /** 根据文件URL判断文件类型
+     * 
      * @param url 文件URL
-     * @return 文件类型
-     */
+     * @return 文件类型 */
     private FileTypeEnum determineFileTypeByUrl(String url) {
         if (StrUtil.isBlank(url)) {
             return FileTypeEnum.GENERAL;

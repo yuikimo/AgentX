@@ -1,8 +1,6 @@
 package com.example.agentx.infrastructure.mq.core;
 
-/**
- * Publisher abstraction for outbound messages.
- */
+/** Publisher abstraction for outbound messages. */
 public interface MessagePublisher {
 
     void publish(MessageRoute route, MessageEnvelope<?> envelope);

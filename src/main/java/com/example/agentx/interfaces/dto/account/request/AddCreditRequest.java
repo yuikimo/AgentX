@@ -5,21 +5,15 @@ import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 
-/**
- * 增加信用额度请求
- */
+/** 增加信用额度请求 */
 public class AddCreditRequest {
 
-    /**
-     * 增加的信用额度
-     */
+    /** 增加的信用额度 */
     @NotNull(message = "信用额度不能为空")
     @DecimalMin(value = "0.01", message = "信用额度必须大于0.01")
     private BigDecimal amount;
 
-    /**
-     * 备注信息
-     */
+    /** 备注信息 */
     private String remark;
 
     public AddCreditRequest() {

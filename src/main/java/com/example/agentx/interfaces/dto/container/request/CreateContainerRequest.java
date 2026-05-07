@@ -4,36 +4,24 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import com.example.agentx.domain.container.constant.ContainerType;
 
-/**
- * 创建容器请求
- */
+/** 创建容器请求 */
 public class CreateContainerRequest {
 
-    /**
-     * 容器名称
-     */
+    /** 容器名称 */
     @NotBlank(message = "容器名称不能为空")
     private String name;
 
-    /**
-     * 容器类型
-     */
+    /** 容器类型 */
     @NotNull(message = "容器类型不能为空")
     private ContainerType type;
 
-    /**
-     * 容器镜像
-     */
+    /** 容器镜像 */
     private String image;
 
-    /**
-     * 内部端口
-     */
+    /** 内部端口 */
     private Integer internalPort;
 
-    /**
-     * 描述信息
-     */
+    /** 描述信息 */
     private String description;
 
     public String getName() {

@@ -2,9 +2,7 @@ package com.example.agentx.domain.llm.model;
 
 import java.util.List;
 
-/**
- * LLM请求模型 领域层定义的请求模型，不依赖具体实现
- */
+/** LLM请求模型 领域层定义的请求模型，不依赖具体实现 */
 public class LLMRequest {
     private final List<LLMMessage> messages;
     private final LLMRequestParameters parameters;
@@ -22,16 +20,12 @@ public class LLMRequest {
         return parameters;
     }
 
-    /**
-     * 消息类型
-     */
+    /** 消息类型 */
     public enum MessageType {
         USER, SYSTEM, ASSISTANT
     }
 
-    /**
-     * LLM消息模型
-     */
+    /** LLM消息模型 */
     public static class LLMMessage {
         private final MessageType type;
         private final String content;
@@ -50,9 +44,7 @@ public class LLMRequest {
         }
     }
 
-    /**
-     * LLM请求参数
-     */
+    /** LLM请求参数 */
     public static class LLMRequestParameters {
         private final String modelId;
         private final Double temperature;
@@ -77,9 +69,7 @@ public class LLMRequest {
         }
     }
 
-    /**
-     * 构建器
-     */
+    /** 构建器 */
     public static class Builder {
         private List<LLMMessage> messages;
         private LLMRequestParameters parameters;

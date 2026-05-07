@@ -8,33 +8,23 @@ import org.apache.ibatis.type.JdbcType;
 import com.example.agentx.infrastructure.converter.LLMModelConfigConverter;
 import com.example.agentx.infrastructure.entity.BaseEntity;
 
-/**
- * Agent工作区实体类 用于记录用户添加到工作区的Agent
- */
+/** Agent工作区实体类 用于记录用户添加到工作区的Agent */
 @TableName(value = "agent_workspace", autoResultMap = true)
 public class AgentWorkspaceEntity extends BaseEntity {
 
-    /**
-     * 主键ID
-     */
+    /** 主键ID */
     @TableId(value = "id", type = IdType.ASSIGN_UUID)
     private String id;
 
-    /**
-     * Agent ID
-     */
+    /** Agent ID */
     @TableField("agent_id")
     private String agentId;
 
-    /**
-     * 用户ID
-     */
+    /** 用户ID */
     @TableField("user_id")
     private String userId;
 
-    /**
-     * 模型配置
-     */
+    /** 模型配置 */
     @TableField(value = "llm_model_config", typeHandler = LLMModelConfigConverter.class, jdbcType = JdbcType.OTHER)
     private LLMModelConfig llmModelConfig;
 

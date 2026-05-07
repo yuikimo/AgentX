@@ -2,9 +2,7 @@ package com.example.agentx.domain.tool.constant;
 
 import com.example.agentx.infrastructure.exception.BusinessException;
 
-/**
- * 工具上传方式枚举
- */
+/** 工具上传方式枚举 */
 public enum UploadType {
 
     GITHUB, ZIP;

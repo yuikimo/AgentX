@@ -11,9 +11,7 @@ import com.example.agentx.domain.trace.model.ToolCallInfo;
 import com.example.agentx.domain.trace.model.TraceContext;
 import com.example.agentx.domain.trace.service.AgentExecutionTraceDomainService;
 
-/**
- * 追踪数据收集器 负责在关键执行节点收集追踪数据
- */
+/** 追踪数据收集器 负责在关键执行节点收集追踪数据 */
 @Component
 public class TraceCollector {
 
@@ -22,23 +20,21 @@ public class TraceCollector {
     private final ApplicationEventPublisher eventPublisher;
 
     public TraceCollector(AgentExecutionTraceDomainService traceDomainService,
-                          ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher) {
         this.traceDomainService = traceDomainService;
         this.eventPublisher = eventPublisher;
     }
 
-    /**
-     * 获取或开始会话级别的执行追踪
-     *
-     * @param userId      用户ID
-     * @param sessionId   会话ID
-     * @param agentId     Agent ID
+    /** 获取或开始会话级别的执行追踪
+     * 
+     * @param userId 用户ID
+     * @param sessionId 会话ID
+     * @param agentId Agent ID
      * @param userMessage 用户消息
      * @param messageType 消息类型
-     * @return 追踪上下文
-     */
+     * @return 追踪上下文 */
     public TraceContext getOrStartExecution(String userId, String sessionId, String agentId, String userMessage,
-                                            String messageType) {
+            String messageType) {
         try {
             // 获取或创建会话级别的追踪上下文
             TraceContext traceContext = traceDomainService.getOrCreateTrace(userId, sessionId, agentId);
@@ -62,13 +58,11 @@ public class TraceCollector {
         }
     }
 
-    /**
-     * 记录模型调用
-     *
-     * @param traceContext  追踪上下文
-     * @param aiResponse    AI响应内容
-     * @param modelCallInfo 模型调用信息
-     */
+    /** 记录模型调用
+     * 
+     * @param traceContext 追踪上下文
+     * @param aiResponse AI响应内容
+     * @param modelCallInfo 模型调用信息 */
     public void recordModelCall(TraceContext traceContext, String aiResponse, ModelCallInfo modelCallInfo) {
         if (!traceContext.isTraceEnabled()) {
             return;
@@ -83,12 +77,10 @@ public class TraceCollector {
         }
     }
 
-    /**
-     * 记录工具调用
-     *
+    /** 记录工具调用
+     * 
      * @param traceContext 追踪上下文
-     * @param toolCallInfo 工具调用信息
-     */
+     * @param toolCallInfo 工具调用信息 */
     public void recordToolCall(TraceContext traceContext, ToolCallInfo toolCallInfo) {
         if (!traceContext.isTraceEnabled()) {
             return;
@@ -102,16 +94,14 @@ public class TraceCollector {
         }
     }
 
-    /**
-     * 完成执行追踪
-     *
+    /** 完成执行追踪
+     * 
      * @param traceContext 追踪上下文
-     * @param success      是否成功
-     * @param errorPhase   错误阶段
-     * @param errorMessage 错误信息
-     */
+     * @param success 是否成功
+     * @param errorPhase 错误阶段
+     * @param errorMessage 错误信息 */
     public void completeExecution(TraceContext traceContext, boolean success, ExecutionPhase errorPhase,
-                                  String errorMessage) {
+            String errorMessage) {
         if (!traceContext.isTraceEnabled()) {
             return;
         }
@@ -125,44 +115,36 @@ public class TraceCollector {
         }
     }
 
-    /**
-     * 记录执行成功
-     *
-     * @param traceContext 追踪上下文
-     */
+    /** 记录执行成功
+     * 
+     * @param traceContext 追踪上下文 */
     public void recordSuccess(TraceContext traceContext) {
         completeExecution(traceContext, true, null, null);
     }
 
-    /**
-     * 记录执行失败
-     *
+    /** 记录执行失败
+     * 
      * @param traceContext 追踪上下文
-     * @param errorPhase   错误阶段
-     * @param errorMessage 错误信息
-     */
+     * @param errorPhase 错误阶段
+     * @param errorMessage 错误信息 */
     public void recordFailure(TraceContext traceContext, ExecutionPhase errorPhase, String errorMessage) {
         completeExecution(traceContext, false, errorPhase, errorMessage);
     }
 
-    /**
-     * 记录执行失败（使用Throwable）
-     *
+    /** 记录执行失败（使用Throwable）
+     * 
      * @param traceContext 追踪上下文
-     * @param errorPhase   错误阶段
-     * @param throwable    异常信息
-     */
+     * @param errorPhase 错误阶段
+     * @param throwable 异常信息 */
     public void recordFailure(TraceContext traceContext, ExecutionPhase errorPhase, Throwable throwable) {
         String errorMessage = throwable != null ? throwable.getMessage() : "未知错误";
         recordFailure(traceContext, errorPhase, errorMessage);
     }
 
-    /**
-     * 更新用户消息的Token数量
-     *
+    /** 更新用户消息的Token数量
+     * 
      * @param traceContext 追踪上下文
-     * @param inputTokens  输入Token数
-     */
+     * @param inputTokens 输入Token数 */
     public void updateUserMessageTokens(TraceContext traceContext, Integer inputTokens) {
         if (!traceContext.isTraceEnabled() || traceContext.getCurrentUserMessageId() == null || inputTokens == null) {
             return;
@@ -177,13 +159,11 @@ public class TraceCollector {
         }
     }
 
-    /**
-     * 记录异常详情信息
-     *
+    /** 记录异常详情信息
+     * 
      * @param traceContext 追踪上下文
-     * @param errorPhase   错误阶段
-     * @param throwable    异常信息
-     */
+     * @param errorPhase 错误阶段
+     * @param throwable 异常信息 */
     public void recordErrorDetail(TraceContext traceContext, ExecutionPhase errorPhase, Throwable throwable) {
         if (!traceContext.isTraceEnabled()) {
             return;

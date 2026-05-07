@@ -1,13 +1,8 @@
 package com.example.agentx.infrastructure.converter;
 
-import org.apache.ibatis.type.MappedTypes;
-
 import java.util.Map;
 
-/**
- * Map对象JSON转换器
- */
-@MappedTypes(Map.class)
+/** Map对象JSON转换器 */
 public class MapConverter extends JsonToStringConverter<Map> {
 
     public MapConverter() {

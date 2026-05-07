@@ -10,9 +10,7 @@ import com.example.agentx.domain.scheduledtask.model.ScheduledTaskEntity;
 
 import java.time.LocalDateTime;
 
-/**
- * 定时任务执行器 负责实际执行定时任务，通过事件发布与Application层解耦
- */
+/** 定时任务执行器 负责实际执行定时任务，通过事件发布与Application层解耦 */
 @Service
 public class ScheduleTaskExecutor {
 
@@ -23,18 +21,14 @@ public class ScheduleTaskExecutor {
     private final TaskScheduleService taskScheduleService;
 
     public ScheduleTaskExecutor(ApplicationEventPublisher eventPublisher,
-                                ScheduledTaskDomainService scheduledTaskDomainService,
-                                TaskScheduleService taskScheduleService) {
+            ScheduledTaskDomainService scheduledTaskDomainService, TaskScheduleService taskScheduleService) {
         this.eventPublisher = eventPublisher;
         this.scheduledTaskDomainService = scheduledTaskDomainService;
         this.taskScheduleService = taskScheduleService;
     }
 
-    /**
-     * 执行定时任务
-     *
-     * @param task 定时任务实体
-     */
+    /** 执行定时任务
+     * @param task 定时任务实体 */
     public void executeTask(ScheduledTaskEntity task) {
         try {
             logger.info("开始执行定时任务: taskId={}, content={}", task.getId(), task.getContent());
@@ -46,9 +40,8 @@ public class ScheduleTaskExecutor {
             }
 
             // 发布任务执行事件，由Application层监听并处理实际的对话逻辑
-            ScheduledTaskExecuteEvent event =
-                    new ScheduledTaskExecuteEvent(this, task.getId(), task.getUserId(), task.getSessionId(),
-                            task.getContent());
+            ScheduledTaskExecuteEvent event = new ScheduledTaskExecuteEvent(this, task.getId(), task.getUserId(),
+                    task.getSessionId(), task.getContent());
             eventPublisher.publishEvent(event);
 
             logger.info("定时任务执行事件已发布: taskId={}", task.getId());
@@ -61,11 +54,8 @@ public class ScheduleTaskExecutor {
         }
     }
 
-    /**
-     * 处理任务执行后的逻辑
-     *
-     * @param task 任务实体
-     */
+    /** 处理任务执行后的逻辑
+     * @param task 任务实体 */
     private void handleTaskExecution(ScheduledTaskEntity task) {
         try {
             LocalDateTime now = LocalDateTime.now();
@@ -99,12 +89,9 @@ public class ScheduleTaskExecutor {
         }
     }
 
-    /**
-     * 检查任务是否可以执行
-     *
+    /** 检查任务是否可以执行
      * @param task 任务实体
-     * @return 是否可以执行
-     */
+     * @return 是否可以执行 */
     public boolean canExecute(ScheduledTaskEntity task) {
         if (task == null) {
             return false;

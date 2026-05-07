@@ -14,6 +14,7 @@ import com.example.agentx.application.rag.dto.FileDetailDTO;
 import com.example.agentx.application.rag.dto.RagMarketDTO;
 import com.example.agentx.application.rag.dto.UserRagDTO;
 import com.example.agentx.application.rag.request.InstallRagRequest;
+import com.example.agentx.application.rag.service.search.RAGSearchAppService;
 import com.example.agentx.interfaces.dto.rag.request.QueryRagMarketRequest;
 import com.example.agentx.interfaces.dto.rag.request.QueryUserInstalledRagRequest;
 import com.example.agentx.domain.rag.model.DocumentUnitEntity;
@@ -32,8 +33,9 @@ import com.example.agentx.domain.user.service.UserDomainService;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * RAG市场应用服务
+/** RAG市场应用服务
+ * @author xhy
+ * @date 2025-07-16 <br/>
  */
 @Service
 public class RagMarketAppService {
@@ -45,13 +47,13 @@ public class RagMarketAppService {
     private final UserRagSnapshotDomainService userRagSnapshotService;
     private final RagDataAccessDomainService ragDataAccessService;
     private final FileDetailDomainService fileDetailDomainService;
+    private final RAGSearchAppService ragSearchAppService;
 
     public RagMarketAppService(RagVersionDomainService ragVersionDomainService,
-                               UserRagDomainService userRagDomainService, UserDomainService userDomainService,
-                               RagQaDatasetDomainService ragQaDatasetDomainService,
-                               UserRagSnapshotDomainService userRagSnapshotService,
-                               RagDataAccessDomainService ragDataAccessService,
-                               FileDetailDomainService fileDetailDomainService) {
+            UserRagDomainService userRagDomainService, UserDomainService userDomainService,
+            RagQaDatasetDomainService ragQaDatasetDomainService, UserRagSnapshotDomainService userRagSnapshotService,
+            RagDataAccessDomainService ragDataAccessService, FileDetailDomainService fileDetailDomainService,
+            RAGSearchAppService ragSearchAppService) {
         this.ragVersionDomainService = ragVersionDomainService;
         this.userRagDomainService = userRagDomainService;
         this.userDomainService = userDomainService;
@@ -59,15 +61,14 @@ public class RagMarketAppService {
         this.userRagSnapshotService = userRagSnapshotService;
         this.ragDataAccessService = ragDataAccessService;
         this.fileDetailDomainService = fileDetailDomainService;
+        this.ragSearchAppService = ragSearchAppService;
     }
 
-    /**
-     * 获取市场上的RAG版本列表
+    /** 获取市场上的RAG版本列表
      *
-     * @param request       查询请求
+     * @param request 查询请求
      * @param currentUserId 当前用户ID（用于判断是否已安装）
-     * @return RAG市场列表
-     */
+     * @return RAG市场列表 */
     public Page<RagMarketDTO> getMarketRagVersions(QueryRagMarketRequest request, String currentUserId) {
         IPage<RagVersionEntity> entityPage = ragVersionDomainService.listPublishedVersions(request.getPage(),
                 request.getPageSize(), request.getKeyword());
@@ -93,17 +94,16 @@ public class RagMarketAppService {
         return dtoPage;
     }
 
-    /**
-     * 安装RAG版本
+    /** 安装RAG版本
      *
      * @param request 安装请求
-     * @param userId  用户ID
-     * @return 安装后的RAG信息
-     */
+     * @param userId 用户ID
+     * @return 安装后的RAG信息 */
     @Transactional
     public UserRagDTO installRagVersion(InstallRagRequest request, String userId) {
         // 安装RAG
         UserRagEntity userRag = userRagDomainService.installRag(userId, request.getRagVersionId());
+        ragSearchAppService.invalidateAccessibleDatasetCache(userId);
 
         // 获取版本信息用于丰富DTO
         RagVersionEntity ragVersion = ragVersionDomainService.getRagVersion(request.getRagVersionId());
@@ -113,24 +113,21 @@ public class RagMarketAppService {
                 ragVersion.getDocumentCount(), getUserNickname(ragVersion.getUserId()), ragVersion.getUserId());
     }
 
-    /**
-     * 卸载RAG版本
+    /** 卸载RAG版本
      *
      * @param ragVersionId RAG版本ID
-     * @param userId       用户ID
-     */
+     * @param userId 用户ID */
     @Transactional
     public void uninstallRagVersion(String ragVersionId, String userId) {
         userRagDomainService.uninstallRag(userId, ragVersionId);
+        ragSearchAppService.invalidateAccessibleDatasetCache(userId);
     }
 
-    /**
-     * 获取用户安装的RAG列表
+    /** 获取用户安装的RAG列表
      *
-     * @param userId  用户ID
+     * @param userId 用户ID
      * @param request 查询请求
-     * @return 用户安装的RAG列表
-     */
+     * @return 用户安装的RAG列表 */
     public Page<UserRagDTO> getUserInstalledRags(String userId, QueryUserInstalledRagRequest request) {
         IPage<UserRagEntity> entityPage = userRagDomainService.listInstalledRags(userId, request.getPage(),
                 request.getPageSize(), request.getKeyword());
@@ -158,12 +155,10 @@ public class RagMarketAppService {
         return dtoPage;
     }
 
-    /**
-     * 获取用户安装的所有RAG（用于对话中选择）
+    /** 获取用户安装的所有RAG（用于对话中选择）
      *
      * @param userId 用户ID
-     * @return 用户安装的RAG列表
-     */
+     * @return 用户安装的RAG列表 */
     public List<UserRagDTO> getUserAllInstalledRags(String userId) {
         List<UserRagEntity> entities = userRagDomainService.listAllInstalledRags(userId);
 
@@ -186,13 +181,11 @@ public class RagMarketAppService {
         return dtoList;
     }
 
-    /**
-     * 获取用户安装的RAG详情
+    /** 获取用户安装的RAG详情
      *
      * @param ragVersionId RAG版本ID
-     * @param userId       用户ID
-     * @return 安装的RAG详情
-     */
+     * @param userId 用户ID
+     * @return 安装的RAG详情 */
     public UserRagDTO getInstalledRagDetail(String ragVersionId, String userId) {
         UserRagEntity userRag = userRagDomainService.getInstalledRag(userId, ragVersionId);
 
@@ -209,29 +202,26 @@ public class RagMarketAppService {
         return dto;
     }
 
-    /**
-     * 检查用户是否有权限使用RAG
+    /** 检查用户是否有权限使用RAG
      *
-     * @param userId       用户ID
-     * @param ragId        原始RAG数据集ID
+     * @param userId 用户ID
+     * @param ragId 原始RAG数据集ID
      * @param ragVersionId RAG版本ID
-     * @return 是否有权限
-     */
+     * @return 是否有权限 */
     public boolean canUseRag(String userId, String ragId, String ragVersionId) {
         return userRagDomainService.canUseRag(userId, ragId, ragVersionId);
     }
 
-    /**
-     * 切换已安装RAG的版本
+    /** 切换已安装RAG的版本
      *
-     * @param userRagId       用户RAG安装记录ID
+     * @param userRagId 用户RAG安装记录ID
      * @param targetVersionId 目标版本ID
-     * @param userId          用户ID
-     * @return 切换后的RAG信息
-     */
+     * @param userId 用户ID
+     * @return 切换后的RAG信息 */
     @Transactional
     public UserRagDTO switchRagVersion(String userRagId, String targetVersionId, String userId) {
         UserRagEntity updatedUserRag = userRagDomainService.switchRagVersion(userId, userRagId, targetVersionId);
+        ragSearchAppService.invalidateAccessibleDatasetCache(userId);
 
         // 根据安装类型处理数据
         UserRagDTO dto;
@@ -246,11 +236,9 @@ public class RagMarketAppService {
         return dto;
     }
 
-    /**
-     * 丰富用户信息
+    /** 丰富用户信息
      *
-     * @param dto RAG市场DTO
-     */
+     * @param dto RAG市场DTO */
     private void enrichWithUserInfo(RagMarketDTO dto) {
         if (dto == null || StringUtils.isBlank(dto.getUserId())) {
             return;
@@ -267,12 +255,10 @@ public class RagMarketAppService {
         }
     }
 
-    /**
-     * 获取用户昵称
+    /** 获取用户昵称
      *
      * @param userId 用户ID
-     * @return 用户昵称
-     */
+     * @return 用户昵称 */
     private String getUserNickname(String userId) {
         if (StringUtils.isBlank(userId)) {
             return null;
@@ -286,25 +272,21 @@ public class RagMarketAppService {
         }
     }
 
-    /**
-     * 检查RAG版本是否已安装
+    /** 检查RAG版本是否已安装
      *
      * @param ragVersionId RAG版本ID
-     * @param userId       用户ID
-     * @return 是否已安装
-     */
+     * @param userId 用户ID
+     * @return 是否已安装 */
     public boolean isRagVersionInstalled(String ragVersionId, String userId) {
         return userRagDomainService.isRagInstalled(userId, ragVersionId);
     }
 
     // ========== 私有辅助方法 ==========
 
-    /**
-     * 处理REFERENCE类型的信息丰富
+    /** 处理REFERENCE类型的信息丰富
      *
      * @param entity 用户RAG实体
-     * @return 丰富信息后的DTO
-     */
+     * @return 丰富信息后的DTO */
     private UserRagDTO enrichWithReferenceInfo(UserRagEntity entity) {
         try {
             // 获取原始RAG的实时信息
@@ -319,12 +301,10 @@ public class RagMarketAppService {
         }
     }
 
-    /**
-     * 处理SNAPSHOT类型的信息丰富
+    /** 处理SNAPSHOT类型的信息丰富
      *
      * @param entity 用户RAG实体
-     * @return 丰富信息后的DTO
-     */
+     * @return 丰富信息后的DTO */
     private UserRagDTO enrichWithSnapshotInfo(UserRagEntity entity) {
         try {
             // 获取快照的统计信息（从用户快照表统计）
@@ -349,63 +329,53 @@ public class RagMarketAppService {
         }
     }
 
-    /**
-     * 获取已安装RAG的文件列表（返回DTO）
+    /** 获取已安装RAG的文件列表（返回DTO）
      *
      * @param userRagId 用户RAG安装记录ID
-     * @param userId    用户ID
-     * @return 文件DTO列表
-     */
+     * @param userId 用户ID
+     * @return 文件DTO列表 */
     public List<FileDetailDTO> getInstalledRagFilesDTO(String userRagId, String userId) {
         List<FileDetailEntity> entities = ragDataAccessService.getRagFiles(userId, userRagId);
         return FileDetailAssembler.toDTOs(entities);
     }
 
-    /**
-     * 获取已安装RAG的所有文档单元（返回DTO）
+    /** 获取已安装RAG的所有文档单元（返回DTO）
      *
      * @param userRagId 用户RAG安装记录ID
-     * @param userId    用户ID
-     * @return 文档单元DTO列表
-     */
+     * @param userId 用户ID
+     * @return 文档单元DTO列表 */
     public List<DocumentUnitDTO> getInstalledRagDocumentsDTO(String userRagId, String userId) {
         List<DocumentUnitEntity> entities = ragDataAccessService.getRagDocuments(userId, userRagId);
         return DocumentUnitAssembler.toDTOs(entities);
     }
 
-    /**
-     * 获取已安装RAG特定文件的信息（返回DTO）
+    /** 获取已安装RAG特定文件的信息（返回DTO）
      *
      * @param userRagId 用户RAG安装记录ID
-     * @param fileId    文件ID
-     * @param userId    用户ID
-     * @return 文件详细信息DTO
-     */
+     * @param fileId 文件ID
+     * @param userId 用户ID
+     * @return 文件详细信息DTO */
     public FileDetailDTO getInstalledRagFileInfoDTO(String userRagId, String fileId, String userId) {
         FileDetailEntity entity = ragDataAccessService.getRagFileInfo(userId, userRagId, fileId);
         return FileDetailAssembler.toDTO(entity);
     }
 
-    /**
-     * 获取已安装RAG特定文件的文档单元（返回DTO）
+    /** 获取已安装RAG特定文件的文档单元（返回DTO）
      *
      * @param userRagId 用户RAG安装记录ID
-     * @param fileId    文件ID
-     * @param userId    用户ID
-     * @return 文档单元DTO列表
-     */
+     * @param fileId 文件ID
+     * @param userId 用户ID
+     * @return 文档单元DTO列表 */
     public List<DocumentUnitDTO> getInstalledRagFileDocumentsDTO(String userRagId, String fileId, String userId) {
         List<DocumentUnitEntity> entities = ragDataAccessService.getRagDocumentsByFile(userId, userRagId, fileId);
         return DocumentUnitAssembler.toDTOs(entities);
     }
 
-    /**
-     * 获取用户安装的同一RAG的所有版本
+    /** 获取用户安装的同一RAG的所有版本
      *
      * @param userRagId 当前用户RAG安装记录ID
-     * @param userId    用户ID
-     * @return 同一原始RAG的所有可用版本列表（包括未安装的已发布版本）
-     */
+     * @param userId 用户ID
+     * @return 同一原始RAG的所有可用版本列表（包括未安装的已发布版本） */
     public List<UserRagDTO> getInstalledRagVersions(String userRagId, String userId) {
         List<UserRagEntity> entities = userRagDomainService.getAvailableVersionsByUserRagId(userId, userRagId);
 
@@ -431,12 +401,10 @@ public class RagMarketAppService {
         return dtoList;
     }
 
-    /**
-     * 获取市场上RAG版本的文件列表（返回DTO）
+    /** 获取市场上RAG版本的文件列表（返回DTO）
      *
      * @param ragVersionId RAG版本ID
-     * @return 文件详细信息DTO列表
-     */
+     * @return 文件详细信息DTO列表 */
     public List<FileDetailDTO> getMarketRagFilesDTO(String ragVersionId) {
         // 根据版本ID获取原始RAG信息
         RagVersionEntity ragVersion = ragVersionDomainService.getRagVersion(ragVersionId);

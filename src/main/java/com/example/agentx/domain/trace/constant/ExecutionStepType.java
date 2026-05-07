@@ -1,28 +1,18 @@
 package com.example.agentx.domain.trace.constant;
 
-/**
- * 执行步骤类型枚举
- */
+/** 执行步骤类型枚举 */
 public enum ExecutionStepType {
 
-    /**
-     * 用户消息
-     */
+    /** 用户消息 */
     USER_MESSAGE("USER_MESSAGE", "用户消息"),
 
-    /**
-     * AI响应
-     */
+    /** AI响应 */
     AI_RESPONSE("AI_RESPONSE", "AI响应"),
 
-    /**
-     * 工具调用
-     */
+    /** 工具调用 */
     TOOL_CALL("TOOL_CALL", "工具调用"),
 
-    /**
-     * 异常信息
-     */
+    /** 异常信息 */
     ERROR_MESSAGE("ERROR_MESSAGE", "异常信息");
 
     private final String code;
@@ -41,9 +31,7 @@ public enum ExecutionStepType {
         return description;
     }
 
-    /**
-     * 根据代码获取枚举值
-     */
+    /** 根据代码获取枚举值 */
     public static ExecutionStepType fromCode(String code) {
         for (ExecutionStepType type : values()) {
             if (type.code.equals(code)) {

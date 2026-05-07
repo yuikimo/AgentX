@@ -19,9 +19,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * API密钥应用服务
- */
+/** API密钥应用服务 */
 @Service
 public class ApiKeyAppService {
 
@@ -35,14 +33,12 @@ public class ApiKeyAppService {
         this.agentDomainService = agentDomainService;
     }
 
-    /**
-     * 创建API密钥
+    /** 创建API密钥
      *
      * @param agentId Agent ID
-     * @param name    API密钥名称
-     * @param userId  用户ID
-     * @return 创建的API密钥DTO
-     */
+     * @param name API密钥名称
+     * @param userId 用户ID
+     * @return 创建的API密钥DTO */
     @Transactional
     public ApiKeyDTO createApiKey(String agentId, String name, String userId) {
         // 验证Agent是否存在且属于当前用户
@@ -69,13 +65,11 @@ public class ApiKeyAppService {
         return dto;
     }
 
-    /**
-     * 获取用户的API密钥列表
+    /** 获取用户的API密钥列表
      *
-     * @param userId       用户ID
+     * @param userId 用户ID
      * @param queryRequest 查询条件
-     * @return API密钥列表
-     */
+     * @return API密钥列表 */
     public List<ApiKeyDTO> getUserApiKeys(String userId, QueryApiKeyRequest queryRequest) {
         List<ApiKeyEntity> apiKeys = apiKeyDomainService.getUserApiKeys(userId, queryRequest);
         List<ApiKeyDTO> dtos = ApiKeyAssembler.toDTOs(apiKeys);
@@ -99,23 +93,19 @@ public class ApiKeyAppService {
         return dtos;
     }
 
-    /**
-     * 获取用户的API密钥列表（无查询条件，保持向后兼容）
+    /** 获取用户的API密钥列表（无查询条件，保持向后兼容）
      *
      * @param userId 用户ID
-     * @return API密钥列表
-     */
+     * @return API密钥列表 */
     public List<ApiKeyDTO> getUserApiKeys(String userId) {
         return getUserApiKeys(userId, null);
     }
 
-    /**
-     * 获取Agent的API密钥列表
+    /** 获取Agent的API密钥列表
      *
      * @param agentId Agent ID
-     * @param userId  用户ID
-     * @return API密钥列表
-     */
+     * @param userId 用户ID
+     * @return API密钥列表 */
     public List<ApiKeyDTO> getAgentApiKeys(String agentId, String userId) {
         // 验证Agent权限
         AgentEntity agent = agentDomainService.getAgent(agentId, userId);
@@ -132,13 +122,11 @@ public class ApiKeyAppService {
         return dtos;
     }
 
-    /**
-     * 获取API密钥详情
+    /** 获取API密钥详情
      *
      * @param apiKeyId API密钥ID
-     * @param userId   用户ID
-     * @return API密钥DTO
-     */
+     * @param userId 用户ID
+     * @return API密钥DTO */
     public ApiKeyDTO getApiKey(String apiKeyId, String userId) {
         ApiKeyEntity apiKey = apiKeyDomainService.getApiKey(apiKeyId, userId);
         ApiKeyDTO dto = ApiKeyAssembler.toDTO(apiKey);
@@ -152,38 +140,32 @@ public class ApiKeyAppService {
         return dto;
     }
 
-    /**
-     * 更新API密钥状态
+    /** 更新API密钥状态
      *
      * @param apiKeyId API密钥ID
-     * @param status   状态
-     * @param userId   用户ID
-     */
+     * @param status 状态
+     * @param userId 用户ID */
     @Transactional
     public void updateApiKeyStatus(String apiKeyId, Boolean status, String userId) {
         apiKeyDomainService.updateStatus(apiKeyId, userId, status);
         logger.info("用户 {} 更新API密钥 {} 状态为: {}", userId, apiKeyId, status);
     }
 
-    /**
-     * 删除API密钥
+    /** 删除API密钥
      *
      * @param apiKeyId API密钥ID
-     * @param userId   用户ID
-     */
+     * @param userId 用户ID */
     @Transactional
     public void deleteApiKey(String apiKeyId, String userId) {
         apiKeyDomainService.deleteApiKey(apiKeyId, userId);
         logger.info("用户 {} 删除了API密钥: {}", userId, apiKeyId);
     }
 
-    /**
-     * 重置API密钥
+    /** 重置API密钥
      *
      * @param apiKeyId API密钥ID
-     * @param userId   用户ID
-     * @return 新的API密钥DTO
-     */
+     * @param userId 用户ID
+     * @return 新的API密钥DTO */
     @Transactional
     public ApiKeyDTO resetApiKey(String apiKeyId, String userId) {
         ApiKeyEntity resetApiKey = apiKeyDomainService.resetApiKey(apiKeyId, userId);
@@ -200,12 +182,10 @@ public class ApiKeyAppService {
         return dto;
     }
 
-    /**
-     * 验证外部API Key
+    /** 验证外部API Key
      *
      * @param apiKey API密钥
-     * @return 验证结果
-     */
+     * @return 验证结果 */
     public ApiKeyValidationResult validateExternalApiKey(String apiKey) {
         try {
             ApiKeyEntity apiKeyEntity = apiKeyDomainService.validateApiKey(apiKey);

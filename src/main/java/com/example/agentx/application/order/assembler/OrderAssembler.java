@@ -12,17 +12,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * 订单实体与DTO转换器
- */
+/** 订单实体与DTO转换器 */
 public class OrderAssembler {
 
-    /**
-     * 将订单实体转换为DTO
-     *
+    /** 将订单实体转换为DTO
+     * 
      * @param entity 订单实体
-     * @return 订单DTO
-     */
+     * @return 订单DTO */
     public static OrderDTO toDTO(OrderEntity entity) {
         if (entity == null) {
             return null;
@@ -57,12 +53,10 @@ public class OrderAssembler {
         return dto;
     }
 
-    /**
-     * 将订单实体列表转换为DTO列表
-     *
+    /** 将订单实体列表转换为DTO列表
+     * 
      * @param entities 订单实体列表
-     * @return 订单DTO列表
-     */
+     * @return 订单DTO列表 */
     public static List<OrderDTO> toDTOs(List<OrderEntity> entities) {
         if (entities == null || entities.isEmpty()) {
             return Collections.emptyList();
@@ -70,13 +64,11 @@ public class OrderAssembler {
         return entities.stream().map(OrderAssembler::toDTO).collect(Collectors.toList());
     }
 
-    /**
-     * 从DTO构建订单实体（创建订单时使用）
-     *
-     * @param dto    订单DTO
+    /** 从DTO构建订单实体（创建订单时使用）
+     * 
+     * @param dto 订单DTO
      * @param userId 用户ID
-     * @return 订单实体
-     */
+     * @return 订单实体 */
     public static OrderEntity toEntity(OrderDTO dto, String userId) {
         if (dto == null) {
             return null;

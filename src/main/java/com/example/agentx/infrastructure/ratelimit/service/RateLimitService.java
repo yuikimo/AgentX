@@ -11,9 +11,7 @@ import com.example.agentx.infrastructure.ratelimit.config.RateLimitConfig;
 import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * 限流服务
- */
+/** 限流服务 */
 @Service
 public class RateLimitService {
 
@@ -21,21 +19,17 @@ public class RateLimitService {
 
     private final RateLimitConfig rateLimitConfig;
 
-    /**
-     * 用户充值限流器缓存
-     */
+    /** 用户充值限流器缓存 */
     private final ConcurrentHashMap<String, UserRateLimiter> rechargeRateLimiters = new ConcurrentHashMap<>();
 
     public RateLimitService(RateLimitConfig rateLimitConfig) {
         this.rateLimitConfig = rateLimitConfig;
     }
 
-    /**
-     * 检查用户充值是否超过限流
-     *
+    /** 检查用户充值是否超过限流
+     * 
      * @param userId 用户ID
-     * @throws RateLimitException 当触发限流时抛出异常
-     */
+     * @throws RateLimitException 当触发限流时抛出异常 */
     public void checkRechargeRateLimit(String userId) {
         if (!rateLimitConfig.getRecharge().isEnabled()) {
             return;
@@ -52,9 +46,7 @@ public class RateLimitService {
         logger.debug("用户充值限流检查通过: userId={}", userId);
     }
 
-    /**
-     * 获取用户充值限流器
-     */
+    /** 获取用户充值限流器 */
     private UserRateLimiter getUserRechargeRateLimiter(String userId) {
         return rechargeRateLimiters.computeIfAbsent(userId, k -> {
             logger.debug("为用户创建充值限流器: userId={}, permitsPerSecond={}", userId,
@@ -65,9 +57,7 @@ public class RateLimitService {
         });
     }
 
-    /**
-     * 定时清理不活跃的限流器缓存 每30分钟执行一次
-     */
+    /** 定时清理不活跃的限流器缓存 每30分钟执行一次 */
     @Scheduled(fixedRate = 30 * 60 * 1000) // 30分钟
     public void cleanupInactiveRateLimiters() {
         if (!rateLimitConfig.getRecharge().isEnabled()) {
@@ -100,17 +90,13 @@ public class RateLimitService {
         }
     }
 
-    /**
-     * 获取限流统计信息
-     */
+    /** 获取限流统计信息 */
     public RateLimitStats getRechargeRateLimitStats() {
         return new RateLimitStats(rechargeRateLimiters.size(), rateLimitConfig.getRecharge().getPermitsPerSecond(),
                 rateLimitConfig.getRecharge().isEnabled());
     }
 
-    /**
-     * 用户限流器包装类
-     */
+    /** 用户限流器包装类 */
     private static class UserRateLimiter {
         private final RateLimiter rateLimiter;
         private volatile LocalDateTime lastAccessTime;
@@ -130,9 +116,7 @@ public class RateLimitService {
         }
     }
 
-    /**
-     * 限流统计信息
-     */
+    /** 限流统计信息 */
     public static class RateLimitStats {
         private final int cachedUsersCount;
         private final double permitsPerSecond;

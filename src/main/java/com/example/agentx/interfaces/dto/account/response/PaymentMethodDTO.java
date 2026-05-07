@@ -2,46 +2,32 @@ package com.example.agentx.interfaces.dto.account.response;
 
 import java.util.List;
 
-/**
- * 支付方法DTO
- */
+/** 支付方法DTO */
 public class PaymentMethodDTO {
 
-    /**
-     * 支付平台代码
-     */
+    /** 支付平台代码 */
     private String platformCode;
 
-    /**
-     * 支付平台名称
-     */
+    /** 支付平台名称 */
     private String platformName;
 
-    /**
-     * 是否可用
-     */
+    /** 是否可用 */
     private boolean available;
 
-    /**
-     * 支持的支付类型列表
-     */
+    /** 支持的支付类型列表 */
     private List<PaymentTypeDTO> paymentTypes;
 
-    /**
-     * 平台描述
-     */
+    /** 平台描述 */
     private String description;
 
-    /**
-     * 平台图标URL
-     */
+    /** 平台图标URL */
     private String iconUrl;
 
     public PaymentMethodDTO() {
     }
 
     public PaymentMethodDTO(String platformCode, String platformName, boolean available,
-                            List<PaymentTypeDTO> paymentTypes) {
+            List<PaymentTypeDTO> paymentTypes) {
         this.platformCode = platformCode;
         this.platformName = platformName;
         this.available = available;
@@ -96,29 +82,19 @@ public class PaymentMethodDTO {
         this.iconUrl = iconUrl;
     }
 
-    /**
-     * 支付类型DTO
-     */
+    /** 支付类型DTO */
     public static class PaymentTypeDTO {
 
-        /**
-         * 支付类型代码
-         */
+        /** 支付类型代码 */
         private String typeCode;
 
-        /**
-         * 支付类型名称
-         */
+        /** 支付类型名称 */
         private String typeName;
 
-        /**
-         * 是否需要跳转
-         */
+        /** 是否需要跳转 */
         private boolean requireRedirect;
 
-        /**
-         * 类型描述
-         */
+        /** 类型描述 */
         private String description;
 
         public PaymentTypeDTO() {

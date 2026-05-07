@@ -4,9 +4,10 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,15 +25,15 @@ import com.example.agentx.infrastructure.highavailability.dto.response.ApiInstan
 import com.example.agentx.infrastructure.highavailability.dto.response.GatewayResult;
 import com.example.agentx.infrastructure.utils.JsonUtils;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-
 import java.net.URI;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-/**
- * 高可用网关HTTP客户端 负责与高可用网关进行HTTP通信
- */
+/** 高可用网关HTTP客户端 负责与高可用网关进行HTTP通信
+ * 
+ * @author xhy
+ * @since 1.0.0 */
 @Component
 public class HighAvailabilityGatewayClient {
 
@@ -43,12 +44,13 @@ public class HighAvailabilityGatewayClient {
 
     public HighAvailabilityGatewayClient(HighAvailabilityProperties properties) {
         this.properties = properties;
-        this.httpClient = HttpClients.createDefault();
+        RequestConfig defaultRequestConfig = RequestConfig.custom().setConnectTimeout(properties.getConnectTimeout())
+                .setConnectionRequestTimeout(properties.getConnectTimeout()).setSocketTimeout(properties.getReadTimeout())
+                .build();
+        this.httpClient = HttpClientBuilder.create().setDefaultRequestConfig(defaultRequestConfig).build();
     }
 
-    /**
-     * 选择最佳API实例
-     */
+    /** 选择最佳API实例 */
     public ApiInstanceDTO selectBestInstance(SelectInstanceRequest request) {
         if (!properties.isEnabled()) {
             throw new BusinessException("高可用功能未启用");
@@ -60,6 +62,9 @@ public class HighAvailabilityGatewayClient {
             HttpPost httpPost = new HttpPost(url);
             httpPost.setHeader("Content-Type", "application/json");
             httpPost.setHeader("api-key", properties.getApiKey());
+            httpPost.setConfig(RequestConfig.custom().setConnectTimeout(properties.getSelectConnectTimeout())
+                    .setConnectionRequestTimeout(properties.getSelectConnectTimeout())
+                    .setSocketTimeout(properties.getSelectReadTimeout()).build());
 
             String jsonRequest = JsonUtils.toJsonString(request);
             httpPost.setEntity(new StringEntity(jsonRequest, StandardCharsets.UTF_8));
@@ -101,9 +106,7 @@ public class HighAvailabilityGatewayClient {
         }
     }
 
-    /**
-     * 上报调用结果
-     */
+    /** 上报调用结果 */
     public void reportResult(ReportResultRequest request) {
         if (!properties.isEnabled()) {
             return;
@@ -132,9 +135,7 @@ public class HighAvailabilityGatewayClient {
         }
     }
 
-    /**
-     * 创建API实例
-     */
+    /** 创建API实例 */
     public void createApiInstance(ApiInstanceCreateRequest request) {
         if (!properties.isEnabled()) {
             return;
@@ -164,9 +165,7 @@ public class HighAvailabilityGatewayClient {
         }
     }
 
-    /**
-     * 更新API实例 修复：使用正确的路径参数和请求体类型
-     */
+    /** 更新API实例 修复：使用正确的路径参数和请求体类型 */
     public void updateApiInstance(String apiType, String businessId, ApiInstanceUpdateRequest request) {
         if (!properties.isEnabled()) {
             return;
@@ -194,9 +193,7 @@ public class HighAvailabilityGatewayClient {
         }
     }
 
-    /**
-     * 删除API实例 修复：使用正确的路径参数顺序
-     */
+    /** 删除API实例 修复：使用正确的路径参数顺序 */
     public void deleteApiInstance(String apiType, String businessId) {
         if (!properties.isEnabled()) {
             return;
@@ -220,9 +217,7 @@ public class HighAvailabilityGatewayClient {
         }
     }
 
-    /**
-     * 启用API实例 新增：使API实例可以参与负载均衡
-     */
+    /** 启用API实例 新增：使API实例可以参与负载均衡 */
     public void activateApiInstance(String apiType, String businessId) {
         if (!properties.isEnabled()) {
             return;
@@ -249,9 +244,7 @@ public class HighAvailabilityGatewayClient {
         }
     }
 
-    /**
-     * 禁用API实例 新增：暂停API实例参与负载均衡
-     */
+    /** 禁用API实例 新增：暂停API实例参与负载均衡 */
     public void deactivateApiInstance(String apiType, String businessId) {
         if (!properties.isEnabled()) {
             return;
@@ -279,9 +272,7 @@ public class HighAvailabilityGatewayClient {
         }
     }
 
-    /**
-     * 创建项目
-     */
+    /** 创建项目 */
     public void createProject(ProjectCreateRequest request) {
         if (!properties.isEnabled()) {
             return;
@@ -309,9 +300,7 @@ public class HighAvailabilityGatewayClient {
         }
     }
 
-    /**
-     * 批量创建API实例
-     */
+    /** 批量创建API实例 */
     public void batchCreateApiInstances(List<ApiInstanceCreateRequest> instances) {
         if (!properties.isEnabled()) {
             return;
@@ -345,9 +334,7 @@ public class HighAvailabilityGatewayClient {
         }
     }
 
-    /**
-     * 批量删除API实例
-     */
+    /** 批量删除API实例 */
     public void batchDeleteApiInstances(List<ApiInstanceBatchDeleteRequest.ApiInstanceDeleteItem> instances) {
         if (!properties.isEnabled()) {
             return;

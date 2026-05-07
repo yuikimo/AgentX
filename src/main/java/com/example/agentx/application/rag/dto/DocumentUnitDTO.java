@@ -1,49 +1,50 @@
 package com.example.agentx.application.rag.dto;
 
-/**
- * 文档单元响应DTO
- */
+import com.example.agentx.domain.rag.constant.ConfidenceTier;
+
+/** 文档单元响应DTO
+ * 
+ * @author shilong.zang */
 public class DocumentUnitDTO {
 
-    /**
-     * 主键
-     */
+    /** 主键 */
     private String id;
 
-    /**
-     * 文件ID
-     */
+    /** 文件ID */
     private String fileId;
 
-    /**
-     * 页码
-     */
+    /** 文件名 */
+    private String filename;
+
+    /** 页码 */
     private Integer page;
 
-    /**
-     * 内容
-     */
+    /** 分片序号（同一文件内顺序） */
+    private Integer chunkIndex;
+
+    /** 内容 */
     private String content;
 
-    /**
-     * 是否OCR处理
-     */
+    /** 相似度分数 */
+    private Double similarityScore;
+
+    /** 置信度等级 */
+    private ConfidenceTier confidenceTier;
+
+    /** 是否OCR处理 */
     private Boolean isOcr;
 
-    /**
-     * 是否向量化
-     */
+    /** 是否向量化 */
     private Boolean isVector;
 
-    /**
-     * 创建时间
-     */
+    /** 创建时间 */
     private String createdAt;
 
-    /**
-     * 更新时间
-     */
+    /** 更新时间 */
     private String updatedAt;
+
+    /** 本轮RAG回答中的短引用ID，例如D1、D2 */
+    private String citationId;
 
     public String getId() {
         return id;
@@ -61,6 +62,14 @@ public class DocumentUnitDTO {
         this.fileId = fileId;
     }
 
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
     public Integer getPage() {
         return page;
     }
@@ -69,12 +78,36 @@ public class DocumentUnitDTO {
         this.page = page;
     }
 
+    public Integer getChunkIndex() {
+        return chunkIndex;
+    }
+
+    public void setChunkIndex(Integer chunkIndex) {
+        this.chunkIndex = chunkIndex;
+    }
+
     public String getContent() {
         return content;
     }
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public Double getSimilarityScore() {
+        return similarityScore;
+    }
+
+    public void setSimilarityScore(Double similarityScore) {
+        this.similarityScore = similarityScore;
+    }
+
+    public ConfidenceTier getConfidenceTier() {
+        return confidenceTier;
+    }
+
+    public void setConfidenceTier(ConfidenceTier confidenceTier) {
+        this.confidenceTier = confidenceTier;
     }
 
     public Boolean getIsOcr() {
@@ -107,6 +140,14 @@ public class DocumentUnitDTO {
 
     public void setUpdatedAt(String updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getCitationId() {
+        return citationId;
+    }
+
+    public void setCitationId(String citationId) {
+        this.citationId = citationId;
     }
 
     @Override

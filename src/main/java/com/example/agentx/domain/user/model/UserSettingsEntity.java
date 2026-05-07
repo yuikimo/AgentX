@@ -6,23 +6,17 @@ import com.example.agentx.infrastructure.entity.BaseEntity;
 import com.example.agentx.infrastructure.converter.UserSettingsConfigConverter;
 import com.example.agentx.domain.user.model.config.UserSettingsConfig;
 
-/**
- * 用户设置领域模型
- */
-@TableName("user_settings")
+/** 用户设置领域模型 */
+@TableName(value = "user_settings", autoResultMap = true)
 public class UserSettingsEntity extends BaseEntity {
 
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
-    /**
-     * 用户ID
-     */
+    /** 用户ID */
     private String userId;
 
-    /**
-     * 设置配置
-     */
+    /** 设置配置 */
     @TableField(typeHandler = UserSettingsConfigConverter.class, jdbcType = JdbcType.OTHER)
     private UserSettingsConfig settingConfig;
 
@@ -50,9 +44,7 @@ public class UserSettingsEntity extends BaseEntity {
         this.settingConfig = settingConfig;
     }
 
-    /**
-     * 获取默认模型ID
-     */
+    /** 获取默认模型ID */
     public String getDefaultModelId() {
         if (settingConfig == null) {
             return null;
@@ -60,9 +52,7 @@ public class UserSettingsEntity extends BaseEntity {
         return settingConfig.getDefaultModel();
     }
 
-    /**
-     * 设置默认模型ID
-     */
+    /** 设置默认模型ID */
     public void setDefaultModelId(String modelId) {
         if (settingConfig == null) {
             settingConfig = new UserSettingsConfig();

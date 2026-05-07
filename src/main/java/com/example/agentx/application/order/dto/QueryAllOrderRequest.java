@@ -2,29 +2,19 @@ package com.example.agentx.application.order.dto;
 
 import com.example.agentx.interfaces.dto.Page;
 
-/**
- * 管理员订单查询请求
- */
+/** 管理员订单查询请求 */
 public class QueryAllOrderRequest extends Page {
 
-    /**
-     * 用户ID（可选）
-     */
+    /** 用户ID（可选） */
     private String userId;
 
-    /**
-     * 订单类型（可选）
-     */
+    /** 订单类型（可选） */
     private String orderType;
 
-    /**
-     * 订单状态（可选）
-     */
+    /** 订单状态（可选） */
     private Integer status;
 
-    /**
-     * 关键词搜索（可选） - 搜索订单号、标题、描述
-     */
+    /** 关键词搜索（可选） - 搜索订单号、标题、描述 */
     private String keyword;
 
     public QueryAllOrderRequest() {

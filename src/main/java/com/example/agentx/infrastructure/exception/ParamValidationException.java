@@ -1,8 +1,6 @@
 package com.example.agentx.infrastructure.exception;
 
-/**
- * 参数校验异常类
- */
+/** 参数校验异常类 */
 public class ParamValidationException extends BusinessException {
 
     private static final String DEFAULT_CODE = "PARAM_VALIDATION_ERROR";

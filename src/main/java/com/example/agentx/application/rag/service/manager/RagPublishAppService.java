@@ -24,8 +24,9 @@ import com.example.agentx.infrastructure.exception.BusinessException;
 
 import java.util.List;
 
-/**
- * RAG发布应用服务
+/** RAG发布应用服务
+ * @author xhy
+ * @date 2025-07-16 <br/>
  */
 @Service
 public class RagPublishAppService {
@@ -35,19 +36,17 @@ public class RagPublishAppService {
     private final UserDomainService userDomainService;
 
     public RagPublishAppService(RagVersionDomainService ragVersionDomainService,
-                                UserRagDomainService userRagDomainService, UserDomainService userDomainService) {
+            UserRagDomainService userRagDomainService, UserDomainService userDomainService) {
         this.ragVersionDomainService = ragVersionDomainService;
         this.userRagDomainService = userRagDomainService;
         this.userDomainService = userDomainService;
     }
 
-    /**
-     * 发布RAG版本
-     *
+    /** 发布RAG版本
+     * 
      * @param request 发布请求
-     * @param userId  用户ID
-     * @return 发布的版本信息
-     */
+     * @param userId 用户ID
+     * @return 发布的版本信息 */
     @Transactional
     public RagVersionDTO publishRagVersion(PublishRagRequest request, String userId) {
 
@@ -64,13 +63,11 @@ public class RagPublishAppService {
         return dto;
     }
 
-    /**
-     * 获取用户的RAG版本列表
-     *
-     * @param userId  用户ID
+    /** 获取用户的RAG版本列表
+     * 
+     * @param userId 用户ID
      * @param request 查询请求
-     * @return 版本列表
-     */
+     * @return 版本列表 */
     public Page<RagVersionDTO> getUserRagVersions(String userId, QueryUserRagVersionRequest request) {
         IPage<RagVersionEntity> entityPage = ragVersionDomainService.listUserVersions(userId, request.getPage(),
                 request.getPageSize(), request.getKeyword());
@@ -91,13 +88,11 @@ public class RagPublishAppService {
         return dtoPage;
     }
 
-    /**
-     * 获取RAG的版本历史
-     *
-     * @param ragId  原始RAG数据集ID
+    /** 获取RAG的版本历史
+     * 
+     * @param ragId 原始RAG数据集ID
      * @param userId 用户ID
-     * @return 版本历史列表
-     */
+     * @return 版本历史列表 */
     public List<RagVersionDTO> getRagVersionHistory(String ragId, String userId) {
         List<RagVersionEntity> versions = ragVersionDomainService.getVersionHistory(ragId, userId);
 
@@ -112,13 +107,11 @@ public class RagPublishAppService {
         return dtoList;
     }
 
-    /**
-     * 获取RAG版本详情
-     *
-     * @param versionId     版本ID
+    /** 获取RAG版本详情
+     * 
+     * @param versionId 版本ID
      * @param currentUserId 当前用户ID（用于判断是否已安装）
-     * @return 版本详情
-     */
+     * @return 版本详情 */
     public RagVersionDTO getRagVersionDetail(String versionId, String currentUserId) {
         RagVersionEntity version = ragVersionDomainService.getRagVersion(versionId);
 
@@ -139,13 +132,11 @@ public class RagPublishAppService {
         return dto;
     }
 
-    /**
-     * 管理员审核RAG版本
-     *
+    /** 管理员审核RAG版本
+     * 
      * @param versionId 版本ID
-     * @param request   审核请求
-     * @return 审核后的版本信息
-     */
+     * @param request 审核请求
+     * @return 审核后的版本信息 */
     @Transactional
     public RagVersionDTO reviewRagVersion(String versionId, ReviewRagVersionRequest request) {
         // 获取审核状态
@@ -166,12 +157,10 @@ public class RagPublishAppService {
         return getRagVersionDetail(versionId, null);
     }
 
-    /**
-     * 获取待审核的RAG版本列表
-     *
+    /** 获取待审核的RAG版本列表
+     * 
      * @param request 查询请求
-     * @return 待审核版本列表
-     */
+     * @return 待审核版本列表 */
     public Page<RagVersionDTO> getPendingReviewVersions(QueryPendingReviewRequest request) {
         IPage<RagVersionEntity> entityPage = ragVersionDomainService.listPendingReviewVersions(request.getPage(),
                 request.getPageSize());
@@ -191,12 +180,10 @@ public class RagPublishAppService {
         return dtoPage;
     }
 
-    /**
-     * 下架RAG版本
-     *
+    /** 下架RAG版本
+     * 
      * @param versionId 版本ID
-     * @return 下架后的版本信息
-     */
+     * @return 下架后的版本信息 */
     @Transactional
     public RagVersionDTO removeRagVersion(String versionId) {
         // 更新状态为已下架
@@ -206,21 +193,17 @@ public class RagPublishAppService {
         return getRagVersionDetail(versionId, null);
     }
 
-    /**
-     * 获取RAG统计数据
-     *
-     * @return 统计数据
-     */
+    /** 获取RAG统计数据
+     * 
+     * @return 统计数据 */
     public RagStatisticsDTO getRagStatistics() {
         return ragVersionDomainService.getRagStatistics();
     }
 
-    /**
-     * 获取所有RAG版本列表（管理员用）
-     *
+    /** 获取所有RAG版本列表（管理员用）
+     * 
      * @param request 查询请求
-     * @return 版本列表
-     */
+     * @return 版本列表 */
     public Page<RagVersionDTO> getAllRagVersions(QueryRagVersionRequest request) {
         IPage<RagVersionEntity> entityPage = ragVersionDomainService.listAllVersions(request.getPage(),
                 request.getPageSize(), request.getKeyword(), request.getStatus());
@@ -241,12 +224,10 @@ public class RagPublishAppService {
         return dtoPage;
     }
 
-    /**
-     * 批量审核RAG版本
-     *
+    /** 批量审核RAG版本
+     * 
      * @param request 批量审核请求
-     * @return 操作结果
-     */
+     * @return 操作结果 */
     @Transactional
     public String batchReviewRagVersions(BatchReviewRequest request) {
         if (request.getVersionIds() == null || request.getVersionIds().isEmpty()) {
@@ -273,32 +254,26 @@ public class RagPublishAppService {
         return "批量审核成功，共处理 " + request.getVersionIds().size() + " 个版本";
     }
 
-    /**
-     * 获取RAG内容预览
-     *
+    /** 获取RAG内容预览
+     * 
      * @param versionId 版本ID
-     * @return 内容预览
-     */
+     * @return 内容预览 */
     public RagContentPreviewDTO getRagContentPreview(String versionId) {
         return ragVersionDomainService.getRagContentPreview(versionId);
     }
 
-    /**
-     * 获取RAG数据集的最新版本号
-     *
-     * @param ragId  原始RAG数据集ID
+    /** 获取RAG数据集的最新版本号
+     * 
+     * @param ragId 原始RAG数据集ID
      * @param userId 用户ID
-     * @return 最新版本号，如果没有版本则返回null
-     */
+     * @return 最新版本号，如果没有版本则返回null */
     public String getLatestVersionNumber(String ragId, String userId) {
         return ragVersionDomainService.getLatestVersionNumber(ragId, userId);
     }
 
-    /**
-     * 丰富用户信息
-     *
-     * @param dto RAG版本DTO
-     */
+    /** 丰富用户信息
+     * 
+     * @param dto RAG版本DTO */
     private void enrichWithUserInfo(RagVersionDTO dto) {
         if (dto == null || StringUtils.isBlank(dto.getUserId())) {
             return;

@@ -7,9 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import com.example.agentx.infrastructure.mq.core.MessagePublisher;
 
-/**
- * Minimal RabbitMQ client configuration using the raw client.
- */
+/** Minimal RabbitMQ client configuration using the raw client. */
 @Configuration
 public class RabbitDirectConfig {
 

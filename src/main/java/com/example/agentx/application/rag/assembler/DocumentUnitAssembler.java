@@ -9,20 +9,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * 文档单元转换器
- */
+/** 文档单元转换器
+ * 
+ * @author shilong.zang */
 public class DocumentUnitAssembler {
 
-    /**
-     * Convert Entity to DTO using BeanUtils
-     */
+    /** Convert Entity to DTO using BeanUtils */
     public static DocumentUnitDTO toDTO(DocumentUnitEntity entity) {
         if (entity == null) {
             return null;
         }
         DocumentUnitDTO dto = new DocumentUnitDTO();
         BeanUtils.copyProperties(entity, dto);
+        dto.setSimilarityScore(entity.getSimilarityScore());
 
         // 时间格式化
         if (entity.getCreatedAt() != null) {
@@ -35,9 +34,7 @@ public class DocumentUnitAssembler {
         return dto;
     }
 
-    /**
-     * Convert Update request to Entity for partial update
-     */
+    /** Convert Update request to Entity for partial update */
     public static DocumentUnitEntity toEntity(UpdateDocumentUnitRequest request, String userId) {
         if (request == null) {
             return null;
@@ -52,9 +49,7 @@ public class DocumentUnitAssembler {
         return entity;
     }
 
-    /**
-     * Convert Entity list to DTO list
-     */
+    /** Convert Entity list to DTO list */
     public static List<DocumentUnitDTO> toDTOs(List<DocumentUnitEntity> entities) {
         if (entities == null || entities.isEmpty()) {
             return Collections.emptyList();

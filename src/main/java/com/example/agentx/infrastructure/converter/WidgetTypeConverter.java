@@ -11,9 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * Widget类型转换器
- */
+/** Widget类型转换器 */
 @MappedJdbcTypes(JdbcType.VARCHAR)
 @MappedTypes(WidgetType.class)
 public class WidgetTypeConverter extends BaseTypeHandler<WidgetType> {

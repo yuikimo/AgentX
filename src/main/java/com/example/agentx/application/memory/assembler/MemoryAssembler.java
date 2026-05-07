@@ -15,6 +15,9 @@ public class MemoryAssembler {
         dto.setText(e.getText());
         dto.setImportance(e.getImportance());
         dto.setTags(e.getTags());
+        dto.setSourceSessionId(e.getSourceSessionId());
+        dto.setLastHitAt(e.getLastHitAt());
+        dto.setHitCount(e.getHitCount());
         dto.setCreatedAt(e.getCreatedAt());
         dto.setUpdatedAt(e.getUpdatedAt());
         return dto;

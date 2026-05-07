@@ -28,13 +28,12 @@ import com.example.agentx.domain.user.service.UserDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.infrastructure.exception.ParamValidationException;
 import com.example.agentx.interfaces.dto.tool.request.CreateToolRequest;
+import com.example.agentx.interfaces.dto.tool.request.ConfigureToolRequest;
 import com.example.agentx.interfaces.dto.tool.request.MarketToolRequest;
 import com.example.agentx.interfaces.dto.tool.request.QueryToolRequest;
 import com.example.agentx.interfaces.dto.tool.request.UpdateToolRequest;
 
-/**
- * 工具应用服务
- */
+/** 工具应用服务 */
 @Service
 public class ToolAppService {
 
@@ -50,25 +49,27 @@ public class ToolAppService {
 
     private final ToolStateStateMachineAppService toolStateStateMachine;
 
+    private final ToolInstallTemplateService toolInstallTemplateService;
+
     public ToolAppService(ToolDomainService toolDomainService, UserToolDomainService userToolDomainService,
-                          ToolVersionDomainService toolVersionDomainService, UserDomainService userDomainService,
-                          ToolStateStateMachineAppService toolStateStateMachine) {
+            ToolVersionDomainService toolVersionDomainService, UserDomainService userDomainService,
+            ToolStateStateMachineAppService toolStateStateMachine,
+            ToolInstallTemplateService toolInstallTemplateService) {
         this.toolDomainService = toolDomainService;
         this.userToolDomainService = userToolDomainService;
         this.toolVersionDomainService = toolVersionDomainService;
         this.userDomainService = userDomainService;
         this.toolStateStateMachine = toolStateStateMachine;
+        this.toolInstallTemplateService = toolInstallTemplateService;
     }
 
-    /**
-     * 上传工具
-     * <p>
+    /** 上传工具
+     * 
      * 业务流程： 1. 将请求转换为实体 2. 调用领域服务创建工具 3. 将实体转换为DTO返回
      *
      * @param request 创建工具请求
-     * @param userId  用户ID
-     * @return 创建的工具DTO
-     */
+     * @param userId 用户ID
+     * @return 创建的工具DTO */
     @Transactional
     public ToolDTO uploadTool(CreateToolRequest request, String userId) {
         // 将请求转换为实体
@@ -117,6 +118,7 @@ public class ToolAppService {
     }
 
     public void marketTool(MarketToolRequest marketToolRequest, String userId) {
+        marketToolRequest.validate();
         String toolId = marketToolRequest.getToolId();
         String version = marketToolRequest.getVersion();
         ToolEntity toolEntity = toolDomainService.getTool(toolId, userId);
@@ -134,6 +136,10 @@ public class ToolAppService {
             }
         }
 
+        toolInstallTemplateService.validateTemplateForPublish(toolEntity.getInstallCommand(),
+                marketToolRequest.getInstallTemplate(), marketToolRequest.getInstallFields(),
+                toolEntity.getMcpServerName());
+
         // 创建工具版本进行上架
         toolVersionEntity = new ToolVersionEntity();
         BeanUtils.copyProperties(toolEntity, toolVersionEntity);
@@ -143,6 +149,8 @@ public class ToolAppService {
         toolVersionEntity.setPublicStatus(true);
         toolVersionEntity.setId(null);
         toolVersionEntity.setMcpServerName(toolEntity.getMcpServerName());
+        toolVersionEntity.setInstallTemplate(marketToolRequest.getInstallTemplate());
+        toolVersionEntity.setInstallFields(marketToolRequest.getInstallFields());
         toolVersionEntity.setCreatedAt(LocalDateTime.now());
         toolVersionDomainService.addToolVersion(toolVersionEntity);
     }
@@ -207,11 +215,32 @@ public class ToolAppService {
         userToolEntity.setVersion(toolVersionEntity.getVersion());
         userToolEntity.setId(userToolId);
         userToolEntity.setMcpServerName(toolVersionEntity.getMcpServerName());
+        userToolEntity.setInstallValues(null);
+        boolean isOwnerInstall = userId.equals(toolVersionEntity.getUserId());
+        userToolEntity.setConfigStatus(!isOwnerInstall
+                && toolInstallTemplateService.requiresSensitiveUserConfig(toolVersionEntity.getInstallFields())
+                ? ToolInstallTemplateService.STATUS_UNCONFIGURED
+                : ToolInstallTemplateService.STATUS_CONFIGURED);
         if (userToolEntity.getId() == null) {
             userToolDomainService.add(userToolEntity);
         } else {
             userToolDomainService.update(userToolEntity);
         }
+    }
+
+    public void configureInstalledTool(String toolId, ConfigureToolRequest request, String userId) {
+        UserToolEntity userToolEntity = userToolDomainService.findByToolIdAndUserId(toolId, userId);
+        if (userToolEntity == null) {
+            throw new BusinessException("工具未安装: " + toolId);
+        }
+
+        ToolVersionEntity toolVersionEntity = toolVersionDomainService.getToolVersion(toolId,
+                userToolEntity.getVersion());
+        String encryptedValues = toolInstallTemplateService.encryptInstallValues(toolVersionEntity.getInstallFields(),
+                request.getInstallValues());
+        userToolEntity.setInstallValues(encryptedValues);
+        userToolEntity.setConfigStatus(ToolInstallTemplateService.STATUS_CONFIGURED);
+        userToolDomainService.update(userToolEntity);
     }
 
     public Page<ToolVersionDTO> getInstalledTools(String userId, QueryToolRequest queryToolRequest) {
@@ -228,8 +257,17 @@ public class ToolAppService {
         List<ToolVersionDTO> list = userToolEntityPage.getRecords().stream().map(userToolEntity -> {
             ToolVersionDTO dto = ToolAssembler.toDTO(userToolEntity);
             toolIds.add(userToolEntity.getToolId());
-            if (!toolMap.containsKey(userToolEntity.getToolId())) {
+            ToolEntity sourceTool = toolMap.get(userToolEntity.getToolId());
+            if (sourceTool == null) {
                 dto.setDelete(true);
+            } else if (sourceTool.getUserId().equals(userId)) {
+                dto.setConfigStatus(ToolInstallTemplateService.STATUS_CONFIGURED);
+            } else {
+                ToolVersionEntity installedVersion = toolVersionDomainService.getToolVersion(userToolEntity.getToolId(),
+                        userToolEntity.getVersion());
+                if (!toolInstallTemplateService.requiresSensitiveUserConfig(installedVersion.getInstallFields())) {
+                    dto.setConfigStatus(ToolInstallTemplateService.STATUS_CONFIGURED);
+                }
             }
             return dto;
         }).toList();
@@ -301,11 +339,8 @@ public class ToolAppService {
         toolVersionDomainService.updateToolVersionStatus(toolId, version, userId, publishStatus);
     }
 
-    /**
-     * 为工具创建者自动安装审核通过的工具
-     *
-     * @param toolId 工具ID
-     */
+    /** 为工具创建者自动安装审核通过的工具
+     * @param toolId 工具ID */
     public void autoInstallApprovedTool(String toolId) {
         ToolEntity tool = toolDomainService.getTool(toolId);
         // 确保工具存在且已审核通过
@@ -337,8 +372,9 @@ public class ToolAppService {
             baseVersion.setVersion("0.0.0"); // 特殊版本号
             baseVersion.setChangeLog("Base configuration for owner auto-installation.");
             baseVersion.setPublicStatus(false); // 非公开
-            // baseVersion.setInstallCommand(tool.getInstallCommand()); // 如果ToolVersionEntity需要此字段且ToolEntity有，则复制
             baseVersion.setMcpServerName(tool.getMcpServerName());
+            baseVersion.setInstallTemplate(tool.getInstallCommand());
+            baseVersion.setInstallFields(toolInstallTemplateService.emptyInstallFields());
 
             // 持久化这个内部基础版本
             toolVersionDomainService.addToolVersion(baseVersion);

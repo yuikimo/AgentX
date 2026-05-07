@@ -2,13 +2,10 @@ package com.example.agentx.interfaces.dto.memory;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-
 import java.util.List;
 import java.util.Map;
 
-/**
- * 手动创建记忆请求
- */
+/** 手动创建记忆请求 */
 public class CreateMemoryRequest {
 
     @NotBlank
@@ -27,39 +24,30 @@ public class CreateMemoryRequest {
     public String getType() {
         return type;
     }
-
     public void setType(String type) {
         this.type = type;
     }
-
     public String getText() {
         return text;
     }
-
     public void setText(String text) {
         this.text = text;
     }
-
     public Float getImportance() {
         return importance;
     }
-
     public void setImportance(Float importance) {
         this.importance = importance;
     }
-
     public List<String> getTags() {
         return tags;
     }
-
     public void setTags(List<String> tags) {
         this.tags = tags;
     }
-
     public Map<String, Object> getData() {
         return data;
     }
-
     public void setData(Map<String, Object> data) {
         this.data = data;
     }

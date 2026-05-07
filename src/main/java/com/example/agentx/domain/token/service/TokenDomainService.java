@@ -7,9 +7,7 @@ import com.example.agentx.domain.token.model.config.TokenOverflowConfig;
 
 import java.util.List;
 
-/**
- * Token领域服务 封装Token超限处理的核心逻辑
- */
+/** Token领域服务 封装Token超限处理的核心逻辑 */
 @Service
 public class TokenDomainService {
 
@@ -19,13 +17,11 @@ public class TokenDomainService {
         this.strategyFactory = strategyFactory;
     }
 
-    /**
-     * 处理消息列表
+    /** 处理消息列表
      *
      * @param messages 待处理的消息列表
-     * @param config   处理配置
-     * @return 处理结果
-     */
+     * @param config 处理配置
+     * @return 处理结果 */
     public TokenProcessResult processMessages(List<TokenMessage> messages, TokenOverflowConfig config) {
         // 创建策略
         TokenOverflowStrategy strategy = strategyFactory.createStrategy(config);
@@ -34,12 +30,10 @@ public class TokenDomainService {
         return strategy.process(messages, config);
     }
 
-    /**
-     * 计算消息列表的总Token数
+    /** 计算消息列表的总Token数
      *
      * @param messages 消息列表
-     * @return 总Token数
-     */
+     * @return 总Token数 */
     private int calculateTotalTokens(List<TokenMessage> messages) {
         if (messages == null || messages.isEmpty()) {
             return 0;

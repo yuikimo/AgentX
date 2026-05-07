@@ -1,19 +1,17 @@
 package com.example.agentx.infrastructure.converter;
 
-import com.example.agentx.domain.rule.constant.RuleHandlerKey;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
+import com.example.agentx.domain.rule.constant.RuleHandlerKey;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * 规则处理器标识转换器 用于MyBatis-Plus在数据库和Java对象间转换RuleHandlerKey枚举
- */
+/** 规则处理器标识转换器 用于MyBatis-Plus在数据库和Java对象间转换RuleHandlerKey枚举 */
 @MappedJdbcTypes(JdbcType.VARCHAR)
 @MappedTypes(RuleHandlerKey.class)
 public class RuleHandlerKeyConverter extends BaseTypeHandler<RuleHandlerKey> {

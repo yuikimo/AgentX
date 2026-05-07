@@ -2,9 +2,7 @@ package com.example.agentx.domain.tool.constant;
 
 import com.example.agentx.infrastructure.exception.BusinessException;
 
-/**
- * 工具审核状态枚举
- */
+/** 工具审核状态枚举 */
 public enum ToolStatus {
     WAITING_REVIEW, // 等待审核
     GITHUB_URL_VALIDATE, // GitHub URL 验证中
@@ -14,13 +12,11 @@ public enum ToolStatus {
     APPROVED, // 已通过
     FAILED; // 通用失败状态
 
-    /**
-     * 根据名称获取工具状态枚举。
+    /** 根据名称获取工具状态枚举。
      *
      * @param name 状态名称
      * @return 对应的工具状态枚举
-     * @throws BusinessException 如果找不到对应的状态
-     */
+     * @throws BusinessException 如果找不到对应的状态 */
     public static ToolStatus fromCode(String name) {
         for (ToolStatus status : values()) {
             if (status.name().equalsIgnoreCase(name)) {

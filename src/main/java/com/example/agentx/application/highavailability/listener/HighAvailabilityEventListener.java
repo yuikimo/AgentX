@@ -12,9 +12,10 @@ import com.example.agentx.domain.llm.event.ModelUpdatedEvent;
 import com.example.agentx.domain.llm.event.ModelsBatchDeletedEvent;
 import com.example.agentx.domain.llm.service.HighAvailabilityDomainService;
 
-/**
- * 高可用事件处理器 负责处理模型相关的领域事件，同步到高可用网关
- */
+/** 高可用事件处理器 负责处理模型相关的领域事件，同步到高可用网关
+ * 
+ * @author xhy
+ * @since 1.0.0 */
 @Component
 public class HighAvailabilityEventListener {
 
@@ -26,9 +27,7 @@ public class HighAvailabilityEventListener {
         this.highAvailabilityDomainService = highAvailabilityDomainService;
     }
 
-    /**
-     * 处理模型创建事件 将新创建的模型同步到高可用网关
-     */
+    /** 处理模型创建事件 将新创建的模型同步到高可用网关 */
     @EventListener
     @Async
     public void handleModelCreated(ModelCreatedEvent event) {
@@ -44,9 +43,7 @@ public class HighAvailabilityEventListener {
         }
     }
 
-    /**
-     * 处理模型更新事件 将更新的模型信息同步到高可用网关
-     */
+    /** 处理模型更新事件 将更新的模型信息同步到高可用网关 */
     @EventListener
     @Async
     public void handleModelUpdated(ModelUpdatedEvent event) {
@@ -62,9 +59,7 @@ public class HighAvailabilityEventListener {
         }
     }
 
-    /**
-     * 处理模型删除事件 从高可用网关中删除模型
-     */
+    /** 处理模型删除事件 从高可用网关中删除模型 */
     @EventListener
     @Async
     public void handleModelDeleted(ModelDeletedEvent event) {
@@ -80,9 +75,7 @@ public class HighAvailabilityEventListener {
         }
     }
 
-    /**
-     * 处理模型状态变更事件 将模型状态变更同步到高可用网关（启用/禁用）
-     */
+    /** 处理模型状态变更事件 将模型状态变更同步到高可用网关（启用/禁用） */
     @EventListener
     @Async
     public void handleModelStatusChanged(ModelStatusChangedEvent event) {
@@ -100,9 +93,7 @@ public class HighAvailabilityEventListener {
         }
     }
 
-    /**
-     * 处理模型批量删除事件 批量从高可用网关中删除模型
-     */
+    /** 处理模型批量删除事件 批量从高可用网关中删除模型 */
     @EventListener
     @Async
     public void handleModelsBatchDeleted(ModelsBatchDeletedEvent event) {

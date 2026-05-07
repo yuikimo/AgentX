@@ -6,9 +6,7 @@ import com.example.agentx.domain.agent.model.LLMModelConfig;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 更新Agent信息的请求对象 整合了基本信息和配置信息
- */
+/** 更新Agent信息的请求对象 整合了基本信息和配置信息 */
 public class UpdateAgentRequest {
 
     private String id;

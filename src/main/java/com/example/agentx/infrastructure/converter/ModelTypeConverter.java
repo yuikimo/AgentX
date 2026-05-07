@@ -11,9 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * 模型类型转换器
- */
+/** 模型类型转换器 */
 @MappedJdbcTypes(JdbcType.VARCHAR)
 @MappedTypes(ModelType.class)
 public class ModelTypeConverter extends BaseTypeHandler<ModelType> {

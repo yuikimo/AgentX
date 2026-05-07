@@ -3,14 +3,17 @@ package com.example.agentx.application.trace.listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import com.example.agentx.domain.trace.event.*;
+import com.example.agentx.domain.trace.constant.ExecutionPhase;
 import com.example.agentx.domain.trace.service.AgentExecutionTraceDomainService;
 
-/**
- * 追踪事件监听器 异步处理追踪事件，可用于扩展功能如日志记录、监控等
- */
+import java.time.LocalDateTime;
+
+/** 追踪事件监听器 异步处理追踪事件，可用于扩展功能如日志记录、监控等 */
 @Component
+@Async("applicationEventTaskExecutor")
 public class TraceEventListener {
 
     private static final Logger logger = LoggerFactory.getLogger(TraceEventListener.class);
@@ -20,9 +23,7 @@ public class TraceEventListener {
         this.traceDomainService = traceDomainService;
     }
 
-    /**
-     * 处理执行开始事件
-     */
+    /** 处理执行开始事件 */
     @EventListener
     public void handleExecutionStarted(ExecutionStartedEvent event) {
         try {
@@ -42,9 +43,7 @@ public class TraceEventListener {
         }
     }
 
-    /**
-     * 处理模型调用事件
-     */
+    /** 处理模型调用事件 */
     @EventListener
     public void handleModelCalled(ModelCalledEvent event) {
         try {
@@ -69,9 +68,7 @@ public class TraceEventListener {
         }
     }
 
-    /**
-     * 处理工具执行事件
-     */
+    /** 处理工具执行事件 */
     @EventListener
     public void handleToolExecuted(ToolExecutedEvent event) {
         try {
@@ -93,9 +90,7 @@ public class TraceEventListener {
         }
     }
 
-    /**
-     * 处理执行完成事件
-     */
+    /** 处理执行完成事件 */
     @EventListener
     public void handleExecutionCompleted(ExecutionCompletedEvent event) {
         try {

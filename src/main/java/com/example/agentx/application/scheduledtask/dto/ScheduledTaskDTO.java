@@ -6,69 +6,43 @@ import com.example.agentx.domain.scheduledtask.model.RepeatConfig;
 
 import java.time.LocalDateTime;
 
-/**
- * 定时任务DTO
- */
+/** 定时任务DTO */
 public class ScheduledTaskDTO {
 
-    /**
-     * 任务ID
-     */
+    /** 任务ID */
     private String id;
 
-    /**
-     * 用户ID
-     */
+    /** 用户ID */
     private String userId;
 
-    /**
-     * Agent ID
-     */
+    /** Agent ID */
     private String agentId;
 
-    /**
-     * 会话ID
-     */
+    /** 会话ID */
     private String sessionId;
 
-    /**
-     * 任务内容
-     */
+    /** 任务内容 */
     private String content;
 
-    /**
-     * 重复类型
-     */
+    /** 重复类型 */
     private RepeatType repeatType;
 
-    /**
-     * 重复配置
-     */
+    /** 重复配置 */
     private RepeatConfig repeatConfig;
 
-    /**
-     * 任务状态
-     */
+    /** 任务状态 */
     private ScheduleTaskStatus status;
 
-    /**
-     * 上次执行时间
-     */
+    /** 上次执行时间 */
     private LocalDateTime lastExecuteTime;
 
-    /**
-     * 下次执行时间
-     */
+    /** 下次执行时间 */
     private LocalDateTime nextExecuteTime;
 
-    /**
-     * 创建时间
-     */
+    /** 创建时间 */
     private LocalDateTime createdAt;
 
-    /**
-     * 更新时间
-     */
+    /** 更新时间 */
     private LocalDateTime updatedAt;
 
     // Getters and Setters

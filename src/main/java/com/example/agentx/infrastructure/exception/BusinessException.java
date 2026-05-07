@@ -1,8 +1,6 @@
 package com.example.agentx.infrastructure.exception;
 
-/**
- * 业务异常类
- */
+/** 业务异常类 */
 public class BusinessException extends RuntimeException {
 
     private String errorCode;

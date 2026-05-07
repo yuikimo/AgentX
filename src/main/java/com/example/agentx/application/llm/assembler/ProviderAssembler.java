@@ -2,6 +2,7 @@ package com.example.agentx.application.llm.assembler;
 
 import com.example.agentx.application.llm.dto.ModelDTO;
 import com.example.agentx.application.llm.dto.ProviderDTO;
+import com.example.agentx.domain.llm.model.config.ProviderConfig;
 import com.example.agentx.domain.llm.model.ModelEntity;
 import com.example.agentx.domain.llm.model.ProviderAggregate;
 import com.example.agentx.domain.llm.model.ProviderEntity;
@@ -12,15 +13,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * 服务提供商对象转换器
- */
+/** 服务提供商对象转换器 */
 public class ProviderAssembler {
 
-    /**
-     * 将实体转换为DTO，并进行敏感信息脱敏
-     */
+    /** 将实体转换为DTO，并进行敏感信息脱敏 */
     public static ProviderDTO toDTO(ProviderEntity provider) {
+        return toDTO(provider, true);
+    }
+
+    /** 将实体转换为DTO，可选择是否脱敏敏感信息 */
+    public static ProviderDTO toDTO(ProviderEntity provider, boolean maskSensitive) {
         if (provider == null) {
             return null;
         }
@@ -30,35 +32,30 @@ public class ProviderAssembler {
         dto.setProtocol(provider.getProtocol());
         dto.setName(provider.getName());
         dto.setDescription(provider.getDescription());
-        dto.setConfig(provider.getConfig());
+        dto.setConfig(copyConfig(provider.getConfig()));
         dto.setIsOfficial(provider.getIsOfficial());
         dto.setStatus(provider.getStatus());
         dto.setCreatedAt(provider.getCreatedAt());
         dto.setUpdatedAt(provider.getUpdatedAt());
 
-        // 脱敏处理（针对返回前端的场景）
-        dto.maskSensitiveInfo();
+        if (maskSensitive) {
+            dto.maskSensitiveInfo();
+        }
 
         return dto;
     }
 
-    /**
-     * 将多个聚合根转换为DTO列表
-     */
+    /** 将多个聚合根转换为DTO列表 */
     public static List<ProviderDTO> toDTOList(List<ProviderAggregate> providers) {
         return providers.stream().map(ProviderAssembler::toDTO).collect(Collectors.toList());
     }
 
-    /**
-     * 将多个实体转换为DTO列表
-     */
+    /** 将多个实体转换为DTO列表 */
     public static List<ProviderDTO> toDTOListFromEntities(List<ProviderEntity> providers) {
         return providers.stream().map(ProviderAssembler::toDTO).collect(Collectors.toList());
     }
 
-    /**
-     * 将创建请求转换为实体
-     */
+    /** 将创建请求转换为实体 */
     public static ProviderEntity toEntity(ProviderCreateRequest request, String userId) {
         ProviderEntity provider = new ProviderEntity();
         provider.setUserId(userId);
@@ -72,10 +69,7 @@ public class ProviderAssembler {
 
         return provider;
     }
-
-    /**
-     * 将更新请求转换为实体
-     */
+    /** 将更新请求转换为实体 */
     public static ProviderEntity toEntity(ProviderUpdateRequest request, String userId) {
         ProviderEntity provider = new ProviderEntity();
         provider.setId(request.getId());
@@ -89,9 +83,7 @@ public class ProviderAssembler {
         return provider;
     }
 
-    /**
-     * 根据更新请求更新实体
-     */
+    /** 根据更新请求更新实体 */
     public static void updateEntity(ProviderEntity entity, ProviderUpdateRequest request) {
         if (entity == null || request == null) {
             return;
@@ -118,10 +110,14 @@ public class ProviderAssembler {
 
     // 将聚合根转换为dto
     public static ProviderDTO toDTO(ProviderAggregate provider) {
+        return toDTO(provider, true);
+    }
+
+    public static ProviderDTO toDTO(ProviderAggregate provider, boolean maskSensitive) {
         if (provider == null) {
             return null;
         }
-        ProviderDTO dto = toDTO(provider.getEntity());
+        ProviderDTO dto = toDTO(provider.getEntity(), maskSensitive);
 
         List<ModelEntity> models = provider.getModels();
         if (models == null || models.isEmpty()) {
@@ -133,6 +129,16 @@ public class ProviderAssembler {
             dto.getModels().add(modelDTO);
         }
         return dto;
+    }
+
+    private static ProviderConfig copyConfig(ProviderConfig source) {
+        if (source == null) {
+            return null;
+        }
+        ProviderConfig copy = new ProviderConfig();
+        copy.setApiKey(source.getApiKey());
+        copy.setBaseUrl(source.getBaseUrl());
+        return copy;
     }
 
 }

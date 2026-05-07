@@ -1,5 +1,6 @@
 package com.example.agentx.infrastructure.sso;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -81,11 +82,9 @@ public class CommunitySsoService implements SsoService {
         return SsoProvider.COMMUNITY;
     }
 
-    /**
-     * 获取有效的配置（仅从数据库读取）
-     *
-     * @return 有效的Community配置
-     */
+    /** 获取有效的配置（仅从数据库读取）
+     * 
+     * @return 有效的Community配置 */
     private SsoConfigProvider.CommunitySsoConfig getEffectiveConfig() {
         SsoConfigProvider.CommunitySsoConfig config = ssoConfigProvider.getCommunityConfig();
 

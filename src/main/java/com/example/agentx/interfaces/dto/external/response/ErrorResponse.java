@@ -1,13 +1,9 @@
 package com.example.agentx.interfaces.dto.external.response;
 
-/**
- * 统一错误响应对象 - 外部API使用
- */
+/** 统一错误响应对象 - 外部API使用 */
 public class ErrorResponse {
 
-    /**
-     * 错误信息
-     */
+    /** 错误信息 */
     private ErrorDetail error;
 
     public ErrorResponse() {
@@ -25,23 +21,15 @@ public class ErrorResponse {
         this.error = error;
     }
 
-    /**
-     * 错误详情
-     */
+    /** 错误详情 */
     public static class ErrorDetail {
-        /**
-         * 错误码
-         */
+        /** 错误码 */
         private String code;
 
-        /**
-         * 错误消息
-         */
+        /** 错误消息 */
         private String message;
 
-        /**
-         * 错误详情
-         */
+        /** 错误详情 */
         private String details;
 
         public ErrorDetail() {

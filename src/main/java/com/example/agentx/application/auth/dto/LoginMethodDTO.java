@@ -1,8 +1,6 @@
 package com.example.agentx.application.auth.dto;
 
-/**
- * 登录方式DTO
- */
+/** 登录方式DTO */
 public class LoginMethodDTO {
 
     private Boolean enabled;

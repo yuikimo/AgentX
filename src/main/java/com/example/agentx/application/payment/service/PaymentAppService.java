@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import com.example.agentx.application.payment.assembler.PaymentAssembler;
 import com.example.agentx.domain.order.constant.OrderStatus;
@@ -16,6 +17,7 @@ import com.example.agentx.domain.order.model.OrderEntity;
 import com.example.agentx.domain.order.service.OrderDomainService;
 import com.example.agentx.infrastructure.auth.UserContext;
 import com.example.agentx.infrastructure.exception.BusinessException;
+import com.example.agentx.infrastructure.payment.constant.PaymentMethod;
 import com.example.agentx.infrastructure.ratelimit.service.RateLimitService;
 import com.example.agentx.infrastructure.payment.factory.PaymentProviderFactory;
 import com.example.agentx.infrastructure.payment.model.PaymentCallback;
@@ -27,14 +29,15 @@ import com.example.agentx.interfaces.dto.account.response.PaymentResponseDTO;
 import com.example.agentx.interfaces.dto.account.response.OrderStatusResponseDTO;
 import com.example.agentx.interfaces.dto.account.response.PaymentMethodDTO;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.UUID;
 import java.util.List;
 import java.util.ArrayList;
 
-/**
- * 支付应用服务
- */
+/** 支付应用服务 */
 @Service
 public class PaymentAppService {
 
@@ -46,19 +49,17 @@ public class PaymentAppService {
     private final RateLimitService rateLimitService;
 
     public PaymentAppService(OrderDomainService orderDomainService, PaymentProviderFactory paymentProviderFactory,
-                             ApplicationEventPublisher eventPublisher, RateLimitService rateLimitService) {
+            ApplicationEventPublisher eventPublisher, RateLimitService rateLimitService) {
         this.orderDomainService = orderDomainService;
         this.paymentProviderFactory = paymentProviderFactory;
         this.eventPublisher = eventPublisher;
         this.rateLimitService = rateLimitService;
     }
 
-    /**
-     * 创建充值订单并发起支付
-     *
+    /** 创建充值订单并发起支付
+     * 
      * @param request 充值请求
-     * @return 支付响应
-     */
+     * @return 支付响应 */
     @Transactional
     public PaymentResponseDTO createRechargePayment(RechargeRequest request) {
         String userId = UserContext.getCurrentUserId();
@@ -94,8 +95,7 @@ public class PaymentAppService {
             PaymentResponseDTO response = PaymentAssembler.toPaymentResponseDTO(order, paymentResult);
 
             logger.info(
-                    "充值支付创建成功: userId={}, orderId={}, amount={}, platform={}, type={}, providerOrderId={}, " +
-                            "providerPaymentId={}",
+                    "充值支付创建成功: userId={}, orderId={}, amount={}, platform={}, type={}, providerOrderId={}, providerPaymentId={}",
                     userId, order.getId(), request.getAmount(), paymentPlatform, paymentType,
                     order.getProviderOrderId(), order.getProviderOrderId());
 
@@ -107,11 +107,9 @@ public class PaymentAppService {
         }
     }
 
-    /**
-     * 创建充值订单
-     */
+    /** 创建充值订单 */
     private OrderEntity createRechargeOrder(String userId, RechargeRequest request, PaymentPlatform paymentPlatform,
-                                            PaymentType paymentType) {
+            PaymentType paymentType) {
         OrderEntity order = new OrderEntity();
         order.setUserId(userId);
         order.setOrderNo(generateOrderNo());
@@ -144,19 +142,15 @@ public class PaymentAppService {
         return orderDomainService.createOrder(order);
     }
 
-    /**
-     * 通过支付提供商创建支付
-     */
+    /** 通过支付提供商创建支付 */
     private PaymentResult createPaymentWithProvider(OrderEntity order, RechargeRequest request,
-                                                    PaymentPlatform paymentPlatform) {
+            PaymentPlatform paymentPlatform) {
         PaymentProvider provider = paymentProviderFactory.getProvider(paymentPlatform);
         PaymentRequest paymentRequest = buildPaymentRequest(order, request);
         return provider.createPayment(paymentRequest);
     }
 
-    /**
-     * 更新订单的支付平台信息
-     */
+    /** 更新订单的支付平台信息 */
     private void updateOrderProviderInfo(OrderEntity order, PaymentResult paymentResult) {
         // 只有当有支付平台信息时才更新
         if (paymentResult.getProviderOrderId() == null && paymentResult.getProviderPaymentId() == null) {
@@ -177,9 +171,7 @@ public class PaymentAppService {
 
     }
 
-    /**
-     * 构建支付请求
-     */
+    /** 构建支付请求 */
     private PaymentRequest buildPaymentRequest(OrderEntity order, RechargeRequest request) {
         PaymentRequest paymentRequest = new PaymentRequest();
         paymentRequest.setOrderId(order.getId());
@@ -195,40 +187,31 @@ public class PaymentAppService {
         // 设置回调URL，使用平台代码作为路径参数
         String platformCode = order.getPaymentPlatform().getCode();
         paymentRequest.setNotifyUrl(
-                "https://www.bilibili.com/video/BV1nL8NzkEaH/?spm_id_from=333.1007.tianma.1-3-3" +
-                        ".click&vd_source=884a1f9702167e8936a8d6d773a193ae/api/payments/callback/"
+                "https://www.bilibili.com/video/BV1nL8NzkEaH/?spm_id_from=333.1007.tianma.1-3-3.click&vd_source=884a1f9702167e8936a8d6d773a193ae/api/payments/callback/"
                         + platformCode);
         paymentRequest.setSuccessUrl(
-                "https://www.bilibili.com/video/BV1nL8NzkEaH/?spm_id_from=333.1007.tianma.1-3-3" +
-                        ".click&vd_source=884a1f9702167e8936a8d6d773a193ae/api/payments/success");
+                "https://www.bilibili.com/video/BV1nL8NzkEaH/?spm_id_from=333.1007.tianma.1-3-3.click&vd_source=884a1f9702167e8936a8d6d773a193ae/api/payments/success");
         paymentRequest.setCancelUrl(
-                "https://www.bilibili.com/video/BV1nL8NzkEaH/?spm_id_from=333.1007.tianma.1-3-3" +
-                        ".click&vd_source=884a1f9702167e8936a8d6d773a193ae/api/payments/cancel");
+                "https://www.bilibili.com/video/BV1nL8NzkEaH/?spm_id_from=333.1007.tianma.1-3-3.click&vd_source=884a1f9702167e8936a8d6d773a193ae/api/payments/cancel");
 
         return paymentRequest;
     }
 
-    /**
-     * 构建支付请求（仅用于查询）
-     */
+    /** 构建支付请求（仅用于查询） */
     private PaymentRequest buildPaymentRequest(OrderEntity order) {
         return buildPaymentRequest(order, null);
     }
 
-    /**
-     * 生成订单号
-     */
+    /** 生成订单号 */
     private String generateOrderNo() {
         return "RCH" + System.currentTimeMillis() + String.format("%04d", (int) (Math.random() * 10000));
     }
 
-    /**
-     * 处理支付回调（新接口，直接处理HTTP请求）
-     *
+    /** 处理支付回调（新接口，直接处理HTTP请求）
+     * 
      * @param paymentPlatform 支付平台代码
-     * @param request         HTTP请求对象
-     * @return 回调响应字符串
-     */
+     * @param request HTTP请求对象
+     * @return 回调响应字符串 */
     @Transactional
     public String handlePaymentCallback(PaymentPlatform paymentPlatform, HttpServletRequest request) {
         try {
@@ -258,11 +241,9 @@ public class PaymentAppService {
         }
     }
 
-    /**
-     * 更新订单状态
-     *
-     * @param callback 支付回调对象
-     */
+    /** 更新订单状态
+     * 
+     * @param callback 支付回调对象 */
     private void updateOrderStatus(PaymentCallback callback) {
         try {
             String orderNo = callback.getOrderNo();
@@ -322,12 +303,10 @@ public class PaymentAppService {
         }
     }
 
-    /**
-     * 查询订单状态（根据订单号）
-     *
+    /** 查询订单状态（根据订单号）
+     * 
      * @param orderNo 订单号
-     * @return 订单状态响应
-     */
+     * @return 订单状态响应 */
     public OrderStatusResponseDTO queryOrderStatus(String orderNo) {
         logger.info("查询订单状态: orderNo={}", orderNo);
 
@@ -349,9 +328,7 @@ public class PaymentAppService {
         }
     }
 
-    /**
-     * 获取订单或抛出异常
-     */
+    /** 获取订单或抛出异常 */
     private OrderEntity getOrderOrThrow(String orderNo) {
         OrderEntity order = orderDomainService.findOrderByOrderNo(orderNo);
         if (order == null) {
@@ -360,24 +337,18 @@ public class PaymentAppService {
         return order;
     }
 
-    /**
-     * 判断是否需要同步支付平台状态
-     */
+    /** 判断是否需要同步支付平台状态 */
     private boolean shouldSyncWithProvider(OrderEntity order) {
         return order.getStatus() == OrderStatus.PENDING;
     }
 
-    /**
-     * 获取用于查询的第三方平台订单ID
-     */
+    /** 获取用于查询的第三方平台订单ID */
     private String getProviderOrderIdForQuery(PaymentProvider provider, OrderEntity order) {
         // 让支付提供商自己决定使用哪个ID进行查询
         return provider.getProviderOrderIdForQuery(order.getOrderNo(), order.getProviderOrderId());
     }
 
-    /**
-     * 同步支付平台状态
-     */
+    /** 同步支付平台状态 */
     private void syncOrderStatusFromProvider(OrderEntity order) {
         try {
             PaymentProvider provider = paymentProviderFactory.getProvider(order.getPaymentPlatform());
@@ -410,15 +381,12 @@ public class PaymentAppService {
         }
     }
 
-    /**
-     * 使用支付平台结果更新订单
-     */
+    /** 使用支付平台结果更新订单 */
     private void updateOrderWithProviderResult(OrderEntity order, OrderStatus newStatus, PaymentResult platformResult) {
         OrderStatus oldStatus = order.getStatus();
 
         logger.info(
-                "订单状态不一致，更新本地状态: orderNo={}, localStatus={}, platformStatus={}, rawStatus={}, providerOrderId={}, " +
-                        "providerPaymentId={}",
+                "订单状态不一致，更新本地状态: orderNo={}, localStatus={}, platformStatus={}, rawStatus={}, providerOrderId={}, providerPaymentId={}",
                 order.getOrderNo(), oldStatus, newStatus, platformResult.getStatus(),
                 platformResult.getProviderOrderId(), platformResult.getProviderPaymentId());
 
@@ -433,9 +401,7 @@ public class PaymentAppService {
         }
     }
 
-    /**
-     * 如果支付成功则发布支付成功事件
-     */
+    /** 如果支付成功则发布支付成功事件 */
     private void publishPaymentSuccessEventIfNeeded(OrderEntity order, OrderStatus status) {
         if (status != OrderStatus.PAID) {
             return;
@@ -449,9 +415,7 @@ public class PaymentAppService {
         eventPublisher.publishEvent(event);
     }
 
-    /**
-     * 构建订单状态响应
-     */
+    /** 构建订单状态响应 */
     private OrderStatusResponseDTO buildOrderStatusResponse(OrderEntity order) {
         OrderStatusResponseDTO response = new OrderStatusResponseDTO();
         response.setOrderId(order.getId());
@@ -471,11 +435,9 @@ public class PaymentAppService {
         return response;
     }
 
-    /**
-     * 获取可用的支付方法列表
-     *
-     * @return 支付方法列表
-     */
+    /** 获取可用的支付方法列表
+     * 
+     * @return 支付方法列表 */
     @Transactional(readOnly = true)
     public List<PaymentMethodDTO> getAvailablePaymentMethods() {
         logger.info("获取可用的支付方法列表");
@@ -510,40 +472,36 @@ public class PaymentAppService {
         }
     }
 
-    /**
-     * 获取支付平台描述
-     */
+    /** 获取支付平台描述 */
     private String getPaymentPlatformDescription(PaymentPlatform platform) {
         switch (platform) {
-            case ALIPAY:
+            case ALIPAY :
                 return "支持扫码支付";
-            case STRIPE:
+            case STRIPE :
                 return "支持信用卡支付";
-            case WECHAT:
+            case WECHAT :
                 return "支持扫码支付";
-            default:
+            default :
                 return platform.getName() + "支付";
         }
     }
 
-    /**
-     * 获取平台支持的支付类型
-     */
+    /** 获取平台支持的支付类型 */
     private List<PaymentMethodDTO.PaymentTypeDTO> getSupportedPaymentTypes(PaymentPlatform platform) {
         List<PaymentMethodDTO.PaymentTypeDTO> types = new ArrayList<>();
 
         // 只支持二维码支付
         switch (platform) {
-            case ALIPAY:
+            case ALIPAY :
                 types.add(new PaymentMethodDTO.PaymentTypeDTO("QR_CODE", "扫码支付", false));
                 break;
-            case WECHAT:
+            case WECHAT :
                 types.add(new PaymentMethodDTO.PaymentTypeDTO("QR_CODE", "扫码支付", false));
                 break;
-            case STRIPE:
+            case STRIPE :
                 // Stripe暂不支持二维码支付，跳过
                 break;
-            default:
+            default :
                 // 其他平台暂不支持，跳过
                 break;
         }
@@ -556,22 +514,20 @@ public class PaymentAppService {
         return types;
     }
 
-    /**
-     * 获取支付类型描述
-     */
+    /** 获取支付类型描述 */
     private String getPaymentTypeDescription(String typeCode) {
         switch (typeCode) {
-            case "WEB":
+            case "WEB" :
                 return "跳转到支付平台网页完成支付";
-            case "QR_CODE":
+            case "QR_CODE" :
                 return "扫描二维码完成支付";
-            case "MOBILE":
+            case "MOBILE" :
                 return "移动端应用内支付";
-            case "H5":
+            case "H5" :
                 return "移动端网页支付";
-            case "MINI_PROGRAM":
+            case "MINI_PROGRAM" :
                 return "小程序内支付";
-            default:
+            default :
                 return "在线支付";
         }
     }

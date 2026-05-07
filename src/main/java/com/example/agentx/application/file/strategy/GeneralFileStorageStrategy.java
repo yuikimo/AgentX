@@ -2,6 +2,7 @@ package com.example.agentx.application.file.strategy;
 
 import org.dromara.x.file.storage.core.FileInfo;
 import org.springframework.stereotype.Component;
+import com.example.agentx.domain.file.constant.FileTypeEnum;
 import com.example.agentx.domain.rag.model.FileDetailEntity;
 import com.example.agentx.domain.rag.repository.FileDetailRepository;
 
@@ -15,19 +16,21 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Dict;
 import cn.hutool.core.util.StrUtil;
 
-/**
- * 通用文件存储策略
- * <p>
+/** 通用文件存储策略
+ * 
  * 处理一般性文件的基本存储逻辑，不涉及复杂的业务处理
- */
+ * 
+ * @author shilong.zang
+ * @date 2024-12-09 */
 @Component
 public class GeneralFileStorageStrategy implements FileStorageStrategy {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final FileDetailRepository fileDetailRepository;
 
-    public GeneralFileStorageStrategy(FileDetailRepository fileDetailRepository) {
+    public GeneralFileStorageStrategy(FileDetailRepository fileDetailRepository, ObjectMapper objectMapper) {
         this.fileDetailRepository = fileDetailRepository;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -90,9 +93,7 @@ public class GeneralFileStorageStrategy implements FileStorageStrategy {
         return true;
     }
 
-    /**
-     * 将FileInfo转换为FileDetailEntity
-     */
+    /** 将FileInfo转换为FileDetailEntity */
     private FileDetailEntity convertToFileDetailEntity(FileInfo fileInfo) throws JsonProcessingException {
         FileDetailEntity fileDetailEntity = BeanUtil.copyProperties(fileInfo, FileDetailEntity.class, "metadata",
                 "userMetadata", "thMetadata", "thUserMetadata", "attr", "hashInfo");
@@ -118,9 +119,7 @@ public class GeneralFileStorageStrategy implements FileStorageStrategy {
         return fileDetailEntity;
     }
 
-    /**
-     * 将FileDetailEntity转换为FileInfo
-     */
+    /** 将FileDetailEntity转换为FileInfo */
     private FileInfo convertToFileInfo(FileDetailEntity fileDetailEntity) throws JsonProcessingException {
         FileInfo fileInfo = BeanUtil.copyProperties(fileDetailEntity, FileInfo.class, "metadata", "userMetadata",
                 "thMetadata", "thUserMetadata", "attr", "hashInfo");
@@ -141,9 +140,7 @@ public class GeneralFileStorageStrategy implements FileStorageStrategy {
         return fileInfo;
     }
 
-    /**
-     * 将对象转换为JSON字符串
-     */
+    /** 将对象转换为JSON字符串 */
     private String valueToJson(Object value) throws JsonProcessingException {
         if (value == null) {
             return null;
@@ -151,9 +148,7 @@ public class GeneralFileStorageStrategy implements FileStorageStrategy {
         return objectMapper.writeValueAsString(value);
     }
 
-    /**
-     * 将JSON字符串转换为元数据Map
-     */
+    /** 将JSON字符串转换为元数据Map */
     private java.util.Map<String, String> jsonToMetadata(String json) throws JsonProcessingException {
         if (StrUtil.isBlank(json)) {
             return null;
@@ -162,9 +157,7 @@ public class GeneralFileStorageStrategy implements FileStorageStrategy {
         });
     }
 
-    /**
-     * 将JSON字符串转换为字典对象
-     */
+    /** 将JSON字符串转换为字典对象 */
     private Dict jsonToDict(String json) throws JsonProcessingException {
         if (StrUtil.isBlank(json)) {
             return null;

@@ -4,6 +4,7 @@ import com.example.agentx.domain.tool.model.config.ToolDefinition;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 public class ToolVersionDTO {
 
@@ -50,6 +51,12 @@ public class ToolVersionDTO {
     private String mcpServerName;
 
     private Boolean isDelete;
+
+    private Map<String, Object> installTemplate;
+
+    private Map<String, Object> installFields;
+
+    private String configStatus;
 
     public void setOffice(Boolean office) {
         isOffice = office;
@@ -229,5 +236,29 @@ public class ToolVersionDTO {
 
     public void setMcpServerName(String mcpServerName) {
         this.mcpServerName = mcpServerName;
+    }
+
+    public Map<String, Object> getInstallTemplate() {
+        return installTemplate;
+    }
+
+    public void setInstallTemplate(Map<String, Object> installTemplate) {
+        this.installTemplate = installTemplate;
+    }
+
+    public Map<String, Object> getInstallFields() {
+        return installFields;
+    }
+
+    public void setInstallFields(Map<String, Object> installFields) {
+        this.installFields = installFields;
+    }
+
+    public String getConfigStatus() {
+        return configStatus;
+    }
+
+    public void setConfigStatus(String configStatus) {
+        this.configStatus = configStatus;
     }
 }

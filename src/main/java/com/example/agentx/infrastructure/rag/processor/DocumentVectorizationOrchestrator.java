@@ -15,14 +15,13 @@ import com.example.agentx.domain.rag.strategy.context.ProcessingContext;
 import com.example.agentx.infrastructure.mq.enums.EventType;
 import com.example.agentx.infrastructure.mq.events.RagDocSyncStorageEvent;
 import com.example.agentx.infrastructure.rag.service.UserModelConfigResolver;
+import com.example.agentx.infrastructure.rag.service.DatasetEmbeddingConfigResolver;
 
 import java.util.List;
 
-/**
- * 向量段落处理器
- * <p>
- * 负责翻译+分割+向量化的完整处理链： 1. 读取DocumentUnitEntity原文 2. 翻译特殊节点（内存处理） 3. 检查翻译后长度 4. 如超限则二次分割 5. 触发向量化处理
- */
+/** 向量段落处理器
+ * 
+ * 负责翻译+分割+向量化的完整处理链： 1. 读取DocumentUnitEntity原文 2. 翻译特殊节点（内存处理） 3. 检查翻译后长度 4. 如超限则二次分割 5. 触发向量化处理 */
 @Service
 public class DocumentVectorizationOrchestrator {
 
@@ -34,26 +33,25 @@ public class DocumentVectorizationOrchestrator {
     private final MessagePublisher messagePublisher;
     private final FileDetailDomainService fileDetailDomainService;
     private final UserModelConfigResolver userModelConfigResolver;
+    private final DatasetEmbeddingConfigResolver datasetEmbeddingConfigResolver;
 
     public DocumentVectorizationOrchestrator(MarkdownAstRewriter translator, MarkdownContentSplitter splitter,
-                                             DocumentUnitRepository documentUnitRepository,
-                                             MessagePublisher messagePublisher,
-                                             FileDetailDomainService fileDetailDomainService,
-                                             UserModelConfigResolver userModelConfigResolver) {
+            DocumentUnitRepository documentUnitRepository, MessagePublisher messagePublisher,
+            FileDetailDomainService fileDetailDomainService, UserModelConfigResolver userModelConfigResolver,
+            DatasetEmbeddingConfigResolver datasetEmbeddingConfigResolver) {
         this.translator = translator;
         this.splitter = splitter;
         this.documentUnitRepository = documentUnitRepository;
         this.messagePublisher = messagePublisher;
         this.fileDetailDomainService = fileDetailDomainService;
         this.userModelConfigResolver = userModelConfigResolver;
+        this.datasetEmbeddingConfigResolver = datasetEmbeddingConfigResolver;
     }
 
-    /**
-     * 批量处理文档单元
-     *
-     * @param units   文档单元列表
-     * @param context 处理上下文
-     */
+    /** 批量处理文档单元
+     * 
+     * @param units 文档单元列表
+     * @param context 处理上下文 */
     public void processDocumentUnits(List<DocumentUnitEntity> units, ProcessingContext context) {
         if (units == null || units.isEmpty()) {
             log.debug("No document units to process");
@@ -78,12 +76,10 @@ public class DocumentVectorizationOrchestrator {
         log.info("Vector segment processing completed. Success: {}, Error: {}", successCount, errorCount);
     }
 
-    /**
-     * 处理单个文档单元
-     *
-     * @param unit    文档单元
-     * @param context 处理上下文
-     */
+    /** 处理单个文档单元
+     * 
+     * @param unit 文档单元
+     * @param context 处理上下文 */
     public void processSingleUnit(DocumentUnitEntity unit, ProcessingContext context) {
         if (unit == null || unit.getContent() == null) {
             log.warn("Document unit or content is null, skipping");
@@ -122,11 +118,9 @@ public class DocumentVectorizationOrchestrator {
         }
     }
 
-    /**
-     * 为分割片段触发向量化处理 - 保持原文不变
-     */
+    /** 为分割片段触发向量化处理 - 保持原文不变 */
     private void createVectorSegments(DocumentUnitEntity originalUnit, List<String> vectorTexts,
-                                      ProcessingContext context) {
+            ProcessingContext context) {
         String originalUnitId = originalUnit.getId();
 
         log.info("Processing {} vector segments for unit {}", vectorTexts.size(), originalUnitId);
@@ -143,9 +137,7 @@ public class DocumentVectorizationOrchestrator {
         log.debug("Triggered vectorization for {} segments from unit {}", vectorTexts.size(), originalUnitId);
     }
 
-    /**
-     * 更新向量化状态 - 绝不修改原文内容
-     */
+    /** 更新向量化状态 - 绝不修改原文内容 */
     private void updateVectorStatus(DocumentUnitEntity unit) {
         // 🎯 核心原则：只更新状态，绝不修改content字段
         // 🚨 修复重复向量化：设置为true避免被自动向量化系统处理
@@ -156,11 +148,9 @@ public class DocumentVectorizationOrchestrator {
                 unit.getId());
     }
 
-    /**
-     * 触发向量化处理 - 传递翻译后内容
-     */
+    /** 触发向量化处理 - 传递翻译后内容 */
     private void triggerVectorization(DocumentUnitEntity originalUnit, String vectorText, int segmentIndex,
-                                      ProcessingContext context) {
+            ProcessingContext context) {
         try {
             // 获取文件详情来构建完整的向量化消息
             FileDetailEntity fileEntity = fileDetailDomainService.getFileByIdWithoutUserCheck(originalUnit.getFileId());
@@ -186,10 +176,11 @@ public class DocumentVectorizationOrchestrator {
             storageMessage.setUserId(context.getUserId());
             storageMessage.setDatasetId(fileEntity.getDataSetId());
 
-            // 设置嵌入模型配置
+            var embeddingContext = datasetEmbeddingConfigResolver.resolveActive(fileEntity.getDataSetId(),
+                    context.getUserId());
             try {
-                storageMessage.setEmbeddingModelConfig(
-                        userModelConfigResolver.getUserEmbeddingModelConfig(context.getUserId()));
+                storageMessage.setEmbeddingModelConfig(embeddingContext.modelConfig());
+                storageMessage.setEmbeddingProfileId(embeddingContext.profileId());
             } catch (Exception e) {
                 log.warn("Failed to get embedding model config for user {}: {}", context.getUserId(), e.getMessage());
                 // 继续处理，让后续流程处理模型配置问题
@@ -211,11 +202,9 @@ public class DocumentVectorizationOrchestrator {
         }
     }
 
-    /**
-     * 提取标题上下文
-     * <p>
-     * 从原文中提取标题信息，用于在分割时保持上下文
-     */
+    /** 提取标题上下文
+     * 
+     * 从原文中提取标题信息，用于在分割时保持上下文 */
     private String extractTitleContext(DocumentUnitEntity unit) {
         String content = unit.getContent();
         if (content == null || content.trim().isEmpty()) {
@@ -255,11 +244,9 @@ public class DocumentVectorizationOrchestrator {
         return titlePath.length() > 0 ? titlePath.toString() : null;
     }
 
-    /**
-     * 批量处理（异步调用入口）
-     *
-     * @param units 文档单元列表
-     */
+    /** 批量处理（异步调用入口）
+     * 
+     * @param units 文档单元列表 */
     public void processDocumentUnitsAsync(List<DocumentUnitEntity> units) {
         if (units == null || units.isEmpty()) {
             return;
@@ -280,9 +267,7 @@ public class DocumentVectorizationOrchestrator {
         }
     }
 
-    /**
-     * 创建默认的处理上下文
-     */
+    /** 创建默认的处理上下文 */
     private ProcessingContext createDefaultProcessingContext(DocumentUnitEntity sampleUnit) {
         try {
             // 从文件信息中获取用户ID
@@ -306,9 +291,7 @@ public class DocumentVectorizationOrchestrator {
         }
     }
 
-    /**
-     * 从FileDetailEntity创建RagDocSyncOcrMessage（用于构建ProcessingContext）
-     */
+    /** 从FileDetailEntity创建RagDocSyncOcrMessage（用于构建ProcessingContext） */
     private RagDocMessage createRagDocSyncOcrMessage(FileDetailEntity fileEntity) {
         RagDocMessage message = new RagDocMessage();
         message.setFileId(fileEntity.getId());
@@ -317,9 +300,7 @@ public class DocumentVectorizationOrchestrator {
         return message;
     }
 
-    /**
-     * 获取处理统计信息
-     */
+    /** 获取处理统计信息 */
     public ProcessingStatistics getProcessingStatistics(List<DocumentUnitEntity> units) {
         if (units == null || units.isEmpty()) {
             return new ProcessingStatistics(0, 0, 0, 0);
@@ -337,9 +318,7 @@ public class DocumentVectorizationOrchestrator {
         return new ProcessingStatistics(totalUnits, totalContentLength, (int) vectorizedUnits, avgContentLength);
     }
 
-    /**
-     * 处理统计信息
-     */
+    /** 处理统计信息 */
     public static class ProcessingStatistics {
         private final int totalUnits;
         private final int totalContentLength;
@@ -356,19 +335,15 @@ public class DocumentVectorizationOrchestrator {
         public int getTotalUnits() {
             return totalUnits;
         }
-
         public int getTotalContentLength() {
             return totalContentLength;
         }
-
         public int getVectorizedUnits() {
             return vectorizedUnits;
         }
-
         public int getAvgContentLength() {
             return avgContentLength;
         }
-
         public double getVectorizedRatio() {
             return totalUnits > 0 ? (double) vectorizedUnits / totalUnits : 0.0;
         }

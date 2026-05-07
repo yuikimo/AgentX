@@ -2,31 +2,26 @@ package com.example.agentx.infrastructure.rag.processor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import com.example.agentx.domain.rag.config.RagProperties;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/**
- * 智能二次分割器
- * <p>
- * 基于翻译后的真实内容长度进行智能分割： 1. 优先在段落边界分割 2. 其次在句子边界分割 3. 最后强制截断分割 4. 支持重叠分割以保持上下文
- */
+/** 智能二次分割器
+ * 
+ * 基于翻译后的真实内容长度进行智能分割： 1. 优先在段落边界分割 2. 其次在句子边界分割 3. 最后强制截断分割 4. 支持重叠分割以保持上下文 */
 @Component
 public class MarkdownContentSplitter {
 
     private static final Logger log = LoggerFactory.getLogger(MarkdownContentSplitter.class);
 
-    @Value("${rag.vector.max-length:1800}")
-    private int maxVectorLength;
+    private final RagProperties ragProperties;
 
-    @Value("${rag.vector.min-length:200}")
-    private int minVectorLength;
-
-    @Value("${rag.vector.overlap-size:100}")
-    private int overlapSize;
+    public MarkdownContentSplitter(RagProperties ragProperties) {
+        this.ragProperties = ragProperties;
+    }
 
     // 句子结束标志
     private static final Pattern SENTENCE_END_PATTERN = Pattern.compile("[。！？.!?]\\s*");
@@ -34,13 +29,11 @@ public class MarkdownContentSplitter {
     // 段落分隔符
     private static final String PARAGRAPH_SEPARATOR = "\n\n";
 
-    /**
-     * 根据需要分割内容
-     *
-     * @param content      翻译后的内容
+    /** 根据需要分割内容
+     * 
+     * @param content 翻译后的内容
      * @param titleContext 标题上下文（用于保持语义完整性）
-     * @return 分割后的内容列表
-     */
+     * @return 分割后的内容列表 */
     public List<String> splitIfNeeded(String content, String titleContext) {
         if (content == null || content.trim().isEmpty()) {
             return List.of();
@@ -49,26 +42,22 @@ public class MarkdownContentSplitter {
         // 添加标题上下文
         String fullContent = buildContentWithContext(content, titleContext);
 
-        if (fullContent.length() <= maxVectorLength) {
-            log.debug("内容长度 {} <= 最大长度 {}，无需分割", fullContent.length(), maxVectorLength);
+        if (fullContent.length() <= maxVectorLength()) {
+            log.debug("内容长度 {} <= 最大长度 {}，无需分割", fullContent.length(), maxVectorLength());
             return List.of(fullContent);
         }
 
-        log.debug("内容长度 {} > 最大长度 {}，执行智能分割", fullContent.length(), maxVectorLength);
+        log.debug("内容长度 {} > 最大长度 {}，执行智能分割", fullContent.length(), maxVectorLength());
 
         return performSplit(fullContent, titleContext);
     }
 
-    /**
-     * 重载方法，无标题上下文
-     */
+    /** 重载方法，无标题上下文 */
     public List<String> splitIfNeeded(String content) {
         return splitIfNeeded(content, null);
     }
 
-    /**
-     * 构建带上下文的完整内容
-     */
+    /** 构建带上下文的完整内容 */
     private String buildContentWithContext(String content, String titleContext) {
         if (titleContext == null || titleContext.trim().isEmpty()) {
             return content;
@@ -82,9 +71,7 @@ public class MarkdownContentSplitter {
         return titleContext + "\n\n" + content;
     }
 
-    /**
-     * 执行分割
-     */
+    /** 执行分割 */
     private List<String> performSplit(String fullContent, String titleContext) {
         List<String> chunks = new ArrayList<>();
 
@@ -116,9 +103,7 @@ public class MarkdownContentSplitter {
         }
     }
 
-    /**
-     * 按段落分割
-     */
+    /** 按段落分割 */
     private List<String> splitByParagraphs(String content, String titleContext) {
         String[] paragraphs = content.split(PARAGRAPH_SEPARATOR);
         List<String> chunks = new ArrayList<>();
@@ -126,7 +111,7 @@ public class MarkdownContentSplitter {
 
         String titlePrefix = buildTitlePrefix(titleContext);
         int titlePrefixLength = titlePrefix.length();
-        int availableLength = maxVectorLength - titlePrefixLength - overlapSize;
+        int availableLength = maxVectorLength() - titlePrefixLength - overlapSize();
 
         for (String paragraph : paragraphs) {
             String trimmedParagraph = paragraph.trim();
@@ -147,12 +132,13 @@ public class MarkdownContentSplitter {
             } else {
                 // 当前块已满，保存并开始新块
                 if (currentChunk.length() > 0) {
+                    String previousChunk = currentChunk.toString();
                     String chunkContent = titlePrefix + currentChunk.toString();
                     chunks.add(chunkContent);
 
                     // 准备下一个块，考虑重叠
                     currentChunk.setLength(0);
-                    String overlap = extractOverlap(trimmedParagraph);
+                    String overlap = extractOverlap(previousChunk);
                     if (!overlap.isEmpty()) {
                         currentChunk.append(overlap).append(PARAGRAPH_SEPARATOR);
                     }
@@ -178,9 +164,7 @@ public class MarkdownContentSplitter {
         return chunks;
     }
 
-    /**
-     * 按句子分割
-     */
+    /** 按句子分割 */
     private List<String> splitBySentences(String content, String titleContext) {
         List<String> sentences = extractSentences(content);
         List<String> chunks = new ArrayList<>();
@@ -188,7 +172,7 @@ public class MarkdownContentSplitter {
 
         String titlePrefix = buildTitlePrefix(titleContext);
         int titlePrefixLength = titlePrefix.length();
-        int availableLength = maxVectorLength - titlePrefixLength - overlapSize;
+        int availableLength = maxVectorLength() - titlePrefixLength - overlapSize();
 
         for (String sentence : sentences) {
             String trimmedSentence = sentence.trim();
@@ -206,12 +190,13 @@ public class MarkdownContentSplitter {
             } else {
                 // 当前块已满
                 if (currentChunk.length() > 0) {
+                    String previousChunk = currentChunk.toString();
                     String chunkContent = titlePrefix + currentChunk.toString();
                     chunks.add(chunkContent);
 
                     // 准备下一个块，考虑重叠
                     currentChunk.setLength(0);
-                    String overlap = extractOverlap(currentChunk.toString());
+                    String overlap = extractOverlap(previousChunk);
                     if (!overlap.isEmpty()) {
                         currentChunk.append(overlap).append(" ");
                     }
@@ -239,18 +224,17 @@ public class MarkdownContentSplitter {
         return chunks;
     }
 
-    /**
-     * 强制分割
-     */
+    /** 强制分割 */
     private List<String> forceSplit(String content, String titleContext) {
         List<String> chunks = new ArrayList<>();
         String titlePrefix = buildTitlePrefix(titleContext);
         int titlePrefixLength = titlePrefix.length();
-        int availableLength = maxVectorLength - titlePrefixLength;
+        int availableLength = maxVectorLength() - titlePrefixLength;
+        int effectiveOverlap = Math.min(overlapSize(), Math.max(0, availableLength - 1));
 
-        if (availableLength <= minVectorLength) {
+        if (availableLength <= minVectorLength()) {
             // 标题太长，直接截断
-            String truncated = content.substring(0, Math.min(content.length(), maxVectorLength));
+            String truncated = content.substring(0, Math.min(content.length(), maxVectorLength()));
             chunks.add(truncated);
             return chunks;
         }
@@ -263,7 +247,7 @@ public class MarkdownContentSplitter {
             chunks.add(chunkContent);
 
             // 考虑重叠
-            start = end - overlapSize;
+            start = end - effectiveOverlap;
             if (start <= 0) {
                 start = end;
             }
@@ -272,9 +256,7 @@ public class MarkdownContentSplitter {
         return chunks;
     }
 
-    /**
-     * 分割超长段落
-     */
+    /** 分割超长段落 */
     private List<String> splitLongParagraph(String paragraph, String titlePrefix, int availableLength) {
         List<String> chunks = new ArrayList<>();
 
@@ -325,9 +307,7 @@ public class MarkdownContentSplitter {
         return chunks;
     }
 
-    /**
-     * 提取句子
-     */
+    /** 提取句子 */
     private List<String> extractSentences(String text) {
         List<String> sentences = new ArrayList<>();
         String[] parts = SENTENCE_END_PATTERN.split(text);
@@ -342,9 +322,7 @@ public class MarkdownContentSplitter {
         return sentences;
     }
 
-    /**
-     * 构建标题前缀
-     */
+    /** 构建标题前缀 */
     private String buildTitlePrefix(String titleContext) {
         if (titleContext == null || titleContext.trim().isEmpty()) {
             return "";
@@ -353,16 +331,14 @@ public class MarkdownContentSplitter {
         return titleContext.trim() + "\n\n";
     }
 
-    /**
-     * 提取重叠内容
-     */
+    /** 提取重叠内容 */
     private String extractOverlap(String text) {
-        if (text.length() <= overlapSize) {
+        if (text.length() <= overlapSize()) {
             return text;
         }
 
         // 从末尾提取重叠内容，尽量在词边界截断
-        String overlap = text.substring(Math.max(0, text.length() - overlapSize));
+        String overlap = text.substring(Math.max(0, text.length() - overlapSize()));
 
         // 寻找最近的空格或标点，避免截断单词
         int spaceIndex = overlap.indexOf(' ');
@@ -373,9 +349,7 @@ public class MarkdownContentSplitter {
         return overlap;
     }
 
-    /**
-     * 验证分割结果是否合理
-     */
+    /** 验证分割结果是否合理 */
     private boolean isValidSplit(List<String> chunks) {
         if (chunks.isEmpty()) {
             return false;
@@ -383,12 +357,12 @@ public class MarkdownContentSplitter {
 
         // 检查每个块的长度
         for (String chunk : chunks) {
-            if (chunk.length() > maxVectorLength) {
-                log.debug("块太长: {} > {}", chunk.length(), maxVectorLength);
+            if (chunk.length() > maxVectorLength()) {
+                log.debug("块太长: {} > {}", chunk.length(), maxVectorLength());
                 return false;
             }
-            if (chunk.length() < minVectorLength && chunks.size() > 1) {
-                log.debug("块太短: {} < {} (且不是唯一块)", chunk.length(), minVectorLength);
+            if (chunk.length() < minVectorLength() && chunks.size() > 1) {
+                log.debug("块太短: {} < {} (且不是唯一块)", chunk.length(), minVectorLength());
                 return false;
             }
         }
@@ -396,9 +370,7 @@ public class MarkdownContentSplitter {
         return true;
     }
 
-    /**
-     * 获取分割统计信息（用于调试）
-     */
+    /** 获取分割统计信息（用于调试） */
     public String getSplitStatistics(String originalContent, List<String> chunks) {
         if (chunks.isEmpty()) {
             return "未生成任何块";
@@ -411,5 +383,17 @@ public class MarkdownContentSplitter {
 
         return String.format("Split %d chars into %d chunks. Avg: %d, Min: %d, Max: %d", originalContent.length(),
                 chunks.size(), avgLength, minLength, maxLength);
+    }
+
+    private int maxVectorLength() {
+        return Math.max(1, ragProperties.getVector().getMaxLength());
+    }
+
+    private int minVectorLength() {
+        return Math.max(1, ragProperties.getVector().getMinLength());
+    }
+
+    private int overlapSize() {
+        return Math.max(0, ragProperties.getVector().getOverlapSize());
     }
 }

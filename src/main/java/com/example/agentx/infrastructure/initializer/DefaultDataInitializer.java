@@ -12,9 +12,9 @@ import com.example.agentx.infrastructure.config.AdminUserProperties;
 import com.example.agentx.infrastructure.config.AdminUserEnvironmentProperties;
 import com.example.agentx.infrastructure.utils.PasswordUtils;
 
-/**
- * 默认数据初始化器 在应用启动时自动初始化默认用户数据
- */
+/** 默认数据初始化器 在应用启动时自动初始化默认用户数据
+ * 
+ * @author xhy */
 @Component
 @Order(100) // 确保在其他初始化器之后执行
 public class DefaultDataInitializer implements ApplicationRunner {
@@ -26,7 +26,7 @@ public class DefaultDataInitializer implements ApplicationRunner {
     private final AdminUserEnvironmentProperties envProperties;
 
     public DefaultDataInitializer(UserDomainService userDomainService, AdminUserProperties adminUserProperties,
-                                  AdminUserEnvironmentProperties envProperties) {
+            AdminUserEnvironmentProperties envProperties) {
         this.userDomainService = userDomainService;
         this.adminUserProperties = adminUserProperties;
         this.envProperties = envProperties;
@@ -45,9 +45,7 @@ public class DefaultDataInitializer implements ApplicationRunner {
         }
     }
 
-    /**
-     * 初始化默认用户
-     */
+    /** 初始化默认用户 */
     private void initializeDefaultUsers() {
         log.info("正在初始化默认用户...");
 
@@ -60,9 +58,7 @@ public class DefaultDataInitializer implements ApplicationRunner {
         log.info("默认用户初始化完成");
     }
 
-    /**
-     * 初始化管理员用户
-     */
+    /** 初始化管理员用户 */
     private void initializeAdminUser() {
         // 优先使用环境变量配置，如果不存在则使用默认配置
         String adminEmail = envProperties.getAdminEmail();
@@ -98,9 +94,7 @@ public class DefaultDataInitializer implements ApplicationRunner {
         }
     }
 
-    /**
-     * 初始化测试用户
-     */
+    /** 初始化测试用户 */
     private void initializeTestUser() {
         // 使用环境变量配置
         Boolean testEnabled = envProperties.getTestEnabled();

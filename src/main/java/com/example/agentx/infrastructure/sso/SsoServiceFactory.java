@@ -54,11 +54,11 @@ public class SsoServiceFactory {
 
     private AuthFeatureKey getAuthFeatureKeyByProvider(SsoProvider provider) {
         switch (provider) {
-            case GITHUB:
+            case GITHUB :
                 return AuthFeatureKey.GITHUB_LOGIN;
-            case COMMUNITY:
+            case COMMUNITY :
                 return AuthFeatureKey.COMMUNITY_LOGIN;
-            default:
+            default :
                 return null;
         }
     }

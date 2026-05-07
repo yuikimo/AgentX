@@ -21,9 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * 订单应用服务
- */
+/** 订单应用服务 */
 @Service
 public class OrderAppService {
 
@@ -37,13 +35,11 @@ public class OrderAppService {
         this.userDomainService = userDomainService;
     }
 
-    /**
-     * 获取用户已支付订单列表（分页）
-     *
+    /** 获取用户已支付订单列表（分页）
+     * 
      * @param queryRequest 查询条件
-     * @param userId       用户ID
-     * @return 订单分页数据
-     */
+     * @param userId 用户ID
+     * @return 订单分页数据 */
     public Page<OrderDTO> getUserPaidOrders(QueryUserOrderRequest queryRequest, String userId) {
         if (!StringUtils.hasText(userId)) {
             throw new BusinessException("用户ID不能为空");
@@ -76,13 +72,11 @@ public class OrderAppService {
         return resultPage;
     }
 
-    /**
-     * 获取用户订单详情
-     *
+    /** 获取用户订单详情
+     * 
      * @param orderId 订单ID
-     * @param userId  用户ID
-     * @return 订单详情
-     */
+     * @param userId 用户ID
+     * @return 订单详情 */
     public OrderDTO getUserOrderDetail(String orderId, String userId) {
         if (!StringUtils.hasText(orderId)) {
             throw new BusinessException("订单ID不能为空");
@@ -110,12 +104,10 @@ public class OrderAppService {
         return result;
     }
 
-    /**
-     * 管理员获取所有订单列表（分页+搜索）
-     *
+    /** 管理员获取所有订单列表（分页+搜索）
+     * 
      * @param queryRequest 查询条件
-     * @return 订单分页数据
-     */
+     * @return 订单分页数据 */
     public Page<OrderDTO> getAllOrders(QueryAllOrderRequest queryRequest) {
         logger.info("管理员获取所有订单列表: page={}, pageSize={}, keyword={}", queryRequest.getPage(), queryRequest.getPageSize(),
                 queryRequest.getKeyword());
@@ -163,12 +155,10 @@ public class OrderAppService {
         return resultPage;
     }
 
-    /**
-     * 管理员获取订单详情
-     *
+    /** 管理员获取订单详情
+     * 
      * @param orderId 订单ID
-     * @return 订单详情
-     */
+     * @return 订单详情 */
     public OrderDTO getOrderDetail(String orderId) {
         if (!StringUtils.hasText(orderId)) {
             throw new BusinessException("订单ID不能为空");

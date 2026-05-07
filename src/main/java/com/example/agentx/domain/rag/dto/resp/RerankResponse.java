@@ -1,51 +1,39 @@
 package com.example.agentx.domain.rag.dto.resp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
+/** @author shilong.zang
+ * @date 15:16 <br/>
+ */
 public class RerankResponse implements Serializable {
 
     @Serial
     private static final long serialVersionUID = -4763176490538778562L;
 
-    /**
-     * 唯一标识符
-     */
+    /** 唯一标识符 */
     private String id;
 
-    /**
-     * 搜索结果列表
-     */
+    /** 搜索结果列表 */
     private List<SearchResult> results;
 
-    /**
-     * 令牌统计信息
-     */
+    /** 令牌统计信息 */
     private Meta meta;
 
-    /**
-     * 搜索结果项
-     */
+    /** 搜索结果项 */
     public static class SearchResult implements Serializable {
 
         @Serial
         private static final long serialVersionUID = -2428070945016880585L;
-        /**
-         * 文档内容
-         */
+        /** 文档内容 */
         private Document document;
 
-        /**
-         * 索引位置
-         */
+        /** 索引位置 */
         private Integer index;
 
-        /**
-         * 相关性分数
-         */
+        /** 相关性分数 */
         @JsonProperty("relevance_score")
         private Double relevanceScore;
 
@@ -74,16 +62,12 @@ public class RerankResponse implements Serializable {
         }
     }
 
-    /**
-     * 文档内容
-     */
+    /** 文档内容 */
     public static class Document implements Serializable {
 
         @Serial
         private static final long serialVersionUID = -6132815214174496256L;
-        /**
-         * 文本内容
-         */
+        /** 文本内容 */
         private String text;
 
         public String getText() {
@@ -95,9 +79,7 @@ public class RerankResponse implements Serializable {
         }
     }
 
-    /**
-     * 令牌统计信息
-     */
+    /** 令牌统计信息 */
     public static class Meta implements Serializable {
 
         @Serial
@@ -175,15 +157,11 @@ public class RerankResponse implements Serializable {
 
         @Serial
         private static final long serialVersionUID = -1766061142376465518L;
-        /**
-         * 输入令牌数
-         */
+        /** 输入令牌数 */
         @JsonProperty("input_tokens")
         private Integer inputTokens;
 
-        /**
-         * 输出令牌数
-         */
+        /** 输出令牌数 */
         @JsonProperty("output_tokens")
         private Integer outputTokens;
 

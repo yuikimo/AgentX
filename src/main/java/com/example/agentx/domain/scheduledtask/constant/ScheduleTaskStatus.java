@@ -2,24 +2,16 @@ package com.example.agentx.domain.scheduledtask.constant;
 
 import com.example.agentx.infrastructure.exception.BusinessException;
 
-/**
- * 定时任务状态枚举
- */
+/** 定时任务状态枚举 */
 public enum ScheduleTaskStatus {
 
-    /**
-     * 活跃状态
-     */
+    /** 活跃状态 */
     ACTIVE,
 
-    /**
-     * 暂停状态
-     */
+    /** 暂停状态 */
     PAUSED,
 
-    /**
-     * 已完成状态
-     */
+    /** 已完成状态 */
     COMPLETED;
 
     public static ScheduleTaskStatus fromCode(String code) {

@@ -5,9 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 创建Agent的请求对象
- */
+/** 创建Agent的请求对象 */
 public class CreateAgentRequest {
 
     @NotBlank(message = "助理名称不可为空")
@@ -21,11 +19,9 @@ public class CreateAgentRequest {
     private List<String> knowledgeBaseIds;
     private Map<String, Map<String, Map<String, String>>> toolPresetParams;
     private Boolean multiModal;
-
     // 构造方法
     public CreateAgentRequest() {
     }
-
     // Getter和Setter
     public String getName() {
         return name;

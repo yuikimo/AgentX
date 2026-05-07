@@ -12,18 +12,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * 容器模板装配器
- */
+/** 容器模板装配器 */
 public class ContainerTemplateAssembler {
 
-    /**
-     * 将创建请求转换为实体
-     *
+    /** 将创建请求转换为实体
+     * 
      * @param request 创建请求
-     * @param userId  创建者用户ID
-     * @return 模板实体
-     */
+     * @param userId 创建者用户ID
+     * @return 模板实体 */
     public static ContainerTemplateEntity toEntity(CreateContainerTemplateRequest request, String userId) {
         if (request == null) {
             return null;
@@ -41,12 +37,10 @@ public class ContainerTemplateAssembler {
         return entity;
     }
 
-    /**
-     * 将更新请求转换为实体
-     *
+    /** 将更新请求转换为实体
+     * 
      * @param request 更新请求
-     * @return 模板实体
-     */
+     * @return 模板实体 */
     public static ContainerTemplateEntity toEntity(UpdateContainerTemplateRequest request) {
         if (request == null) {
             return null;
@@ -63,12 +57,10 @@ public class ContainerTemplateAssembler {
         return entity;
     }
 
-    /**
-     * 将实体转换为DTO
-     *
+    /** 将实体转换为DTO
+     * 
      * @param entity 模板实体
-     * @return 模板DTO
-     */
+     * @return 模板DTO */
     public static ContainerTemplateDTO toDTO(ContainerTemplateEntity entity) {
         if (entity == null) {
             return null;
@@ -88,12 +80,10 @@ public class ContainerTemplateAssembler {
         return dto;
     }
 
-    /**
-     * 将实体列表转换为DTO列表
-     *
+    /** 将实体列表转换为DTO列表
+     * 
      * @param entities 实体列表
-     * @return DTO列表
-     */
+     * @return DTO列表 */
     public static List<ContainerTemplateDTO> toDTOs(List<ContainerTemplateEntity> entities) {
         if (entities == null || entities.isEmpty()) {
             return Collections.emptyList();
@@ -102,12 +92,10 @@ public class ContainerTemplateAssembler {
         return entities.stream().map(ContainerTemplateAssembler::toDTO).collect(Collectors.toList());
     }
 
-    /**
-     * 将实体分页结果转换为DTO分页结果
-     *
+    /** 将实体分页结果转换为DTO分页结果
+     * 
      * @param entityPage 实体分页结果
-     * @return DTO分页结果
-     */
+     * @return DTO分页结果 */
     public static Page<ContainerTemplateDTO> toDTOPage(Page<ContainerTemplateEntity> entityPage) {
         if (entityPage == null) {
             return null;

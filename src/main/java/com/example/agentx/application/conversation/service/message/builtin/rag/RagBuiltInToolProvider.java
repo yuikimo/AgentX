@@ -1,9 +1,11 @@
 package com.example.agentx.application.conversation.service.message.builtin.rag;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
+import com.example.agentx.application.conversation.config.ChatToolProperties;
 import com.example.agentx.application.conversation.service.message.builtin.AbstractBuiltInToolProvider;
 import com.example.agentx.application.conversation.service.message.builtin.BuiltInTool;
 import com.example.agentx.application.conversation.service.message.builtin.ToolDefinition;
@@ -18,11 +20,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * RAG内置工具提供者
- * <p>
- * 负责创建和管理Agent的RAG工具，支持多知识库集成 使用融合架构：工具定义、规范创建、执行逻辑都在这一个类中
- */
+/** RAG内置工具提供者
+ * 
+ * 负责创建和管理Agent的RAG工具，支持多知识库集成 使用融合架构：工具定义、规范创建、执行逻辑都在这一个类中 */
 @BuiltInTool(name = "rag_search", description = "知识库检索工具，支持在用户配置的知识库中进行智能搜索", priority = 10)
 public class RagBuiltInToolProvider extends AbstractBuiltInToolProvider {
 
@@ -30,15 +30,17 @@ public class RagBuiltInToolProvider extends AbstractBuiltInToolProvider {
 
     private final RAGSearchAppService ragSearchAppService;
     private final UserRagDomainService userRagDomainService;
+    private final ChatToolProperties chatToolProperties;
 
-    public RagBuiltInToolProvider(RAGSearchAppService ragSearchAppService, UserRagDomainService userRagDomainService) {
+    public RagBuiltInToolProvider(RAGSearchAppService ragSearchAppService, UserRagDomainService userRagDomainService,
+            ObjectMapper objectMapper, ChatToolProperties chatToolProperties) {
+        super(objectMapper);
         this.ragSearchAppService = ragSearchAppService;
         this.userRagDomainService = userRagDomainService;
+        this.chatToolProperties = chatToolProperties;
     }
 
-    /**
-     * 实现融合架构：定义RAG工具规范 替代原来的RagToolSpecification类
-     */
+    /** 实现融合架构：定义RAG工具规范 替代原来的RagToolSpecification类 */
     @Override
     public List<ToolDefinition> defineTools(AgentEntity agent) {
         List<String> knowledgeBaseIds = agent.getKnowledgeBaseIds();
@@ -81,9 +83,7 @@ public class RagBuiltInToolProvider extends AbstractBuiltInToolProvider {
         }
     }
 
-    /**
-     * 实现融合架构：执行RAG工具逻辑 替代原来的RagToolExecutor类
-     */
+    /** 实现融合架构：执行RAG工具逻辑 替代原来的RagToolExecutor类 */
     @Override
     protected String doExecute(String toolName, JsonNode arguments, AgentEntity agent, Object memoryId) {
         if (!"knowledge_search".equals(toolName)) {
@@ -117,8 +117,7 @@ public class RagBuiltInToolProvider extends AbstractBuiltInToolProvider {
             validateRange(minScore, 0.0, 1.0, "minScore");
 
             log.debug(
-                    "RAG搜索参数 - query: {}, maxResults: {}, minScore: {}, enableRerank: {}, enableQueryExpansion: {}, " +
-                            "knowledgeBaseCount: {}",
+                    "RAG搜索参数 - query: {}, maxResults: {}, minScore: {}, enableRerank: {}, enableQueryExpansion: {}, knowledgeBaseCount: {}",
                     query, maxResults, minScore, enableRerank, enableQueryExpansion, validKnowledgeBaseIds.size());
 
             // 构建RAG搜索请求，支持多个知识库
@@ -141,8 +140,8 @@ public class RagBuiltInToolProvider extends AbstractBuiltInToolProvider {
             // 格式化搜索结果
             String formattedResults = formatSearchResults(searchResults, query);
 
-            log.info("RAG搜索完成，knowledgeBaseIds: {}, query: {}, 找到文档数量: {}",
-                    validKnowledgeBaseIds, query, searchResults.size());
+            log.info("RAG搜索完成，knowledgeBaseIds: {}, query: {}, 找到文档数量: {}", validKnowledgeBaseIds, query,
+                    searchResults.size());
 
             return formattedResults;
 
@@ -155,34 +154,57 @@ public class RagBuiltInToolProvider extends AbstractBuiltInToolProvider {
         }
     }
 
-    /**
-     * 格式化搜索结果
-     *
+    /** 格式化搜索结果
      * @param searchResults 搜索结果列表
-     * @param query         搜索查询
-     * @return 格式化后的结果字符串
-     */
+     * @param query 搜索查询
+     * @return 格式化后的结果字符串 */
     private String formatSearchResults(List<DocumentUnitDTO> searchResults, String query) {
         StringBuilder result = new StringBuilder();
         result.append("根据查询「").append(query).append("」找到以下相关内容：\n\n");
 
-        for (int i = 0; i < searchResults.size(); i++) {
-            DocumentUnitDTO doc = searchResults.get(i);
+        ChatToolProperties.Rag ragProps = chatToolProperties.getRag();
+        int totalBudget = Math.max(1200, ragProps.getMaxResultChars());
+        int omittedCount = Math.max(0, searchResults.size() - Math.max(1, ragProps.getMaxResultItems()));
+        List<DocumentUnitDTO> limitedResults = searchResults.stream().limit(Math.max(1, ragProps.getMaxResultItems()))
+                .toList();
+
+        for (int i = 0; i < limitedResults.size(); i++) {
+            if (result.length() >= totalBudget) {
+                omittedCount += limitedResults.size() - i;
+                break;
+            }
+            DocumentUnitDTO doc = limitedResults.get(i);
             result.append("【文档片段 ").append(i + 1).append("】\n");
 
             // 添加文档内容
             if (StringUtils.hasText(doc.getContent())) {
                 String content = doc.getContent().trim();
                 // 限制单个文档片段的长度，避免响应过长
-                if (content.length() > 500) {
-                    content = content.substring(0, 500) + "...";
+                if (content.length() > ragProps.getMaxItemChars()) {
+                    content = content.substring(0, ragProps.getMaxItemChars()) + "...";
+                }
+                int remainingBudget = totalBudget - result.length();
+                if (remainingBudget <= 0) {
+                    omittedCount += limitedResults.size() - i;
+                    break;
+                }
+                if (content.length() > remainingBudget) {
+                    if (remainingBudget <= 3) {
+                        omittedCount += limitedResults.size() - i;
+                        break;
+                    }
+                    content = content.substring(0, remainingBudget - 3) + "...";
+                    omittedCount += limitedResults.size() - i - 1;
                 }
                 result.append(content).append("\n");
             }
 
-            // 添加来源信息（如果有文件ID）
-            if (StringUtils.hasText(doc.getFileId())) {
-                result.append("来源：文件ID ").append(doc.getFileId());
+            String filename = StringUtils.hasText(doc.getFilename()) ? doc.getFilename().trim() : null;
+            if (!StringUtils.hasText(filename) && StringUtils.hasText(doc.getFileId())) {
+                filename = "文件ID " + doc.getFileId();
+            }
+            if (StringUtils.hasText(filename)) {
+                result.append("来源：").append(filename);
                 if (doc.getPage() != null) {
                     result.append("，第 ").append(doc.getPage()).append(" 页");
                 }
@@ -192,6 +214,9 @@ public class RagBuiltInToolProvider extends AbstractBuiltInToolProvider {
             result.append("\n");
         }
 
+        if (omittedCount > 0) {
+            result.append("已省略 ").append(omittedCount).append(" 条较长或较低优先级结果。\n\n");
+        }
         result.append("以上内容来自知识库，请基于这些信息回答用户问题。");
 
         return result.toString();
@@ -199,13 +224,10 @@ public class RagBuiltInToolProvider extends AbstractBuiltInToolProvider {
 
     // ====== 辅助方法（保持原有逻辑不变）======
 
-    /**
-     * 验证知识库是否存在且用户有权限访问
-     *
+    /** 验证知识库是否存在且用户有权限访问
      * @param knowledgeBaseIds 知识库ID列表
-     * @param userId           用户ID
-     * @return 有效的知识库ID列表
-     */
+     * @param userId 用户ID
+     * @return 有效的知识库ID列表 */
     private List<String> validateKnowledgeBases(List<String> knowledgeBaseIds, String userId) {
         List<String> validIds = new ArrayList<>();
 
@@ -228,13 +250,10 @@ public class RagBuiltInToolProvider extends AbstractBuiltInToolProvider {
         return validIds;
     }
 
-    /**
-     * 获取知识库名称列表
-     *
+    /** 获取知识库名称列表
      * @param knowledgeBaseIds 知识库ID列表
-     * @param userId           用户ID
-     * @return 知识库名称列表
-     */
+     * @param userId 用户ID
+     * @return 知识库名称列表 */
     private List<String> getKnowledgeBaseNames(List<String> knowledgeBaseIds, String userId) {
         return knowledgeBaseIds.stream().map(id -> {
             try {
@@ -256,23 +275,17 @@ public class RagBuiltInToolProvider extends AbstractBuiltInToolProvider {
         }).collect(Collectors.toList());
     }
 
-    /**
-     * 检查Agent是否配置了RAG工具
-     *
+    /** 检查Agent是否配置了RAG工具
      * @param agent Agent实体
-     * @return 是否配置了RAG工具
-     */
+     * @return 是否配置了RAG工具 */
     public boolean hasRagTools(AgentEntity agent) {
         List<String> knowledgeBaseIds = agent.getKnowledgeBaseIds();
         return knowledgeBaseIds != null && !knowledgeBaseIds.isEmpty();
     }
 
-    /**
-     * 获取Agent配置的知识库数量
-     *
+    /** 获取Agent配置的知识库数量
      * @param agent Agent实体
-     * @return 知识库数量
-     */
+     * @return 知识库数量 */
     public int getKnowledgeBaseCount(AgentEntity agent) {
         List<String> knowledgeBaseIds = agent.getKnowledgeBaseIds();
         return knowledgeBaseIds != null ? knowledgeBaseIds.size() : 0;

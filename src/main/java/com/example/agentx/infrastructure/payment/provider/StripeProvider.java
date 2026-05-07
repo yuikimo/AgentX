@@ -7,6 +7,8 @@ import com.stripe.model.PaymentIntent;
 import com.stripe.model.Refund;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
+import com.stripe.param.PaymentIntentCreateParams;
+import com.stripe.param.PaymentIntentRetrieveParams;
 import com.stripe.param.RefundCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
 import org.slf4j.Logger;
@@ -21,7 +23,6 @@ import com.example.agentx.infrastructure.payment.model.PaymentRequest;
 import com.example.agentx.infrastructure.payment.model.PaymentResult;
 
 import jakarta.servlet.http.HttpServletRequest;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -29,13 +30,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Stripe支付提供商
- */
+/** Stripe支付提供商 */
 @Component
 public class StripeProvider extends PaymentProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(StripeProvider.class);
+    private final ObjectMapper objectMapper;
 
     @Value("${payment.stripe.secret-key:}")
     private String secretKey;
@@ -47,6 +47,10 @@ public class StripeProvider extends PaymentProvider {
     private String webhookSecret;
 
     private volatile boolean initialized = false;
+
+    public StripeProvider(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     protected boolean supportsRefund() {
@@ -217,7 +221,6 @@ public class StripeProvider extends PaymentProvider {
             }
 
             // 解析JSON数据
-            ObjectMapper objectMapper = new ObjectMapper();
             @SuppressWarnings("unchecked")
             Map<String, Object> callbackData = objectMapper.readValue(payload, Map.class);
 
@@ -239,25 +242,21 @@ public class StripeProvider extends PaymentProvider {
         }
     }
 
-    /**
-     * 读取HTTP请求体
-     *
+    /** 读取HTTP请求体
+     * 
      * @param request HTTP请求对象
-     * @return 请求体内容
-     */
+     * @return 请求体内容 */
     private String readRequestBody(HttpServletRequest request) throws IOException {
         try (InputStream inputStream = request.getInputStream()) {
             return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 
-    /**
-     * 处理Stripe事件数据
-     *
+    /** 处理Stripe事件数据
+     * 
      * @param eventData 事件数据
-     * @param callback  回调对象
-     * @return 处理后的回调对象
-     */
+     * @param callback 回调对象
+     * @return 处理后的回调对象 */
     private PaymentCallback processStripeEvent(Map<String, Object> eventData, PaymentCallback callback) {
         try {
             logger.info("解析Stripe事件数据: {}", eventData.keySet());
@@ -331,12 +330,10 @@ public class StripeProvider extends PaymentProvider {
         return callback;
     }
 
-    /**
-     * 验证Stripe签名
-     *
+    /** 验证Stripe签名
+     * 
      * @param eventData 事件数据
-     * @return 是否验证通过
-     */
+     * @return 是否验证通过 */
     private boolean verifyStripeSignature(Map<String, Object> eventData) {
         try {
             if (!StringUtils.hasText(webhookSecret)) {
@@ -466,34 +463,34 @@ public class StripeProvider extends PaymentProvider {
 
         switch (status) {
             // Checkout Session状态 - 支付成功
-            case "complete":
+            case "complete" :
                 return OrderStatus.PAID;
 
             // Checkout Session状态 - 进行中
-            case "open":
+            case "open" :
                 return OrderStatus.PENDING;
 
             // Checkout Session状态 - 过期
-            case "expired":
+            case "expired" :
                 return OrderStatus.EXPIRED;
 
             // PaymentIntent状态 - 支付成功（兼容查询PaymentIntent的情况）
-            case "succeeded":
+            case "succeeded" :
                 return OrderStatus.PAID;
 
             // PaymentIntent状态 - 待支付（兼容）
-            case "requires_payment_method":
-            case "requires_confirmation":
-            case "requires_action":
-            case "processing":
+            case "requires_payment_method" :
+            case "requires_confirmation" :
+            case "requires_action" :
+            case "processing" :
                 return OrderStatus.PENDING;
 
             // 取消状态
-            case "canceled":
+            case "canceled" :
                 return OrderStatus.CANCELLED;
 
             // 其他未知状态，默认为待支付
-            default:
+            default :
                 logger.warn("未知的Stripe状态: {}，默认转换为PENDING", platformStatus);
                 return OrderStatus.PENDING;
         }
@@ -531,13 +528,13 @@ public class StripeProvider extends PaymentProvider {
     @Override
     protected String getConfig(String key) {
         switch (key) {
-            case "secret-key":
+            case "secret-key" :
                 return secretKey;
-            case "publishable-key":
+            case "publishable-key" :
                 return publishableKey;
-            case "webhook-secret":
+            case "webhook-secret" :
                 return webhookSecret;
-            default:
+            default :
                 return null;
         }
     }

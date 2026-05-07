@@ -1,5 +1,9 @@
 package com.example.agentx.infrastructure.storage;
 
+import java.security.KeyFactory;
+import java.security.PrivateKey;
+import java.security.Signature;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -12,9 +16,7 @@ import org.springframework.stereotype.Service;
 import com.example.agentx.infrastructure.config.OssProperties;
 import com.example.agentx.infrastructure.exception.BusinessException;
 
-/**
- * OSS上传服务 提供前端直传OSS的上传凭证生成功能
- */
+/** OSS上传服务 提供前端直传OSS的上传凭证生成功能 */
 @Service
 public class OssUploadService {
 
@@ -24,11 +26,9 @@ public class OssUploadService {
         this.ossProperties = ossProperties;
     }
 
-    /**
-     * 生成前端直传OSS的上传凭证
-     *
-     * @return 上传凭证信息
-     */
+    /** 生成前端直传OSS的上传凭证
+     * 
+     * @return 上传凭证信息 */
     public UploadCredential generateUploadCredential() {
         try {
             // 生成过期时间
@@ -71,12 +71,10 @@ public class OssUploadService {
         }
     }
 
-    /**
-     * 生成STS临时凭证（如果需要更安全的方式）
-     *
+    /** 生成STS临时凭证（如果需要更安全的方式）
+     * 
      * @param durationSeconds 凭证有效期（秒）
-     * @return STS凭证
-     */
+     * @return STS凭证 */
     public StsCredential generateStsCredential(int durationSeconds) {
         // 注意：这里需要阿里云STS SDK，暂时返回固定格式
         // 实际使用时需要集成阿里云STS服务
@@ -89,23 +87,19 @@ public class OssUploadService {
                 new Date(expireTime), ossProperties.getBucketName(), ossProperties.getEndpoint());
     }
 
-    /**
-     * 验证上传回调签名（可选）
-     *
+    /** 验证上传回调签名（可选）
+     * 
      * @param authorization 授权头
-     * @param pubKeyUrl     公钥URL
-     * @param requestBody   请求体
-     * @return 是否验证通过
-     */
+     * @param pubKeyUrl 公钥URL
+     * @param requestBody 请求体
+     * @return 是否验证通过 */
     public boolean verifyCallback(String authorization, String pubKeyUrl, String requestBody) {
         // 这里可以实现OSS回调签名验证逻辑
         // 具体实现需要根据阿里云OSS回调文档
         return true;
     }
 
-    /**
-     * 生成签名
-     */
+    /** 生成签名 */
     private String generateSignature(String encodedPolicy) throws Exception {
         Mac mac = Mac.getInstance("HmacSHA1");
         SecretKeySpec secretKeySpec = new SecretKeySpec(ossProperties.getSecretKey().getBytes("UTF-8"), "HmacSHA1");
@@ -114,9 +108,7 @@ public class OssUploadService {
         return Base64.getEncoder().encodeToString(signatureBytes);
     }
 
-    /**
-     * 简单的Map转JSON实现
-     */
+    /** 简单的Map转JSON实现 */
     private String mapToJson(Map<String, Object> map) {
         StringBuilder json = new StringBuilder("{");
         boolean first = true;
@@ -139,9 +131,7 @@ public class OssUploadService {
         return json.toString();
     }
 
-    /**
-     * 简单的List转JSON实现
-     */
+    /** 简单的List转JSON实现 */
     private String listToJson(List<?> list) {
         StringBuilder json = new StringBuilder("[");
         boolean first = true;
@@ -185,9 +175,7 @@ public class OssUploadService {
         return json.toString();
     }
 
-    /**
-     * 上传凭证类
-     */
+    /** 上传凭证类 */
     public static class UploadCredential {
         private final String uploadUrl; // 上传地址
         private final String accessKeyId; // AccessKey ID
@@ -199,7 +187,7 @@ public class OssUploadService {
         private final long maxFileSize; // 最大文件大小
 
         public UploadCredential(String uploadUrl, String accessKeyId, String policy, String signature, String keyPrefix,
-                                String accessUrlPrefix, Date expiration, long maxFileSize) {
+                String accessUrlPrefix, Date expiration, long maxFileSize) {
             this.uploadUrl = uploadUrl;
             this.accessKeyId = accessKeyId;
             this.policy = policy;
@@ -214,39 +202,30 @@ public class OssUploadService {
         public String getUploadUrl() {
             return uploadUrl;
         }
-
         public String getAccessKeyId() {
             return accessKeyId;
         }
-
         public String getPolicy() {
             return policy;
         }
-
         public String getSignature() {
             return signature;
         }
-
         public String getKeyPrefix() {
             return keyPrefix;
         }
-
         public String getAccessUrlPrefix() {
             return accessUrlPrefix;
         }
-
         public Date getExpiration() {
             return expiration;
         }
-
         public long getMaxFileSize() {
             return maxFileSize;
         }
     }
 
-    /**
-     * STS临时凭证类
-     */
+    /** STS临时凭证类 */
     public static class StsCredential {
         private final String accessKeyId;
         private final String accessKeySecret;
@@ -256,7 +235,7 @@ public class OssUploadService {
         private final String endpoint;
 
         public StsCredential(String accessKeyId, String accessKeySecret, String securityToken, Date expiration,
-                             String bucketName, String endpoint) {
+                String bucketName, String endpoint) {
             this.accessKeyId = accessKeyId;
             this.accessKeySecret = accessKeySecret;
             this.securityToken = securityToken;
@@ -269,23 +248,18 @@ public class OssUploadService {
         public String getAccessKeyId() {
             return accessKeyId;
         }
-
         public String getAccessKeySecret() {
             return accessKeySecret;
         }
-
         public String getSecurityToken() {
             return securityToken;
         }
-
         public Date getExpiration() {
             return expiration;
         }
-
         public String getBucketName() {
             return bucketName;
         }
-
         public String getEndpoint() {
             return endpoint;
         }

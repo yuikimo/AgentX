@@ -2,68 +2,42 @@ package com.example.agentx.application.task.dto;
 
 import java.time.LocalDateTime;
 
-/**
- * 任务数据传输对象
- */
+/** 任务数据传输对象 */
 public class TaskDTO {
-    /**
-     * 任务ID
-     */
+    /** 任务ID */
     private String id;
 
-    /**
-     * 会话ID
-     */
+    /** 会话ID */
     private String sessionId;
 
-    /**
-     * 用户ID
-     */
+    /** 用户ID */
     private String userId;
 
-    /**
-     * 父任务ID
-     */
+    /** 父任务ID */
     private String parentTaskId;
 
-    /**
-     * 任务名称
-     */
+    /** 任务名称 */
     private String taskName;
 
-    /**
-     * 任务描述
-     */
+    /** 任务描述 */
     private String description;
 
-    /**
-     * 任务状态
-     */
+    /** 任务状态 */
     private String status;
 
-    /**
-     * 任务进度
-     */
+    /** 任务进度 */
     private Integer progress;
 
-    /**
-     * 开始时间
-     */
+    /** 开始时间 */
     private LocalDateTime startTime;
 
-    /**
-     * 结束时间
-     */
+    /** 结束时间 */
     private LocalDateTime endTime;
 
-    /**
-     * 创建时间
-     */
+    /** 创建时间 */
     private LocalDateTime createdAt;
 
-    /**
-     * 更新时间
-     */
+    /** 更新时间 */
     private LocalDateTime updatedAt;
 
     public TaskDTO() {

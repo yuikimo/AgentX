@@ -2,6 +2,7 @@ package com.example.agentx.application.trace.assembler;
 
 import org.springframework.beans.BeanUtils;
 import com.example.agentx.application.trace.dto.*;
+import com.example.agentx.domain.trace.constant.ExecutionStepType;
 import com.example.agentx.domain.trace.model.AgentExecutionDetailEntity;
 import com.example.agentx.domain.trace.model.AgentExecutionSummaryEntity;
 import com.example.agentx.domain.trace.service.AgentExecutionTraceDomainService;
@@ -10,14 +11,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Agent执行链路追踪数据转换器
- */
+/** Agent执行链路追踪数据转换器 */
 public class AgentExecutionTraceAssembler {
 
-    /**
-     * 转换执行汇总实体为DTO
-     */
+    /** 转换执行汇总实体为DTO */
     public static AgentExecutionSummaryDTO toSummaryDTO(AgentExecutionSummaryEntity entity) {
         if (entity == null) {
             return null;
@@ -32,9 +29,7 @@ public class AgentExecutionTraceAssembler {
         return dto;
     }
 
-    /**
-     * 转换执行汇总实体列表为DTO列表
-     */
+    /** 转换执行汇总实体列表为DTO列表 */
     public static List<AgentExecutionSummaryDTO> toSummaryDTOs(List<AgentExecutionSummaryEntity> entities) {
         if (entities == null || entities.isEmpty()) {
             return Collections.emptyList();
@@ -43,9 +38,7 @@ public class AgentExecutionTraceAssembler {
         return entities.stream().map(AgentExecutionTraceAssembler::toSummaryDTO).collect(Collectors.toList());
     }
 
-    /**
-     * 转换执行详情实体为DTO
-     */
+    /** 转换执行详情实体为DTO */
     public static AgentExecutionDetailDTO toDetailDTO(AgentExecutionDetailEntity entity) {
         if (entity == null) {
             return null;
@@ -60,9 +53,7 @@ public class AgentExecutionTraceAssembler {
         return dto;
     }
 
-    /**
-     * 转换执行详情实体列表为DTO列表
-     */
+    /** 转换执行详情实体列表为DTO列表 */
     public static List<AgentExecutionDetailDTO> toDetailDTOs(List<AgentExecutionDetailEntity> entities) {
         if (entities == null || entities.isEmpty()) {
             return Collections.emptyList();
@@ -71,11 +62,9 @@ public class AgentExecutionTraceAssembler {
         return entities.stream().map(AgentExecutionTraceAssembler::toDetailDTO).collect(Collectors.toList());
     }
 
-    /**
-     * 构建完整的执行链路DTO
-     */
+    /** 构建完整的执行链路DTO */
     public static ExecutionTraceDTO toExecutionTraceDTO(AgentExecutionSummaryEntity summaryEntity,
-                                                        List<AgentExecutionDetailEntity> detailEntities) {
+            List<AgentExecutionDetailEntity> detailEntities) {
         if (summaryEntity == null) {
             return null;
         }
@@ -110,9 +99,7 @@ public class AgentExecutionTraceAssembler {
         return traceDTO;
     }
 
-    /**
-     * 转换执行统计信息
-     */
+    /** 转换执行统计信息 */
     public static ExecutionStatisticsDTO toStatisticsDTO(
             AgentExecutionTraceDomainService.ExecutionStatistics statistics) {
         if (statistics == null) {
@@ -123,11 +110,9 @@ public class AgentExecutionTraceAssembler {
                 statistics.getTotalTokens());
     }
 
-    /**
-     * 按消息类型过滤详情列表
-     */
+    /** 按消息类型过滤详情列表 */
     private static List<AgentExecutionDetailDTO> filterByMessageType(List<AgentExecutionDetailDTO> details,
-                                                                     String messageType) {
+            String messageType) {
         if (details == null || details.isEmpty()) {
             return Collections.emptyList();
         }

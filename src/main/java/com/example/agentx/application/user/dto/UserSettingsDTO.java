@@ -2,24 +2,16 @@ package com.example.agentx.application.user.dto;
 
 import com.example.agentx.domain.user.model.config.UserSettingsConfig;
 
-/**
- * 用户设置数据传输对象
- */
+/** 用户设置数据传输对象 */
 public class UserSettingsDTO {
 
-    /**
-     * 主键ID
-     */
+    /** 主键ID */
     private String id;
 
-    /**
-     * 用户ID
-     */
+    /** 用户ID */
     private String userId;
 
-    /**
-     * 配置
-     */
+    /** 配置 */
     private UserSettingsConfig settingConfig;
 
     public String getId() {

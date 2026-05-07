@@ -9,33 +9,23 @@ import com.example.agentx.infrastructure.converter.RuleHandlerKeyConverter;
 import com.example.agentx.infrastructure.entity.BaseEntity;
 import com.example.agentx.infrastructure.exception.BusinessException;
 
-/**
- * 规则实体 定义计费规则类型，独立于任何业务
- */
+/** 规则实体 定义计费规则类型，独立于任何业务 */
 @TableName(value = "rules", autoResultMap = true)
 public class RuleEntity extends BaseEntity {
 
-    /**
-     * 规则唯一ID
-     */
+    /** 规则唯一ID */
     @TableId(value = "id", type = IdType.ASSIGN_UUID)
     private String id;
 
-    /**
-     * 规则名称
-     */
+    /** 规则名称 */
     @TableField("name")
     private String name;
 
-    /**
-     * 规则处理器标识，映射到代码中的策略类
-     */
+    /** 规则处理器标识，映射到代码中的策略类 */
     @TableField(value = "handler_key", typeHandler = RuleHandlerKeyConverter.class)
     private RuleHandlerKey handlerKey;
 
-    /**
-     * 规则描述
-     */
+    /** 规则描述 */
     @TableField("description")
     private String description;
 
@@ -74,9 +64,7 @@ public class RuleEntity extends BaseEntity {
         this.description = description;
     }
 
-    /**
-     * 验证规则信息
-     */
+    /** 验证规则信息 */
     public void validate() {
         if (name == null || name.trim().isEmpty()) {
             throw new BusinessException("规则名称不能为空");
@@ -87,9 +75,7 @@ public class RuleEntity extends BaseEntity {
         // handlerKey已经是枚举类型，不需要再验证有效性
     }
 
-    /**
-     * 检查规则是否有效
-     */
+    /** 检查规则是否有效 */
     public boolean isValid() {
         try {
             validate();
@@ -99,9 +85,7 @@ public class RuleEntity extends BaseEntity {
         }
     }
 
-    /**
-     * 获取策略类名（用于反射或工厂模式）
-     */
+    /** 获取策略类名（用于反射或工厂模式） */
     public String getStrategyClassName() {
         if (handlerKey == null) {
             return null;

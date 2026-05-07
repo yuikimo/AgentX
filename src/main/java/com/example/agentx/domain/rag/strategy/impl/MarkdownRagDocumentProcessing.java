@@ -39,11 +39,9 @@ public class MarkdownRagDocumentProcessing extends AbstractDocumentProcessingStr
     private String currentProcessingFileId;
 
     public MarkdownRagDocumentProcessing(StructuralMarkdownProcessor structuralMarkdownProcessor,
-                                         DocumentVectorizationOrchestrator vectorSegmentProcessor,
-                                         DocumentUnitRepository documentUnitRepository,
-                                         FileDetailRepository fileDetailRepository,
-                                         FileStorageService fileStorageService,
-                                         UserModelConfigResolver userModelConfigResolver) {
+            DocumentVectorizationOrchestrator vectorSegmentProcessor, DocumentUnitRepository documentUnitRepository,
+            FileDetailRepository fileDetailRepository, FileStorageService fileStorageService,
+            UserModelConfigResolver userModelConfigResolver) {
         this.structuralMarkdownProcessor = structuralMarkdownProcessor;
         this.vectorSegmentProcessor = vectorSegmentProcessor;
         this.documentUnitRepository = documentUnitRepository;
@@ -59,8 +57,18 @@ public class MarkdownRagDocumentProcessing extends AbstractDocumentProcessingStr
 
         log.info("开始Markdown文档处理 文件: {}", currentProcessingFileId);
 
-        // 调用父类处理逻辑
-        super.handle(ragDocMessage, strategy);
+        byte[] fileData = getFileData(ragDocMessage, strategy);
+        if (fileData == null || fileData.length == 0) {
+            log.error("Markdown文件数据为空: {}", currentProcessingFileId);
+            return;
+        }
+
+        Map<Integer, String> data = processFile(fileData, 0, ragDocMessage);
+        ragDocMessage.setPageSize(data.size());
+        updateMarkdownPageSize(data.size());
+        log.info("成功从当前Markdown文件获取 {} 个段落", data.size());
+
+        insertData(ragDocMessage, data);
 
         log.info("完成Markdown文档处理 文件: {}", currentProcessingFileId);
     }
@@ -73,23 +81,14 @@ public class MarkdownRagDocumentProcessing extends AbstractDocumentProcessingStr
             // 构建处理上下文
             ProcessingContext context = ProcessingContext.from(ragDocSyncOcrMessage, userModelConfigResolver);
 
-            // 第一阶段：使用纯原文拆分模式计算段落数量
-            structuralMarkdownProcessor.setRawMode(true);
-            List<ProcessedSegment> segments = structuralMarkdownProcessor.processToSegments(markdown, context);
+            // 使用纯原文拆分模式计算段落数量
+            List<ProcessedSegment> segments = structuralMarkdownProcessor.processRawSegments(markdown, context);
             int segmentCount = segments.size();
 
             ragDocSyncOcrMessage.setPageSize(segmentCount);
             log.info("Markdown文档已分割为 {} 个原始段落", segmentCount);
 
-            // 更新数据库中的总页数
-            if (currentProcessingFileId != null) {
-                LambdaUpdateWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaUpdate()
-                        .eq(FileDetailEntity::getId, currentProcessingFileId)
-                        .set(FileDetailEntity::getFilePageSize, segmentCount);
-                fileDetailRepository.update(wrapper);
-
-                log.info("更新Markdown文件 {} 的总页数: {} 个段落", currentProcessingFileId, segmentCount);
-            }
+            updateMarkdownPageSize(segmentCount);
 
         } catch (Exception e) {
             log.error("计算Markdown文档页面大小失败", e);
@@ -118,11 +117,6 @@ public class MarkdownRagDocumentProcessing extends AbstractDocumentProcessingStr
     }
 
     @Override
-    public Map<Integer, String> processFile(byte[] fileBytes, int totalPages) {
-        return new HashMap<>(); // 使用带消息参数的重载方法
-    }
-
-    @Override
     public Map<Integer, String> processFile(byte[] fileBytes, int totalPages, RagDocMessage ragDocSyncOcrMessage) {
 
         log.info("使用两阶段方法处理Markdown文档");
@@ -134,8 +128,7 @@ public class MarkdownRagDocumentProcessing extends AbstractDocumentProcessingStr
             ProcessingContext context = ProcessingContext.from(ragDocSyncOcrMessage, userModelConfigResolver);
 
             // 第一阶段：纯原文拆分，存储到DocumentUnitEntity
-            structuralMarkdownProcessor.setRawMode(true);
-            List<ProcessedSegment> rawSegments = structuralMarkdownProcessor.processToSegments(markdown, context);
+            List<ProcessedSegment> rawSegments = structuralMarkdownProcessor.processRawSegments(markdown, context);
 
             log.info("阶段1完成: 生成 {} 个原始段落", rawSegments.size());
 
@@ -168,6 +161,18 @@ public class MarkdownRagDocumentProcessing extends AbstractDocumentProcessingStr
         }
     }
 
+    private void updateMarkdownPageSize(int segmentCount) {
+        if (currentProcessingFileId == null) {
+            return;
+        }
+        LambdaUpdateWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaUpdate()
+                .eq(FileDetailEntity::getId, currentProcessingFileId)
+                .set(FileDetailEntity::getFilePageSize, segmentCount);
+        fileDetailRepository.update(wrapper);
+
+        log.info("更新Markdown文件 {} 的总页数: {} 个段落", currentProcessingFileId, segmentCount);
+    }
+
     @Override
     public void insertData(RagDocMessage ragDocSyncOcrMessage, Map<Integer, String> ocrData) throws Exception {
 
@@ -182,6 +187,7 @@ public class MarkdownRagDocumentProcessing extends AbstractDocumentProcessingStr
             DocumentUnitEntity documentUnitEntity = new DocumentUnitEntity();
             documentUnitEntity.setContent(content);
             documentUnitEntity.setPage(pageIndex);
+            documentUnitEntity.setChunkIndex(pageIndex);
             documentUnitEntity.setFileId(ragDocSyncOcrMessage.getFileId());
             documentUnitEntity.setIsVector(false); // 原文段落暂未向量化
             documentUnitEntity.setIsOcr(true); // 标记为已处理的内容
@@ -222,9 +228,7 @@ public class MarkdownRagDocumentProcessing extends AbstractDocumentProcessingStr
         log.info("文件 {} 的两阶段Markdown文档处理完成", ragDocSyncOcrMessage.getFileId());
     }
 
-    /**
-     * 为内容添加元数据信息，增强可搜索性 针对不同类型的内容提供专门的增强逻辑
-     */
+    /** 为内容添加元数据信息，增强可搜索性 针对不同类型的内容提供专门的增强逻辑 */
     private String enrichContentWithMetadata(String content, ProcessedSegment segment) {
         Map<String, Object> metadata = segment.getMetadata();
         if (metadata == null || metadata.isEmpty()) {
@@ -234,15 +238,15 @@ public class MarkdownRagDocumentProcessing extends AbstractDocumentProcessingStr
         // 使用枚举类型进行比较
         if (segment.getType() != null) {
             switch (segment.getType()) {
-                case TABLE:
+                case TABLE :
                     return enrichTableContent(content, metadata);
-                case IMAGE:
+                case IMAGE :
                     return enrichImageContent(content, metadata);
-                case FORMULA:
+                case FORMULA :
                     return enrichFormulaContent(content, metadata);
-                case CODE:
+                case CODE :
                     return enrichCodeContent(content, metadata);
-                default:
+                default :
                     return content;
             }
         }
@@ -250,9 +254,7 @@ public class MarkdownRagDocumentProcessing extends AbstractDocumentProcessingStr
         return content;
     }
 
-    /**
-     * 增强表格内容 - 创建表头与数据的关联描述
-     */
+    /** 增强表格内容 - 创建表头与数据的关联描述 */
     private String enrichTableContent(String content, Map<String, Object> metadata) {
         StringBuilder enriched = new StringBuilder(content);
 
@@ -283,9 +285,7 @@ public class MarkdownRagDocumentProcessing extends AbstractDocumentProcessingStr
         return enriched.toString();
     }
 
-    /**
-     * 将表格结构转换为更可读的格式
-     */
+    /** 将表格结构转换为更可读的格式 */
     private String makeTableReadable(String structure) {
         if (structure == null || structure.trim().isEmpty()) {
             return "";
@@ -326,9 +326,7 @@ public class MarkdownRagDocumentProcessing extends AbstractDocumentProcessingStr
         }
     }
 
-    /**
-     * 增强图片内容 - 优化OCR结果的可搜索性
-     */
+    /** 增强图片内容 - 优化OCR结果的可搜索性 */
     private String enrichImageContent(String content, Map<String, Object> metadata) {
         StringBuilder enriched = new StringBuilder(content);
 
@@ -356,9 +354,7 @@ public class MarkdownRagDocumentProcessing extends AbstractDocumentProcessingStr
         return enriched.toString();
     }
 
-    /**
-     * 优化OCR内容格式
-     */
+    /** 优化OCR内容格式 */
     private String optimizeOcrContent(String content) {
         if (content == null)
             return "";
@@ -374,9 +370,7 @@ public class MarkdownRagDocumentProcessing extends AbstractDocumentProcessingStr
         return optimized;
     }
 
-    /**
-     * 增强公式内容 - 添加数学领域标签
-     */
+    /** 增强公式内容 - 添加数学领域标签 */
     private String enrichFormulaContent(String content, Map<String, Object> metadata) {
         StringBuilder enriched = new StringBuilder(content);
 
@@ -394,9 +388,7 @@ public class MarkdownRagDocumentProcessing extends AbstractDocumentProcessingStr
         return enriched.toString();
     }
 
-    /**
-     * 分析公式类型
-     */
+    /** 分析公式类型 */
     private String analyzeFormulaType(String formula) {
         if (formula == null)
             return "";
@@ -420,9 +412,7 @@ public class MarkdownRagDocumentProcessing extends AbstractDocumentProcessingStr
         return "数学表达式";
     }
 
-    /**
-     * 增强代码内容 - 添加编程语言和功能标签
-     */
+    /** 增强代码内容 - 添加编程语言和功能标签 */
     private String enrichCodeContent(String content, Map<String, Object> metadata) {
         StringBuilder enriched = new StringBuilder(content);
 

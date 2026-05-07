@@ -2,12 +2,9 @@ package com.example.agentx.interfaces.dto.product.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
 import java.util.Map;
 
-/**
- * 创建商品请求
- */
+/** 创建商品请求 */
 public class CreateProductRequest {
 
     @NotBlank(message = "商品名称不能为空")

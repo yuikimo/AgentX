@@ -16,13 +16,14 @@ import com.example.agentx.domain.rag.service.DocumentUnitDomainService;
 import com.example.agentx.domain.rag.service.FileDetailDomainService;
 import com.example.agentx.infrastructure.mq.enums.EventType;
 import com.example.agentx.infrastructure.mq.events.RagDocSyncStorageEvent;
+import com.example.agentx.infrastructure.rag.service.DatasetEmbeddingConfigResolver;
 import org.dromara.x.file.storage.core.FileStorageService;
 
 import java.util.List;
 
-/**
- * 文件操作应用服务
- */
+/** 文件操作应用服务
+ * 
+ * @author shilong.zang */
 @Service
 public class FileOperationAppService {
 
@@ -30,36 +31,33 @@ public class FileOperationAppService {
     private final DocumentUnitDomainService documentUnitDomainService;
     private final MessagePublisher messagePublisher;
     private final FileStorageService fileStorageService;
+    private final DatasetEmbeddingConfigResolver datasetEmbeddingConfigResolver;
 
     public FileOperationAppService(FileDetailDomainService fileDetailDomainService,
-                                   DocumentUnitDomainService documentUnitDomainService,
-                                   MessagePublisher messagePublisher,
-                                   FileStorageService fileStorageService) {
+            DocumentUnitDomainService documentUnitDomainService, MessagePublisher messagePublisher,
+            FileStorageService fileStorageService, DatasetEmbeddingConfigResolver datasetEmbeddingConfigResolver) {
         this.fileDetailDomainService = fileDetailDomainService;
         this.documentUnitDomainService = documentUnitDomainService;
         this.messagePublisher = messagePublisher;
         this.fileStorageService = fileStorageService;
+        this.datasetEmbeddingConfigResolver = datasetEmbeddingConfigResolver;
     }
 
-    /**
-     * 根据文件ID获取文件详细信息
-     *
+    /** 根据文件ID获取文件详细信息
+     * 
      * @param fileId 文件ID
      * @param userId 用户ID
-     * @return 文件详细信息
-     */
+     * @return 文件详细信息 */
     public FileDetailInfoDTO getFileDetailInfo(String fileId, String userId) {
         FileDetailEntity entity = fileDetailDomainService.getFileById(fileId, userId);
         return FileDetailInfoAssembler.toDTO(entity);
     }
 
-    /**
-     * 分页查询文件的语料
-     *
+    /** 分页查询文件的语料
+     * 
      * @param request 查询请求
-     * @param userId  用户ID
-     * @return 分页结果
-     */
+     * @param userId 用户ID
+     * @return 分页结果 */
     public Page<DocumentUnitDTO> listDocumentUnits(QueryDocumentUnitsRequest request, String userId) {
         // 验证文件是否存在和权限
         fileDetailDomainService.getFileById(request.getFileId(), userId);
@@ -75,13 +73,11 @@ public class FileOperationAppService {
         return dtoPage;
     }
 
-    /**
-     * 更新语料内容
-     *
+    /** 更新语料内容
+     * 
      * @param request 更新请求
-     * @param userId  用户ID
-     * @return 更新后的语料
-     */
+     * @param userId 用户ID
+     * @return 更新后的语料 */
     @Transactional
     public DocumentUnitDTO updateDocumentUnit(UpdateDocumentUnitRequest request, String userId) {
         // 验证语料是否存在
@@ -103,24 +99,20 @@ public class FileOperationAppService {
         return DocumentUnitAssembler.toDTO(updatedEntity);
     }
 
-    /**
-     * 根据语料ID获取单个语料详情
-     *
+    /** 根据语料ID获取单个语料详情
+     * 
      * @param documentUnitId 语料ID
-     * @param userId         用户ID
-     * @return 语料详情
-     */
+     * @param userId 用户ID
+     * @return 语料详情 */
     public DocumentUnitDTO getDocumentUnit(String documentUnitId, String userId) {
         DocumentUnitEntity entity = documentUnitDomainService.getDocumentUnit(documentUnitId, userId);
         return DocumentUnitAssembler.toDTO(entity);
     }
 
-    /**
-     * 删除语料
-     *
+    /** 删除语料
+     * 
      * @param documentUnitId 语料ID
-     * @param userId         用户ID
-     */
+     * @param userId 用户ID */
     @Transactional
     public void deleteDocumentUnit(String documentUnitId, String userId) {
         // 验证语料是否存在
@@ -130,12 +122,10 @@ public class FileOperationAppService {
         documentUnitDomainService.deleteDocumentUnit(documentUnitId, userId);
     }
 
-    /**
-     * 批量删除文件
-     *
+    /** 批量删除文件
+     * 
      * @param request 批量删除请求
-     * @param userId  用户ID
-     */
+     * @param userId 用户ID */
     @Transactional
     public void batchDeleteFiles(BatchDeleteFilesRequest request, String userId) {
         for (String fileUrl : request.getFileUrls()) {
@@ -148,12 +138,10 @@ public class FileOperationAppService {
         }
     }
 
-    /**
-     * 触发重新向量化
-     *
+    /** 触发重新向量化
+     * 
      * @param documentUnit 文档单元
-     * @param newContent   新内容
-     */
+     * @param newContent 新内容 */
     private void triggerReEmbedding(DocumentUnitEntity documentUnit, String newContent) {
         try {
             // 获取文件信息
@@ -168,6 +156,11 @@ public class FileOperationAppService {
             storageMessage.setContent(newContent);
             storageMessage.setVector(true);
             storageMessage.setDatasetId(fileEntity.getDataSetId());
+            storageMessage.setUserId(fileEntity.getUserId());
+            var embeddingContext = datasetEmbeddingConfigResolver.resolveActive(fileEntity.getDataSetId(),
+                    fileEntity.getUserId());
+            storageMessage.setEmbeddingModelConfig(embeddingContext.modelConfig());
+            storageMessage.setEmbeddingProfileId(embeddingContext.profileId());
 
             // 发送消息
             MessageEnvelope<RagDocSyncStorageMessage> envelope = MessageEnvelope.builder(storageMessage)

@@ -12,13 +12,11 @@ import org.springframework.stereotype.Component;
 import com.example.agentx.domain.rag.strategy.context.ProcessingContext;
 import com.example.agentx.infrastructure.rag.translator.NodeTranslatorService;
 
-/**
- * Markdown AST 重写器
- * <p>
+/** Markdown AST 重写器
+ * 
  * 使用 Flexmark AST 重写 markdown 文档，翻译特殊节点： - 代码块 -> 自然语言描述 - 表格 -> 结构化文本描述 - 图片 -> OCR文本识别 - 公式 -> 数学表达式描述
- * <p>
- * 设计原则： - 基于 AST 的文档重写，保持结构和位置的准确性 - 直接输出翻译后的完整文本，不使用占位符 - 集成 NodeTranslatorService 进行实际的翻译工作 - 递归处理嵌套节点，保持格式完整性
- */
+ * 
+ * 设计原则： - 基于 AST 的文档重写，保持结构和位置的准确性 - 直接输出翻译后的完整文本，不使用占位符 - 集成 NodeTranslatorService 进行实际的翻译工作 - 递归处理嵌套节点，保持格式完整性 */
 @Component
 public class MarkdownAstRewriter {
 
@@ -38,15 +36,13 @@ public class MarkdownAstRewriter {
         log.info("MarkdownAstRewriter initialized with translator service: {}", translatorService.getTranslatorInfo());
     }
 
-    /**
-     * 翻译内容中的特殊节点
-     * <p>
+    /** 翻译内容中的特殊节点
+     * 
      * 使用 AST 文档重写完成所有特殊节点的翻译
-     *
+     * 
      * @param originalContent 原始 markdown 内容
-     * @param context         处理上下文
-     * @return 翻译后的完整文本
-     */
+     * @param context 处理上下文
+     * @return 翻译后的完整文本 */
     public String translateSpecialNodes(String originalContent, ProcessingContext context) {
         if (originalContent == null || originalContent.trim().isEmpty()) {
             return originalContent;
@@ -77,13 +73,11 @@ public class MarkdownAstRewriter {
         }
     }
 
-    /**
-     * 重写整个文档，递归处理所有节点
-     *
+    /** 重写整个文档，递归处理所有节点
+     * 
      * @param document AST 文档根节点
-     * @param result   结果构建器
-     * @param context  处理上下文
-     */
+     * @param result 结果构建器
+     * @param context 处理上下文 */
     private void rewriteDocument(Node document, StringBuilder result, ProcessingContext context) {
         // 递归处理文档的所有子节点
         for (Node child : document.getChildren()) {
@@ -91,13 +85,11 @@ public class MarkdownAstRewriter {
         }
     }
 
-    /**
-     * 重写单个节点
-     *
-     * @param node    当前节点
-     * @param result  结果构建器
-     * @param context 处理上下文
-     */
+    /** 重写单个节点
+     * 
+     * @param node 当前节点
+     * @param result 结果构建器
+     * @param context 处理上下文 */
     private void rewriteNode(Node node, StringBuilder result, ProcessingContext context) {
         if (isSpecialNode(node)) {
             // 特殊节点：翻译后替换
@@ -135,17 +127,13 @@ public class MarkdownAstRewriter {
         }
     }
 
-    /**
-     * 判断节点是否为特殊节点
-     */
+    /** 判断节点是否为特殊节点 */
     private boolean isSpecialNode(Node node) {
         return node instanceof FencedCodeBlock || node instanceof IndentedCodeBlock || node instanceof TableBlock
                 || node instanceof Image || isFormulaNode(node);
     }
 
-    /**
-     * 检查是否为公式节点（简单的文本模式识别）
-     */
+    /** 检查是否为公式节点（简单的文本模式识别） */
     private boolean isFormulaNode(Node node) {
         if (node instanceof Text) {
             String text = node.getChars().toString();
@@ -154,9 +142,7 @@ public class MarkdownAstRewriter {
         return false;
     }
 
-    /**
-     * 判断是否为格式化节点
-     */
+    /** 判断是否为格式化节点 */
     private boolean isFormattingNode(Node node) {
         return node instanceof Emphasis || node instanceof StrongEmphasis || node instanceof Link
                 || node instanceof Code || node instanceof Heading || node instanceof Paragraph
@@ -164,9 +150,7 @@ public class MarkdownAstRewriter {
                 || node instanceof BlockQuote;
     }
 
-    /**
-     * 翻译特殊节点
-     */
+    /** 翻译特殊节点 */
     private String translateSpecialNode(Node node, ProcessingContext context) {
         try {
             String originalContent = node.getChars().toString();
@@ -189,9 +173,7 @@ public class MarkdownAstRewriter {
         }
     }
 
-    /**
-     * 获取节点开始标记
-     */
+    /** 获取节点开始标记 */
     private String getNodeStartMarkup(Node node) {
         if (node instanceof Emphasis) {
             return "*";
@@ -217,9 +199,7 @@ public class MarkdownAstRewriter {
         return "";
     }
 
-    /**
-     * 获取节点结束标记
-     */
+    /** 获取节点结束标记 */
     private String getNodeEndMarkup(Node node) {
         if (node instanceof Emphasis) {
             return "*";
@@ -242,9 +222,7 @@ public class MarkdownAstRewriter {
         return "";
     }
 
-    /**
-     * 提取节点的纯文本内容
-     */
+    /** 提取节点的纯文本内容 */
     private String extractTextContent(Node node) {
         if (node == null) {
             return "";
@@ -255,9 +233,7 @@ public class MarkdownAstRewriter {
         return text.toString();
     }
 
-    /**
-     * 递归提取文本内容
-     */
+    /** 递归提取文本内容 */
     private void extractTextRecursively(Node node, StringBuilder text) {
         if (node instanceof Text) {
             text.append(node.getChars().toString());

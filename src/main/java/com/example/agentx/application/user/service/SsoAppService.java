@@ -17,10 +17,12 @@ public class SsoAppService {
 
     private final SsoServiceFactory ssoServiceFactory;
     private final UserDomainService userDomainService;
+    private final JwtUtils jwtUtils;
 
-    public SsoAppService(SsoServiceFactory ssoServiceFactory, UserDomainService userDomainService) {
+    public SsoAppService(SsoServiceFactory ssoServiceFactory, UserDomainService userDomainService, JwtUtils jwtUtils) {
         this.ssoServiceFactory = ssoServiceFactory;
         this.userDomainService = userDomainService;
+        this.jwtUtils = jwtUtils;
     }
 
     public String getSsoLoginUrl(String provider, String redirectUrl) {
@@ -36,7 +38,7 @@ public class SsoAppService {
         UserEntity userEntity = findOrCreateUser(ssoUserInfo);
 
         // 生成JWT token
-        return JwtUtils.generateToken(userEntity.getId());
+        return jwtUtils.generateToken(userEntity.getId());
     }
 
     private UserEntity findOrCreateUser(SsoUserInfo ssoUserInfo) {

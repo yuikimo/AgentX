@@ -2,9 +2,7 @@ package com.example.agentx.infrastructure.mq.core;
 
 import java.util.Objects;
 
-/**
- * A lightweight route descriptor describing where to publish a message.
- */
+/** A lightweight route descriptor describing where to publish a message. */
 public final class MessageRoute {
 
     private final String exchange;

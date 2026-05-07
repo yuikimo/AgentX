@@ -2,9 +2,7 @@ package com.example.agentx.interfaces.dto.rule.request;
 
 import jakarta.validation.constraints.NotBlank;
 
-/**
- * 更新规则请求
- */
+/** 更新规则请求 */
 public class UpdateRuleRequest {
 
     @NotBlank(message = "规则名称不能为空")

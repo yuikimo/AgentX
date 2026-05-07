@@ -2,9 +2,10 @@ package com.example.agentx.infrastructure.highavailability.dto.request;
 
 import java.util.Map;
 
-/**
- * API实例更新请求
- */
+/** API实例更新请求
+ * 
+ * @author xhy
+ * @since 1.0.0 */
 public class ApiInstanceUpdateRequest {
 
     private String userId;
@@ -19,7 +20,7 @@ public class ApiInstanceUpdateRequest {
     }
 
     public ApiInstanceUpdateRequest(String userId, String apiIdentifier, Map<String, Object> routingParams,
-                                    Map<String, Object> metadata) {
+            Map<String, Object> metadata) {
         this.userId = userId;
         this.apiIdentifier = apiIdentifier;
         this.routingParams = routingParams;

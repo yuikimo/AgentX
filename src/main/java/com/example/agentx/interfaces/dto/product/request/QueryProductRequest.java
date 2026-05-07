@@ -2,24 +2,16 @@ package com.example.agentx.interfaces.dto.product.request;
 
 import com.example.agentx.interfaces.dto.Page;
 
-/**
- * 查询商品请求
- */
+/** 查询商品请求 */
 public class QueryProductRequest extends Page {
 
-    /**
-     * 商品类型过滤
-     */
+    /** 商品类型过滤 */
     private String type;
 
-    /**
-     * 状态过滤
-     */
+    /** 状态过滤 */
     private Integer status;
 
-    /**
-     * 关键词搜索（商品名称）
-     */
+    /** 关键词搜索（商品名称） */
     private String keyword;
 
     public QueryProductRequest() {

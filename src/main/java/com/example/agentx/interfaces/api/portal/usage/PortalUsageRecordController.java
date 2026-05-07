@@ -10,9 +10,7 @@ import com.example.agentx.interfaces.dto.usage.request.QueryUsageRecordRequest;
 
 import java.math.BigDecimal;
 
-/**
- * 使用记录控制层 提供使用记录查询的API接口
- */
+/** 使用记录控制层 提供使用记录查询的API接口 */
 @RestController
 @RequestMapping("/usage-records")
 public class PortalUsageRecordController {
@@ -23,24 +21,20 @@ public class PortalUsageRecordController {
         this.usageRecordAppService = usageRecordAppService;
     }
 
-    /**
-     * 根据ID获取使用记录
-     *
+    /** 根据ID获取使用记录
+     * 
      * @param recordId 记录ID
-     * @return 使用记录信息
-     */
+     * @return 使用记录信息 */
     @GetMapping("/{recordId}")
     public Result<UsageRecordDTO> getUsageRecordById(@PathVariable String recordId) {
         UsageRecordDTO record = usageRecordAppService.getUsageRecordById(recordId);
         return Result.success(record);
     }
 
-    /**
-     * 按条件查询当前用户使用记录
-     *
+    /** 按条件查询当前用户使用记录
+     * 
      * @param request 查询参数
-     * @return 使用记录分页列表
-     */
+     * @return 使用记录分页列表 */
     @GetMapping
     public Result<Page<UsageRecordDTO>> queryUsageRecords(QueryUsageRecordRequest request) {
         // 前台API只能查询当前用户的记录，防止越权
@@ -50,11 +44,9 @@ public class PortalUsageRecordController {
         return Result.success(records);
     }
 
-    /**
-     * 获取当前用户的总消费金额
-     *
-     * @return 总消费金额
-     */
+    /** 获取当前用户的总消费金额
+     * 
+     * @return 总消费金额 */
     @GetMapping("/current/total-cost")
     public Result<BigDecimal> getCurrentUserTotalCost() {
         String userId = UserContext.getCurrentUserId();

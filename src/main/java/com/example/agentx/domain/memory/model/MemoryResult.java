@@ -1,17 +1,18 @@
 package com.example.agentx.domain.memory.model;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * 记忆检索结果（用于组装上下文）
- */
+/** 记忆检索结果（用于组装上下文） */
 public class MemoryResult {
     private String itemId;
     private MemoryType type;
     private String text;
+    private String sourceSessionId;
     private Float importance;
     private Double score;
     private List<String> tags;
+    private LocalDateTime updatedAt;
 
     public String getItemId() {
         return itemId;
@@ -37,6 +38,14 @@ public class MemoryResult {
         this.text = text;
     }
 
+    public String getSourceSessionId() {
+        return sourceSessionId;
+    }
+
+    public void setSourceSessionId(String sourceSessionId) {
+        this.sourceSessionId = sourceSessionId;
+    }
+
     public Float getImportance() {
         return importance;
     }
@@ -59,5 +68,13 @@ public class MemoryResult {
 
     public void setTags(List<String> tags) {
         this.tags = tags;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

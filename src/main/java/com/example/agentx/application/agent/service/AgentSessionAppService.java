@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.agentx.application.conversation.assembler.SessionAssembler;
+import com.example.agentx.application.conversation.service.message.agent.AgentToolManager;
 import com.example.agentx.domain.agent.model.AgentEntity;
-import com.example.agentx.domain.agent.model.AgentVersionEntity;
 import com.example.agentx.domain.agent.service.AgentDomainService;
 import com.example.agentx.domain.agent.service.AgentWorkspaceDomainService;
 import com.example.agentx.application.conversation.dto.SessionDTO;
@@ -16,8 +16,14 @@ import com.example.agentx.domain.conversation.model.SessionEntity;
 import com.example.agentx.domain.conversation.service.ConversationDomainService;
 import com.example.agentx.domain.conversation.service.SessionDomainService;
 import com.example.agentx.domain.scheduledtask.service.ScheduledTaskExecutionService;
+import com.example.agentx.domain.tool.model.UserToolEntity;
+import com.example.agentx.domain.tool.service.UserToolDomainService;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.interfaces.dto.conversation.request.ConversationRequest;
+
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.stream.Collectors;
 
 @Service
 public class AgentSessionAppService {
@@ -31,26 +37,28 @@ public class AgentSessionAppService {
     private final ConversationDomainService conversationDomainService;
 
     private final ScheduledTaskExecutionService scheduledTaskExecutionService;
+    private final UserToolDomainService userToolDomainService;
+    private final AgentToolManager agentToolManager;
 
     public AgentSessionAppService(AgentWorkspaceDomainService agentWorkspaceDomainService,
-                                  AgentDomainService agentServiceDomainService,
-                                  SessionDomainService sessionDomainService,
-                                  ConversationDomainService conversationDomainService,
-                                  ScheduledTaskExecutionService scheduledTaskExecutionService) {
+            AgentDomainService agentServiceDomainService, SessionDomainService sessionDomainService,
+            ConversationDomainService conversationDomainService,
+            ScheduledTaskExecutionService scheduledTaskExecutionService, UserToolDomainService userToolDomainService,
+            AgentToolManager agentToolManager) {
         this.agentWorkspaceDomainService = agentWorkspaceDomainService;
         this.agentServiceDomainService = agentServiceDomainService;
         this.sessionDomainService = sessionDomainService;
         this.conversationDomainService = conversationDomainService;
         this.scheduledTaskExecutionService = scheduledTaskExecutionService;
+        this.userToolDomainService = userToolDomainService;
+        this.agentToolManager = agentToolManager;
     }
 
-    /**
-     * 获取助理下的会话列表
-     *
-     * @param userId  用户id
+    /** 获取助理下的会话列表
+     * 
+     * @param userId 用户id
      * @param agentId 助理id
-     * @return 会话列表
-     */
+     * @return 会话列表 */
     public List<SessionDTO> getAgentSessionList(String userId, String agentId) {
 
         // 校验该 agent 是否被添加了工作区，判断条件：是否是自己的助理 or 在工作区中
@@ -69,12 +77,9 @@ public class AgentSessionAppService {
             sessions.add(session);
         }
 
-        AgentEntity agent = agentServiceDomainService.getAgentById(agentId);
-        Boolean multiModal = agent.getMultiModal();
-        if (!agent.getUserId().equals(userId)) {
-            AgentVersionEntity latestAgentVersion = agentServiceDomainService.getLatestAgentVersion(agentId);
-            multiModal = latestAgentVersion.getMultiModal();
-        }
+        prewarmAgentTools(agentId, userId);
+        AgentEntity agent = agentServiceDomainService.getAgentWithPermissionCheck(agentId, userId);
+        Boolean multiModal = Boolean.TRUE.equals(agent.getMultiModal());
 
         List<SessionDTO> dtOs = SessionAssembler.toDTOs(sessions);
         for (SessionDTO dtO : dtOs) {
@@ -84,41 +89,38 @@ public class AgentSessionAppService {
 
     }
 
-    /**
-     * 创建会话
-     *
-     * @param userId  用户id
+    /** 创建会话
+     * 
+     * @param userId 用户id
      * @param agentId 助理id
-     * @return 会话
-     */
+     * @return 会话 */
     public SessionDTO createSession(String userId, String agentId) {
         SessionEntity session = sessionDomainService.createSession(agentId, userId);
         AgentEntity agent = agentServiceDomainService.getAgentWithPermissionCheck(agentId, userId);
+        prewarmAgentTools(agent, userId);
         String welcomeMessage = agent.getWelcomeMessage();
         MessageEntity messageEntity = new MessageEntity();
-        messageEntity.setRole(Role.SYSTEM);
+        messageEntity.setRole(Role.ASSISTANT);
         messageEntity.setContent(welcomeMessage);
         messageEntity.setSessionId(session.getId());
         conversationDomainService.saveMessage(messageEntity);
-        return SessionAssembler.toDTO(session);
+        SessionDTO sessionDTO = SessionAssembler.toDTO(session);
+        sessionDTO.setMultiModal(Boolean.TRUE.equals(agent.getMultiModal()));
+        return sessionDTO;
     }
 
-    /**
-     * 更新会话
-     *
-     * @param id     会话id
+    /** 更新会话
+     * 
+     * @param id 会话id
      * @param userId 用户id
-     * @param title  标题
-     */
+     * @param title 标题 */
     public void updateSession(String id, String userId, String title) {
         sessionDomainService.updateSession(id, userId, title);
     }
 
-    /**
-     * 删除会话
-     *
-     * @param id 会话id
-     */
+    /** 删除会话
+     * 
+     * @param id 会话id */
     @Transactional
     public void deleteSession(String id, String userId) {
         sessionDomainService.deleteSession(id, userId);
@@ -130,13 +132,11 @@ public class AgentSessionAppService {
         scheduledTaskExecutionService.deleteTasksBySessionId(id, userId);
     }
 
-    /**
-     * 发送消息
-     *
-     * @param id                  会话id
-     * @param userId              用户id
-     * @param conversationRequest 会话请求
-     */
+    /** 发送消息
+     * 
+     * @param id 会话id
+     * @param userId 用户id
+     * @param conversationRequest 会话请求 */
     public void sendMessage(String id, String userId, ConversationRequest conversationRequest) {
 
         // todo xhy 目前先普通的发送消息，后续还需要根据 agent 的记忆策略，对话助手/agent 策略进行处理
@@ -154,5 +154,28 @@ public class AgentSessionAppService {
         // // todo xhy 目前硬编码模型服务商，后续需要根据不同的服务商进行发送消息
         // conversationDomainService.sendMessage(id, userId, conversationRequest.getMessage(),
         // modelConfig.getModelName());
+    }
+
+    private void prewarmAgentTools(String agentId, String userId) {
+        AgentEntity agent = agentServiceDomainService.getAgentWithPermissionCheck(agentId, userId);
+        prewarmAgentTools(agent, userId);
+    }
+
+    public void prewarmAgentToolsAsync(String userId, String agentId) {
+        prewarmAgentTools(agentId, userId);
+    }
+
+    private void prewarmAgentTools(AgentEntity agent, String userId) {
+        if (agent == null || agent.getToolIds() == null || agent.getToolIds().isEmpty()) {
+            return;
+        }
+        List<UserToolEntity> installedTools = userToolDomainService.getInstallTool(agent.getToolIds(), userId);
+        List<String> mcpServerNames = installedTools.stream().map(UserToolEntity::getMcpServerName)
+                .filter(serverName -> serverName != null && !serverName.isBlank())
+                .collect(Collectors.toCollection(ArrayList::new));
+        if (mcpServerNames.isEmpty()) {
+            return;
+        }
+        agentToolManager.prewarmToolServers(new ArrayList<>(new LinkedHashSet<>(mcpServerNames)), userId);
     }
 }

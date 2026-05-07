@@ -16,14 +16,13 @@ import com.example.agentx.domain.trace.model.AgentExecutionSummaryEntity;
 import com.example.agentx.domain.trace.service.AgentExecutionTraceDomainService;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * Agent执行链路追踪应用服务 协调追踪数据的查询和展示逻辑
- */
+/** Agent执行链路追踪应用服务 协调追踪数据的查询和展示逻辑 */
 @Service
 public class AgentExecutionTraceAppService {
 
@@ -34,20 +33,17 @@ public class AgentExecutionTraceAppService {
     private final SessionDomainService sessionDomainService;
 
     public AgentExecutionTraceAppService(AgentExecutionTraceDomainService traceDomainService,
-                                         AgentDomainService agentDomainService,
-                                         SessionDomainService sessionDomainService) {
+            AgentDomainService agentDomainService, SessionDomainService sessionDomainService) {
         this.traceDomainService = traceDomainService;
         this.agentDomainService = agentDomainService;
         this.sessionDomainService = sessionDomainService;
     }
 
-    /**
-     * 获取完整的执行链路信息
-     *
+    /** 获取完整的执行链路信息
+     * 
      * @param traceId 追踪ID
-     * @param userId  用户ID
-     * @return 完整的执行链路DTO
-     */
+     * @param userId 用户ID
+     * @return 完整的执行链路DTO */
     public ExecutionTraceDTO getExecutionTrace(String traceId, String userId) {
         // 获取汇总信息
         AgentExecutionSummaryEntity summary = traceDomainService.getExecutionSummary(traceId, userId);
@@ -59,13 +55,11 @@ public class AgentExecutionTraceAppService {
         return AgentExecutionTraceAssembler.toExecutionTraceDTO(summary, details);
     }
 
-    /**
-     * 分页查询用户的执行历史
-     *
-     * @param userId  用户ID
+    /** 分页查询用户的执行历史
+     * 
+     * @param userId 用户ID
      * @param request 查询请求参数
-     * @return 执行历史分页数据
-     */
+     * @return 执行历史分页数据 */
     public Page<AgentExecutionSummaryDTO> getUserExecutionHistory(String userId, QueryExecutionHistoryRequest request) {
         // 构建查询条件并执行分页查询
         Page<AgentExecutionSummaryEntity> entityPage = traceDomainService.getUserExecutionHistory(userId,
@@ -82,63 +76,53 @@ public class AgentExecutionTraceAppService {
         return dtoPage;
     }
 
-    /**
-     * 查询会话的执行历史
-     *
+    /** 查询会话的执行历史
+     * 
      * @param sessionId 会话ID
-     * @param userId    用户ID
-     * @return 执行历史列表
-     */
+     * @param userId 用户ID
+     * @return 执行历史列表 */
     public List<AgentExecutionSummaryDTO> getSessionExecutionHistory(String sessionId, String userId) {
         List<AgentExecutionSummaryEntity> entities = traceDomainService.getSessionExecutionHistory(sessionId, userId);
         return AgentExecutionTraceAssembler.toSummaryDTOs(entities);
     }
 
-    /**
-     * 查询用户在指定时间范围内的执行记录
-     *
-     * @param userId    用户ID
+    /** 查询用户在指定时间范围内的执行记录
+     * 
+     * @param userId 用户ID
      * @param startTime 开始时间
-     * @param endTime   结束时间
-     * @return 执行记录列表
-     */
+     * @param endTime 结束时间
+     * @return 执行记录列表 */
     public List<AgentExecutionSummaryDTO> getUserExecutionsByTimeRange(String userId, LocalDateTime startTime,
-                                                                       LocalDateTime endTime) {
+            LocalDateTime endTime) {
         List<AgentExecutionSummaryEntity> entities = traceDomainService.getUserExecutionsByTimeRange(userId, startTime,
                 endTime);
         return AgentExecutionTraceAssembler.toSummaryDTOs(entities);
     }
 
-    /**
-     * 查询用户的失败执行记录
-     *
+    /** 查询用户的失败执行记录
+     * 
      * @param userId 用户ID
-     * @return 失败的执行记录列表
-     */
+     * @return 失败的执行记录列表 */
     public List<AgentExecutionSummaryDTO> getUserFailedExecutions(String userId) {
         List<AgentExecutionSummaryEntity> entities = traceDomainService.getUserFailedExecutions(userId);
         return AgentExecutionTraceAssembler.toSummaryDTOs(entities);
     }
 
-    /**
-     * 获取用户的执行统计信息
-     *
+    /** 获取用户的执行统计信息
+     * 
      * @param userId 用户ID
-     * @return 执行统计信息
-     */
+     * @return 执行统计信息 */
     public ExecutionStatisticsDTO getUserExecutionStatistics(String userId) {
         AgentExecutionTraceDomainService.ExecutionStatistics statistics = traceDomainService
                 .getUserExecutionStatistics(userId);
         return AgentExecutionTraceAssembler.toStatisticsDTO(statistics);
     }
 
-    /**
-     * 获取追踪中的工具调用记录
-     *
+    /** 获取追踪中的工具调用记录
+     * 
      * @param traceId 追踪ID
-     * @param userId  用户ID
-     * @return 工具调用记录列表
-     */
+     * @param userId 用户ID
+     * @return 工具调用记录列表 */
     public List<AgentExecutionDetailDTO> getToolCallsByTraceId(String traceId, String userId) {
         // 先检查权限
         traceDomainService.getExecutionSummary(traceId, userId);
@@ -147,13 +131,11 @@ public class AgentExecutionTraceAppService {
         return AgentExecutionTraceAssembler.toDetailDTOs(entities);
     }
 
-    /**
-     * 获取追踪中的模型调用记录
-     *
+    /** 获取追踪中的模型调用记录
+     * 
      * @param traceId 追踪ID
-     * @param userId  用户ID
-     * @return 模型调用记录列表
-     */
+     * @param userId 用户ID
+     * @return 模型调用记录列表 */
     public List<AgentExecutionDetailDTO> getModelCallsByTraceId(String traceId, String userId) {
         // 先检查权限
         traceDomainService.getExecutionSummary(traceId, userId);
@@ -162,13 +144,11 @@ public class AgentExecutionTraceAppService {
         return AgentExecutionTraceAssembler.toDetailDTOs(entities);
     }
 
-    /**
-     * 获取追踪中使用降级的记录
-     *
+    /** 获取追踪中使用降级的记录
+     * 
      * @param traceId 追踪ID
-     * @param userId  用户ID
-     * @return 使用降级的记录列表
-     */
+     * @param userId 用户ID
+     * @return 使用降级的记录列表 */
     public List<AgentExecutionDetailDTO> getFallbackCallsByTraceId(String traceId, String userId) {
         // 先检查权限
         traceDomainService.getExecutionSummary(traceId, userId);
@@ -177,24 +157,20 @@ public class AgentExecutionTraceAppService {
         return AgentExecutionTraceAssembler.toDetailDTOs(entities);
     }
 
-    /**
-     * 分页查询执行历史 - 控制器适配方法
-     *
+    /** 分页查询执行历史 - 控制器适配方法
+     * 
      * @param request 查询请求
-     * @param userId  用户ID
-     * @return 执行历史分页数据
-     */
+     * @param userId 用户ID
+     * @return 执行历史分页数据 */
     public Page<AgentExecutionSummaryDTO> getExecutionHistory(QueryExecutionHistoryRequest request, String userId) {
         return getUserExecutionHistory(userId, request);
     }
 
-    /**
-     * 获取追踪详情 - 控制器适配方法
-     *
+    /** 获取追踪详情 - 控制器适配方法
+     * 
      * @param traceId 追踪ID
-     * @param userId  用户ID
-     * @return 追踪详情
-     */
+     * @param userId 用户ID
+     * @return 追踪详情 */
     public TraceDetailResponse getTraceDetail(String traceId, String userId) {
         // 获取汇总信息
         AgentExecutionSummaryEntity summary = traceDomainService.getExecutionSummary(traceId, userId);
@@ -209,25 +185,21 @@ public class AgentExecutionTraceAppService {
         return new TraceDetailResponse(summaryDTO, detailDTOs);
     }
 
-    /**
-     * 获取执行详情列表 - 控制器适配方法
-     *
+    /** 获取执行详情列表 - 控制器适配方法
+     * 
      * @param traceId 追踪ID
-     * @param userId  用户ID
-     * @return 执行详情列表
-     */
+     * @param userId 用户ID
+     * @return 执行详情列表 */
     public List<AgentExecutionDetailDTO> getExecutionDetails(String traceId, String userId) {
         List<AgentExecutionDetailEntity> entities = traceDomainService.getExecutionDetails(traceId, userId);
         return AgentExecutionTraceAssembler.toDetailDTOs(entities);
     }
 
-    /**
-     * 查询会话执行历史 - 控制器适配方法
-     *
+    /** 查询会话执行历史 - 控制器适配方法
+     * 
      * @param sessionId 会话ID
-     * @param userId    用户ID
-     * @return 会话执行记录列表
-     */
+     * @param userId 用户ID
+     * @return 会话执行记录列表 */
     public List<AgentExecutionSummaryDTO> getSessionExecutionHistoryByUserId(String sessionId, String userId) {
         List<AgentExecutionSummaryEntity> entities = traceDomainService.getSessionExecutionHistory(sessionId, userId);
         List<AgentExecutionSummaryDTO> dtoList = AgentExecutionTraceAssembler.toSummaryDTOs(entities);
@@ -243,13 +215,11 @@ public class AgentExecutionTraceAppService {
         return dtoList;
     }
 
-    /**
-     * 获取用户的Agent执行链路统计信息（含Agent名称）
-     *
+    /** 获取用户的Agent执行链路统计信息（含Agent名称）
+     * 
      * @param request 查询请求
-     * @param userId  用户ID
-     * @return Agent统计信息列表
-     */
+     * @param userId 用户ID
+     * @return Agent统计信息列表 */
     public List<AgentTraceStatisticsDTO> getUserAgentTraceStatistics(AgentTraceListRequest request, String userId) {
         // 获取领域统计数据
         List<AgentExecutionTraceDomainService.AgentStatistics> agentStatistics = traceDomainService
@@ -286,17 +256,14 @@ public class AgentExecutionTraceAppService {
         }).collect(Collectors.toList());
     }
 
-    /**
-     * 获取指定Agent下的会话执行链路统计信息（含会话名称）
-     *
+    /** 获取指定Agent下的会话执行链路统计信息（含会话名称）
+     * 
      * @param agentId Agent ID
      * @param request 查询请求
-     * @param userId  用户ID
-     * @return 会话统计信息列表
-     */
+     * @param userId 用户ID
+     * @return 会话统计信息列表 */
     public List<SessionTraceStatisticsDTO> getAgentSessionTraceStatistics(String agentId,
-                                                                          SessionTraceListRequest request,
-                                                                          String userId) {
+            SessionTraceListRequest request, String userId) {
         // 获取领域统计数据
         List<AgentExecutionTraceDomainService.SessionStatistics> sessionStatistics = traceDomainService
                 .getAgentSessionStatistics(agentId, userId);
@@ -347,17 +314,13 @@ public class AgentExecutionTraceAppService {
         }).collect(Collectors.toList());
     }
 
-    /**
-     * 批量获取Agent名称映射
-     */
+    /** 批量获取Agent名称映射 */
     private Map<String, String> getAgentNameMap(List<String> agentIds, String userId) {
         return agentIds.stream()
                 .collect(Collectors.toMap(Function.identity(), agentId -> getAgentName(agentId, userId)));
     }
 
-    /**
-     * 获取单个Agent名称（容错处理）
-     */
+    /** 获取单个Agent名称（容错处理） */
     private String getAgentName(String agentId, String userId) {
         try {
             // 1. 先尝试通过用户权限获取Agent（用户自己的Agent）
@@ -394,19 +357,35 @@ public class AgentExecutionTraceAppService {
         }
     }
 
-    /**
-     * 批量获取会话映射
-     */
+    /** 批量获取会话映射 */
     private Map<String, SessionEntity> getSessionMap(List<String> sessionIds, String userId) {
-        return sessionIds.stream()
-                .collect(Collectors.toMap(Function.identity(), sessionId -> getSession(sessionId, userId))).entrySet()
-                .stream().filter(entry -> entry.getValue() != null)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        if (sessionIds == null || sessionIds.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<String, SessionEntity> sessionMap = new LinkedHashMap<>();
+        for (String sessionId : sessionIds) {
+            if (sessionId == null || sessionId.isBlank()) {
+                logger.debug("跳过无效会话ID，userId={}", userId);
+                continue;
+            }
+
+            if (sessionMap.containsKey(sessionId)) {
+                continue;
+            }
+
+            SessionEntity session = getSession(sessionId, userId);
+            if (session != null) {
+                sessionMap.put(sessionId, session);
+            } else {
+                logger.debug("会话不存在或无权限，已跳过: sessionId={}, userId={}", sessionId, userId);
+            }
+        }
+
+        return sessionMap;
     }
 
-    /**
-     * 获取单个会话信息（容错处理）
-     */
+    /** 获取单个会话信息（容错处理） */
     private SessionEntity getSession(String sessionId, String userId) {
         try {
             return sessionDomainService.getSession(sessionId, userId);

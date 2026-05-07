@@ -1,38 +1,24 @@
 package com.example.agentx.application.tool.dto;
 
-/**
- * 工具统计信息DTO
- */
+/** 工具统计信息DTO */
 public class ToolStatisticsDTO {
 
-    /**
-     * 总工具数量
-     */
+    /** 总工具数量 */
     private long totalTools;
 
-    /**
-     * 待审核工具数量
-     */
+    /** 待审核工具数量 */
     private long pendingReviewTools;
 
-    /**
-     * 人工审核工具数量
-     */
+    /** 人工审核工具数量 */
     private long manualReviewTools;
 
-    /**
-     * 已通过工具数量
-     */
+    /** 已通过工具数量 */
     private long approvedTools;
 
-    /**
-     * 审核失败工具数量
-     */
+    /** 审核失败工具数量 */
     private long failedTools;
 
-    /**
-     * 官方工具数量
-     */
+    /** 官方工具数量 */
     private long officialTools;
 
     public long getTotalTools() {

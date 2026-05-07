@@ -2,39 +2,25 @@ package com.example.agentx.application.rule.dto;
 
 import java.time.LocalDateTime;
 
-/**
- * 规则DTO
- */
+/** 规则DTO */
 public class RuleDTO {
 
-    /**
-     * 规则唯一ID
-     */
+    /** 规则唯一ID */
     private String id;
 
-    /**
-     * 规则名称
-     */
+    /** 规则名称 */
     private String name;
 
-    /**
-     * 规则处理器标识
-     */
+    /** 规则处理器标识 */
     private String handlerKey;
 
-    /**
-     * 规则描述
-     */
+    /** 规则描述 */
     private String description;
 
-    /**
-     * 创建时间
-     */
+    /** 创建时间 */
     private LocalDateTime createdAt;
 
-    /**
-     * 更新时间
-     */
+    /** 更新时间 */
     private LocalDateTime updatedAt;
 
     public RuleDTO() {

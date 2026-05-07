@@ -1,58 +1,36 @@
 package com.example.agentx.domain.trace.model;
 
-/**
- * 工具调用信息值对象 封装单次工具调用的详细信息
- */
+/** 工具调用信息值对象 封装单次工具调用的详细信息 */
 public class ToolCallInfo {
 
-    /**
-     * 工具名称
-     */
+    /** 工具名称 */
     private final String toolName;
 
-    /**
-     * MCP服务器名称
-     */
+    /** MCP服务器名称 */
     private final String mcpServerName;
 
-    /**
-     * 工具描述
-     */
+    /** 工具描述 */
     private final String toolDescription;
 
-    /**
-     * 调用参数(JSON格式)
-     */
+    /** 调用参数(JSON格式) */
     private final String requestArgs;
 
-    /**
-     * 响应数据(JSON格式)
-     */
+    /** 响应数据(JSON格式) */
     private final String responseData;
 
-    /**
-     * 执行耗时(毫秒)
-     */
+    /** 执行耗时(毫秒) */
     private final Integer executionTime;
 
-    /**
-     * 是否成功
-     */
+    /** 是否成功 */
     private final Boolean success;
 
-    /**
-     * 错误信息
-     */
+    /** 错误信息 */
     private final String errorMessage;
 
-    /**
-     * MCP连接URL
-     */
+    /** MCP连接URL */
     private final String mcpTransportUrl;
 
-    /**
-     * MCP连接是否成功
-     */
+    /** MCP连接是否成功 */
     private final Boolean mcpConnectionSuccess;
 
     private ToolCallInfo(Builder builder) {

@@ -7,9 +7,7 @@ import com.example.agentx.domain.auth.service.AuthSettingDomainService;
 
 import java.util.Map;
 
-/**
- * SSO配置提供者
- */
+/** SSO配置提供者 */
 @Component
 public class SsoConfigProvider {
 
@@ -19,11 +17,9 @@ public class SsoConfigProvider {
         this.authSettingDomainService = authSettingDomainService;
     }
 
-    /**
-     * 获取GitHub SSO配置
-     *
-     * @return GitHub配置
-     */
+    /** 获取GitHub SSO配置
+     * 
+     * @return GitHub配置 */
     public GitHubSsoConfig getGitHubConfig() {
         AuthSettingEntity entity = authSettingDomainService.getByFeatureKey(AuthFeatureKey.GITHUB_LOGIN);
         if (entity == null || entity.getConfigData() == null) {
@@ -49,11 +45,9 @@ public class SsoConfigProvider {
         }
     }
 
-    /**
-     * 获取Community SSO配置
-     *
-     * @return Community配置
-     */
+    /** 获取Community SSO配置
+     * 
+     * @return Community配置 */
     public CommunitySsoConfig getCommunityConfig() {
         AuthSettingEntity entity = authSettingDomainService.getByFeatureKey(AuthFeatureKey.COMMUNITY_LOGIN);
         if (entity == null || entity.getConfigData() == null) {
@@ -75,9 +69,7 @@ public class SsoConfigProvider {
         }
     }
 
-    /**
-     * GitHub SSO配置类
-     */
+    /** GitHub SSO配置类 */
     public static class GitHubSsoConfig {
         private String clientId;
         private String clientSecret;
@@ -144,9 +136,7 @@ public class SsoConfigProvider {
         }
     }
 
-    /**
-     * Community SSO配置类
-     */
+    /** Community SSO配置类 */
     public static class CommunitySsoConfig {
         private String baseUrl;
         private String appKey;

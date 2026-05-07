@@ -13,11 +13,9 @@ import com.example.agentx.domain.rag.strategy.context.ProcessingContext;
 import com.example.agentx.infrastructure.llm.LLMProviderService;
 import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 
-/**
- * 代码翻译器
- * <p>
- * 将代码块翻译为自然语言描述，便于RAG检索
- */
+/** 代码翻译器
+ * 
+ * 将代码块翻译为自然语言描述，便于RAG检索 */
 @Component
 public class CodeTranslator implements NodeTranslator {
 
@@ -76,9 +74,7 @@ public class CodeTranslator implements NodeTranslator {
         return 10; // 高优先级处理代码块
     }
 
-    /**
-     * 使用LLM生成代码描述
-     */
+    /** 使用LLM生成代码描述 */
     private String describeCodeWithLLM(String code, String language, ProcessingContext context) {
         try {
             ChatModel chatModel = LLMProviderService.getStrand(ProviderProtocol.OPENAI, context.getLlmConfig());
@@ -99,9 +95,7 @@ public class CodeTranslator implements NodeTranslator {
         }
     }
 
-    /**
-     * 构建代码分析提示词
-     */
+    /** 构建代码分析提示词 */
     private String buildCodeAnalysisPrompt(String code, String language) {
         StringBuilder prompt = new StringBuilder();
         prompt.append("请分析以下代码并用简洁的中文自然语言描述其功能和作用，便于搜索和理解。");
@@ -124,9 +118,7 @@ public class CodeTranslator implements NodeTranslator {
         return prompt.toString();
     }
 
-    /**
-     * 生成回退描述（LLM不可用时）
-     */
+    /** 生成回退描述（LLM不可用时） */
     private String generateFallbackDescription(String code, String language) {
         StringBuilder description = new StringBuilder();
 

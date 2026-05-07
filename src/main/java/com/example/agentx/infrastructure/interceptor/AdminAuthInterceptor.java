@@ -9,9 +9,7 @@ import com.example.agentx.domain.user.service.UserDomainService;
 import com.example.agentx.infrastructure.auth.UserContext;
 import com.example.agentx.infrastructure.exception.BusinessException;
 
-/**
- * 管理员权限拦截器 用于拦截需要管理员权限的请求
- */
+/** 管理员权限拦截器 用于拦截需要管理员权限的请求 */
 @Component
 public class AdminAuthInterceptor implements HandlerInterceptor {
 

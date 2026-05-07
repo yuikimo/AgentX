@@ -1,19 +1,17 @@
 package com.example.agentx.infrastructure.converter;
 
-import com.example.agentx.domain.tool.constant.ToolType;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
+import com.example.agentx.domain.tool.constant.ToolType;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * 工具类型转换器
- */
+/** 工具类型转换器 */
 @MappedJdbcTypes(JdbcType.VARCHAR)
 @MappedTypes(ToolType.class)
 public class ToolTypeConverter extends BaseTypeHandler<ToolType> {

@@ -12,11 +12,9 @@ import com.example.agentx.domain.rag.strategy.context.ProcessingContext;
 import com.example.agentx.infrastructure.llm.LLMProviderService;
 import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 
-/**
- * 公式翻译器
- * <p>
- * 将数学公式翻译为自然语言描述，便于RAG检索
- */
+/** 公式翻译器
+ * 
+ * 将数学公式翻译为自然语言描述，便于RAG检索 */
 @Component
 public class FormulaTranslator implements NodeTranslator {
 
@@ -67,9 +65,7 @@ public class FormulaTranslator implements NodeTranslator {
         return 25; // 公式处理优先级较低
     }
 
-    /**
-     * 检测内容是否包含数学公式
-     */
+    /** 检测内容是否包含数学公式 */
     private boolean containsFormula(String content) {
         if (content == null) {
             return false;
@@ -84,9 +80,7 @@ public class FormulaTranslator implements NodeTranslator {
                 content.matches(".*[a-zA-Z]\\s*=\\s*.*"); // 简单等式检测
     }
 
-    /**
-     * 使用LLM分析公式
-     */
+    /** 使用LLM分析公式 */
     private String analyzeFormulaWithLLM(String formulaContent, ProcessingContext context) {
         try {
             ChatModel chatModel = LLMProviderService.getStrand(ProviderProtocol.OPENAI, context.getLlmConfig());
@@ -107,9 +101,7 @@ public class FormulaTranslator implements NodeTranslator {
         }
     }
 
-    /**
-     * 构建公式分析提示词
-     */
+    /** 构建公式分析提示词 */
     private String buildFormulaAnalysisPrompt(String formulaContent) {
         StringBuilder prompt = new StringBuilder();
         prompt.append("请分析以下数学公式，用中文解释公式的含义、变量定义和应用场景，便于理解和搜索。\n\n");
@@ -125,9 +117,7 @@ public class FormulaTranslator implements NodeTranslator {
         return prompt.toString();
     }
 
-    /**
-     * 生成回退描述（LLM不可用时）
-     */
+    /** 生成回退描述（LLM不可用时） */
     private String generateFallbackFormulaDescription(String formulaContent) {
         StringBuilder description = new StringBuilder();
 

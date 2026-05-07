@@ -1,19 +1,18 @@
 package com.example.agentx.infrastructure.converter;
 
-import com.example.agentx.domain.tool.constant.ToolStatus;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
+import com.example.agentx.domain.conversation.constant.Role;
+import com.example.agentx.domain.tool.constant.ToolStatus;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * 工具状态转换器
- */
+/** 工具状态转换器 */
 @MappedTypes(ToolStatus.class)
 @MappedJdbcTypes(JdbcType.INTEGER)
 public class ToolStatusConverter extends BaseTypeHandler<ToolStatus> {

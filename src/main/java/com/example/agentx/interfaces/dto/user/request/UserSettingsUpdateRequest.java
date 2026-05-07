@@ -1,10 +1,9 @@
 package com.example.agentx.interfaces.dto.user.request;
 
+import jakarta.validation.constraints.NotBlank;
 import com.example.agentx.domain.user.model.config.UserSettingsConfig;
 
-/**
- * 用户设置更新请求
- */
+/** 用户设置更新请求 */
 public class UserSettingsUpdateRequest {
 
     private UserSettingsConfig settingConfig;

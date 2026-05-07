@@ -26,11 +26,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 工具状态机应用服务 - 统一管理工具状态转换
- * <p>
- * 职责： 1. 管理需要外部依赖的状态处理器（如调用基础设施层服务） 2. 协调领域层状态机和应用层状态处理 3. 提供统一的状态转换入口
- */
+/** 工具状态机应用服务 - 统一管理工具状态转换
+ * 
+ * 职责： 1. 管理需要外部依赖的状态处理器（如调用基础设施层服务） 2. 协调领域层状态机和应用层状态处理 3. 提供统一的状态转换入口 */
 @Service
 public class ToolStateStateMachineAppService {
 
@@ -45,7 +43,7 @@ public class ToolStateStateMachineAppService {
     private final ExecutorService executorService;
 
     public ToolStateStateMachineAppService(ToolDomainService toolDomainService, MCPGatewayService mcpGatewayService,
-                                           GitHubService gitHubService, ReviewContainerService reviewContainerService) {
+            GitHubService gitHubService, ReviewContainerService reviewContainerService) {
         this.toolDomainService = toolDomainService;
         this.mcpGatewayService = mcpGatewayService;
         this.gitHubService = gitHubService;
@@ -56,15 +54,13 @@ public class ToolStateStateMachineAppService {
                 10, // 最大线程数
                 60L, // 空闲线程存活时间
                 TimeUnit.SECONDS, new LinkedBlockingQueue<>(), r -> {
-            Thread t = new Thread(r, "app-tool-state-processor-thread");
-            t.setDaemon(true);
-            return t;
-        }, new ThreadPoolExecutor.CallerRunsPolicy());
+                    Thread t = new Thread(r, "app-tool-state-processor-thread");
+                    t.setDaemon(true);
+                    return t;
+                }, new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
-    /**
-     * 初始化应用层状态处理器
-     */
+    /** 初始化应用层状态处理器 */
     @PostConstruct
     public void init() {
         // 注册状态处理器（按状态流转顺序）
@@ -78,11 +74,9 @@ public class ToolStateStateMachineAppService {
         logger.info("工具状态处理器初始化完成，已注册 {} 个处理器。", appProcessorMap.size());
     }
 
-    /**
-     * 注册应用层状态处理器
+    /** 注册应用层状态处理器
      *
-     * @param processor 状态处理器
-     */
+     * @param processor 状态处理器 */
     private void registerAppProcessor(AppToolStateProcessor processor) {
         if (appProcessorMap.containsKey(processor.getStatus())) {
             logger.warn("状态 {} 的处理器已被覆盖。原处理器: {}, 新处理器: {}", processor.getStatus(),
@@ -91,11 +85,9 @@ public class ToolStateStateMachineAppService {
         appProcessorMap.put(processor.getStatus(), processor);
     }
 
-    /**
-     * 提交工具进行状态处理（统一入口）
+    /** 提交工具进行状态处理（统一入口）
      *
-     * @param toolEntity 工具实体
-     */
+     * @param toolEntity 工具实体 */
     public void submitToolForProcessing(ToolEntity toolEntity) {
         if (toolEntity == null) {
             throw new BusinessException("工具不存在");
@@ -105,11 +97,9 @@ public class ToolStateStateMachineAppService {
         executorService.submit(() -> processToolState(toolEntity));
     }
 
-    /**
-     * 处理工具状态转换（核心逻辑）
+    /** 处理工具状态转换（核心逻辑）
      *
-     * @param toolEntity 工具实体
-     */
+     * @param toolEntity 工具实体 */
     public void processToolState(ToolEntity toolEntity) {
         final ToolStatus currentStatus = toolEntity.getStatus();
 
@@ -120,12 +110,10 @@ public class ToolStateStateMachineAppService {
         }
     }
 
-    /**
-     * 使用应用层处理器处理状态
+    /** 使用应用层处理器处理状态
      *
      * @param toolEntity 工具实体
-     * @param processor  应用层状态处理器
-     */
+     * @param processor 应用层状态处理器 */
     private void processProcessor(ToolEntity toolEntity, AppToolStateProcessor processor) {
         final ToolStatus initialStatus = toolEntity.getStatus();
 
@@ -171,13 +159,11 @@ public class ToolStateStateMachineAppService {
         }
     }
 
-    /**
-     * 处理人工审核完成
+    /** 处理人工审核完成
      *
-     * @param tool     工具实体
+     * @param tool 工具实体
      * @param approved 是否通过审核
-     * @return 工具ID
-     */
+     * @return 工具ID */
     public String manualReviewComplete(ToolEntity tool, boolean approved) {
         String toolId = toolDomainService.manualReviewComplete(tool, approved);
 

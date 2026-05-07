@@ -3,7 +3,10 @@ package com.example.agentx.domain.user.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import dev.langchain4j.service.output.ServiceOutputParser;
 import org.springframework.stereotype.Service;
+import com.example.agentx.domain.tool.model.ToolEntity;
+import com.example.agentx.domain.tool.repository.ToolRepository;
 import com.example.agentx.domain.user.model.UserEntity;
 import com.example.agentx.domain.user.model.UserSettingsEntity;
 import com.example.agentx.domain.user.repository.UserRepository;
@@ -13,6 +16,7 @@ import com.example.agentx.infrastructure.utils.PasswordUtils;
 import com.example.agentx.interfaces.dto.user.request.QueryUserRequest;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,19 +33,14 @@ public class UserDomainService {
         this.settingsRepository = settingsRepository;
     }
 
-    /**
-     * 获取用户信息
-     */
+    /** 获取用户信息 */
     public UserEntity getUserInfo(String id) {
         return userRepository.selectById(id);
     }
 
-    /**
-     * 根据邮箱或手机号查找用户
-     *
+    /** 根据邮箱或手机号查找用户
      * @param account 邮箱或手机号
-     * @return 用户实体，如果不存在则返回null
-     */
+     * @return 用户实体，如果不存在则返回null */
     public UserEntity findUserByAccount(String account) {
         LambdaQueryWrapper<UserEntity> wrapper = Wrappers.<UserEntity>lambdaQuery().eq(UserEntity::getEmail, account)
                 .or().eq(UserEntity::getPhone, account);
@@ -49,21 +48,16 @@ public class UserDomainService {
         return userRepository.selectOne(wrapper);
     }
 
-    /**
-     * 根据GitHub ID查找用户
-     *
+    /** 根据GitHub ID查找用户
      * @param githubId GitHub ID
-     * @return 用户实体，如果不存在则返回null
-     */
+     * @return 用户实体，如果不存在则返回null */
     public UserEntity findUserByGithubId(String githubId) {
         LambdaQueryWrapper<UserEntity> wrapper = Wrappers.<UserEntity>lambdaQuery().eq(UserEntity::getGithubId,
                 githubId);
         return userRepository.selectOne(wrapper);
     }
 
-    /**
-     * 注册 密码加密存储
-     */
+    /** 注册 密码加密存储 */
     public UserEntity register(String email, String phone, String password) {
         UserEntity userEntity = new UserEntity();
         userEntity.setEmail(email);
@@ -86,12 +80,9 @@ public class UserDomainService {
         return userEntity;
     }
 
-    /**
-     * 加密密码
-     *
+    /** 加密密码
      * @param password 原始密码
-     * @return 加密后的密码
-     */
+     * @return 加密后的密码 */
     public String encryptPassword(String password) {
         return PasswordUtils.encode(password);
     }
@@ -108,11 +99,8 @@ public class UserDomainService {
         return userEntity;
     }
 
-    /**
-     * 检查账号是否存在，邮箱 or 手机号任意值
-     *
-     * @param email 邮箱账号
-     */
+    /** 检查账号是否存在，邮箱 or 手机号任意值
+     * @param email 邮箱账号 */
     public void checkAccountExist(String email) {
         LambdaQueryWrapper<UserEntity> wrapper = Wrappers.<UserEntity>lambdaQuery().eq(UserEntity::getEmail, email)
                 .or();
@@ -121,11 +109,8 @@ public class UserDomainService {
         }
     }
 
-    /**
-     * 随机生成用户昵称
-     *
-     * @return 用户昵称
-     */
+    /** 随机生成用户昵称
+     * @return 用户昵称 */
     private String generateNickname() {
         return "agent-x" + UUID.randomUUID().toString().replace("-", "").substring(0, 6);
     }
@@ -134,12 +119,9 @@ public class UserDomainService {
         userRepository.checkedUpdateById(user);
     }
 
-    /**
-     * 更新用户密码
-     *
-     * @param userId      用户ID
-     * @param newPassword 新密码
-     */
+    /** 更新用户密码
+     * @param userId 用户ID
+     * @param newPassword 新密码 */
     public void updatePassword(String userId, String newPassword) {
         UserEntity user = userRepository.selectById(userId);
         if (user == null) {
@@ -153,13 +135,11 @@ public class UserDomainService {
         userRepository.checkedUpdateById(user);
     }
 
-    /**
-     * 修改用户密码（需要验证当前密码）
-     *
-     * @param userId          用户ID
+    /** 修改用户密码（需要验证当前密码）
+     * 
+     * @param userId 用户ID
      * @param currentPassword 当前密码
-     * @param newPassword     新密码
-     */
+     * @param newPassword 新密码 */
     public void changePassword(String userId, String currentPassword, String newPassword) {
         UserEntity user = userRepository.selectById(userId);
         if (user == null) {
@@ -190,11 +170,9 @@ public class UserDomainService {
         return userRepository.selectByIds(userIds);
     }
 
-    /**
-     * 创建默认用户（用于系统初始化） 绕过常规的业务校验，直接插入用户数据
-     *
-     * @param user 用户实体
-     */
+    /** 创建默认用户（用于系统初始化） 绕过常规的业务校验，直接插入用户数据
+     * 
+     * @param user 用户实体 */
     public void createDefaultUser(UserEntity user) {
         // 设置基础字段
         user.valid();
@@ -208,14 +186,12 @@ public class UserDomainService {
         settingsRepository.insert(userSettingsEntity);
     }
 
-    /**
-     * 分页查询用户列表
-     *
+    /** 分页查询用户列表
+     * 
      * @param queryUserRequest 查询条件
-     * @return 用户分页数据
-     */
+     * @return 用户分页数据 */
     public Page<UserEntity> getUsers(QueryUserRequest queryUserRequest) {
-        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.<UserEntity>lambdaQuery();
 
         // 关键词搜索：昵称、邮箱、手机号
         if (queryUserRequest.getKeyword() != null && !queryUserRequest.getKeyword().trim().isEmpty()) {

@@ -2,29 +2,19 @@ package com.example.agentx.domain.rag.constant;
 
 import com.example.agentx.infrastructure.exception.BusinessException;
 
-/**
- * RAG版本发布状态枚举
- */
+/** RAG版本发布状态枚举 */
 public enum RagPublishStatus {
 
-    /**
-     * 审核中状态
-     */
+    /** 审核中状态 */
     REVIEWING(1, "审核中"),
 
-    /**
-     * 已发布状态
-     */
+    /** 已发布状态 */
     PUBLISHED(2, "已发布"),
 
-    /**
-     * 发布拒绝状态
-     */
+    /** 发布拒绝状态 */
     REJECTED(3, "拒绝"),
 
-    /**
-     * 已下架状态
-     */
+    /** 已下架状态 */
     REMOVED(4, "已下架");
 
     private final Integer code;
@@ -43,9 +33,7 @@ public enum RagPublishStatus {
         return description;
     }
 
-    /**
-     * 根据状态码获取枚举值
-     */
+    /** 根据状态码获取枚举值 */
     public static RagPublishStatus fromCode(Integer code) {
         if (code == null) {
             return null;

@@ -2,29 +2,19 @@ package com.example.agentx.domain.user.model.config;
 
 import java.io.Serializable;
 
-/**
- * 用户设置配置
- */
+/** 用户设置配置 */
 public class UserSettingsConfig implements Serializable {
 
-    /**
-     * 默认聊天模型ID
-     */
+    /** 默认聊天模型ID */
     private String defaultModel;
 
-    /**
-     * 默认OCR模型ID
-     */
+    /** 默认OCR模型ID */
     private String defaultOcrModel;
 
-    /**
-     * 默认嵌入模型ID
-     */
+    /** 默认嵌入模型ID */
     private String defaultEmbeddingModel;
 
-    /**
-     * 降级配置
-     */
+    /** 降级配置 */
     private FallbackConfig fallbackConfig;
 
     public String getDefaultModel() {

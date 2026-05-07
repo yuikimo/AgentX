@@ -25,9 +25,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * 支付宝支付提供商
- */
+/** 支付宝支付提供商 */
 @Component
 public class AlipayProvider extends PaymentProvider {
 
@@ -115,13 +113,13 @@ public class AlipayProvider extends PaymentProvider {
 
             PaymentResult result;
             switch (paymentType) {
-                case AlipayPaymentType.WEB:
+                case AlipayPaymentType.WEB :
                     result = createWebPayment(request);
                     break;
-                case AlipayPaymentType.QR_CODE:
+                case AlipayPaymentType.QR_CODE :
                     result = createQrCodePayment(request);
                     break;
-                default:
+                default :
                     result = createWebPayment(request);
                     break;
             }
@@ -140,9 +138,7 @@ public class AlipayProvider extends PaymentProvider {
         }
     }
 
-    /**
-     * 创建网页支付
-     */
+    /** 创建网页支付 */
     private PaymentResult createWebPayment(PaymentRequest request) throws Exception {
         AlipayTradePagePayResponse response = Factory.Payment.Page().pay(request.getTitle(), request.getOrderNo(),
                 formatAmount(request.getAmount().toString()), request.getSuccessUrl());
@@ -159,9 +155,7 @@ public class AlipayProvider extends PaymentProvider {
         }
     }
 
-    /**
-     * 创建二维码支付
-     */
+    /** 创建二维码支付 */
     private PaymentResult createQrCodePayment(PaymentRequest request) throws Exception {
         AlipayTradePrecreateResponse response = Factory.Payment.FaceToFace()
                 .asyncNotify("https://7dc9c0c9.r8.vip.cpolar.cn/api/payments/callback/alipay")
@@ -258,12 +252,10 @@ public class AlipayProvider extends PaymentProvider {
         }
     }
 
-    /**
-     * 提取支付宝回调数据（form参数格式）
-     *
+    /** 提取支付宝回调数据（form参数格式）
+     * 
      * @param request HTTP请求对象
-     * @return 回调数据Map
-     */
+     * @return 回调数据Map */
     private Map<String, Object> extractAlipayCallbackData(HttpServletRequest request) {
         Map<String, Object> data = new HashMap<>();
 
@@ -282,12 +274,10 @@ public class AlipayProvider extends PaymentProvider {
         return data;
     }
 
-    /**
-     * 处理支付宝回调数据
-     *
+    /** 处理支付宝回调数据
+     * 
      * @param callbackData 回调数据
-     * @return 支付回调对象
-     */
+     * @return 支付回调对象 */
     private PaymentCallback handleCallbackData(Map<String, Object> callbackData) {
         PaymentCallback callback = new PaymentCallback();
         callback.setRawData(callbackData);
@@ -390,12 +380,10 @@ public class AlipayProvider extends PaymentProvider {
         }
     }
 
-    /**
-     * 验证支付宝回调签名
-     *
+    /** 验证支付宝回调签名
+     * 
      * @param callbackData 回调数据
-     * @return 是否验证通过
-     */
+     * @return 是否验证通过 */
     private boolean verifyAlipayCallback(Map<String, Object> callbackData) {
         try {
             initializeConfig();
@@ -446,17 +434,17 @@ public class AlipayProvider extends PaymentProvider {
     @Override
     protected String getConfig(String key) {
         switch (key) {
-            case "app-id":
+            case "app-id" :
                 return appId;
-            case "private-key":
+            case "private-key" :
                 return privateKey;
-            case "alipay-public-key":
+            case "alipay-public-key" :
                 return alipayPublicKey;
-            case "gateway-host":
+            case "gateway-host" :
                 return gatewayHost;
-            case "sign-type":
+            case "sign-type" :
                 return signType;
-            default:
+            default :
                 return null;
         }
     }
@@ -478,20 +466,20 @@ public class AlipayProvider extends PaymentProvider {
 
         switch (status) {
             // 支付成功状态
-            case "TRADE_SUCCESS":
-            case "TRADE_FINISHED":
+            case "TRADE_SUCCESS" :
+            case "TRADE_FINISHED" :
                 return OrderStatus.PAID;
 
             // 待支付状态
-            case "WAIT_BUYER_PAY":
+            case "WAIT_BUYER_PAY" :
                 return OrderStatus.PENDING;
 
             // 交易关闭/取消状态
-            case "TRADE_CLOSED":
+            case "TRADE_CLOSED" :
                 return OrderStatus.CANCELLED;
 
             // 其他未知状态，默认为待支付
-            default:
+            default :
                 logger.warn("未知的支付宝状态: {}，默认转换为PENDING", platformStatus);
                 return OrderStatus.PENDING;
         }

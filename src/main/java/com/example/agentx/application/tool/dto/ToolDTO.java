@@ -8,9 +8,7 @@ import com.example.agentx.domain.tool.model.config.ToolDefinition;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * 工具DTO
- */
+/** 工具DTO */
 public class ToolDTO {
     private String id;
     private String name;

@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import com.example.agentx.infrastructure.exception.ParamValidationException;
 
 import java.util.regex.Pattern;
+import java.util.Map;
 
 public class MarketToolRequest {
 
@@ -15,6 +16,12 @@ public class MarketToolRequest {
 
     private String changeLog;
 
+    /** 公开安装模板，不应包含发布者私有参数 */
+    private Map<String, Object> installTemplate;
+
+    /** 用户可配置字段定义，建议格式：{"fields":[{"name":"TOKEN","type":"secret","required":true}]} */
+    private Map<String, Object> installFields;
+
     private static final Pattern VERSION_PATTERN = Pattern.compile("^\\d+\\.\\d+\\.\\d+$");
 
     public void validate() {
@@ -24,12 +31,10 @@ public class MarketToolRequest {
         }
     }
 
-    /**
-     * 比较版本号是否大于给定的版本号
+    /** 比较版本号是否大于给定的版本号
      *
      * @param lastVersion 上一个版本号
-     * @return 如果当前版本号大于lastVersion则返回true，否则返回false
-     */
+     * @return 如果当前版本号大于lastVersion则返回true，否则返回false */
     public boolean isVersionGreaterThan(String lastVersion) {
         if (lastVersion == null || lastVersion.trim().isEmpty()) {
             return true; // 如果没有上一个版本，当前版本肯定更大
@@ -89,5 +94,21 @@ public class MarketToolRequest {
 
     public void setChangeLog(String changeLog) {
         this.changeLog = changeLog;
+    }
+
+    public Map<String, Object> getInstallTemplate() {
+        return installTemplate;
+    }
+
+    public void setInstallTemplate(Map<String, Object> installTemplate) {
+        this.installTemplate = installTemplate;
+    }
+
+    public Map<String, Object> getInstallFields() {
+        return installFields;
+    }
+
+    public void setInstallFields(Map<String, Object> installFields) {
+        this.installFields = installFields;
     }
 }

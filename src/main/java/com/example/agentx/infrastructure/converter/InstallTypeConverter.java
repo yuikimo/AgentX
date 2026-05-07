@@ -1,17 +1,15 @@
 package com.example.agentx.infrastructure.converter;
 
-import com.example.agentx.domain.rag.constant.InstallType;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
+import com.example.agentx.domain.rag.constant.InstallType;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * InstallType枚举类型转换器
- *
+/** InstallType枚举类型转换器
  * @author xhy
  * @date 2025-07-19 <br/>
  */

@@ -13,9 +13,7 @@ import java.util.stream.Collectors;
 
 public class AgentVersionAssembler {
 
-    /**
-     * 将AgentVersionEntity列表转换为AgentVersionDTO列表
-     */
+    /** 将AgentVersionEntity列表转换为AgentVersionDTO列表 */
     public static List<AgentVersionDTO> toVersionDTOList(List<AgentVersionEntity> entities) {
         if (entities == null) {
             return new ArrayList<>();
@@ -29,9 +27,7 @@ public class AgentVersionAssembler {
         return dtoList;
     }
 
-    /**
-     * 将AgentVersionEntity转换为AgentVersionDTO
-     */
+    /** 将AgentVersionEntity转换为AgentVersionDTO */
     public static AgentVersionDTO toDTO(AgentVersionEntity entity) {
         if (entity == null) {
             return null;
@@ -39,12 +35,11 @@ public class AgentVersionAssembler {
 
         AgentVersionDTO dto = new AgentVersionDTO();
         BeanUtils.copyProperties(entity, dto);
+        dto.setMultiModal(Boolean.TRUE.equals(entity.getMultiModal()));
         return dto;
     }
 
-    /**
-     * 创建AgentVersionEntity
-     */
+    /** 创建AgentVersionEntity */
     public static AgentVersionEntity createVersionEntity(AgentEntity agent, PublishAgentVersionRequest request) {
         return AgentVersionEntity.createFromAgent(agent, request.getVersionNumber(), request.getChangeLog());
     }

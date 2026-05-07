@@ -10,21 +10,17 @@ import com.example.agentx.domain.order.event.PurchaseSuccessEvent;
 
 import java.util.Map;
 
-/**
- * 商品购买事件监听器（示例） 监听购买成功事件，处理商品购买类型的订单
- * <p>
- * 这是一个扩展示例，展示如何为不同的订单类型添加处理逻辑
- */
+/** 商品购买事件监听器（示例） 监听购买成功事件，处理商品购买类型的订单
+ * 
+ * 这是一个扩展示例，展示如何为不同的订单类型添加处理逻辑 */
 @Component
 public class ProductPurchaseEventListener {
 
     private static final Logger logger = LoggerFactory.getLogger(ProductPurchaseEventListener.class);
 
-    /**
-     * 处理购买成功事件，执行商品发货等逻辑
-     *
-     * @param event 购买成功事件
-     */
+    /** 处理购买成功事件，执行商品发货等逻辑
+     * 
+     * @param event 购买成功事件 */
     @EventListener
     @Async
     public void handlePurchaseSuccess(PurchaseSuccessEvent event) {

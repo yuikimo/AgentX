@@ -4,9 +4,7 @@ import org.springframework.stereotype.Component;
 import com.example.agentx.application.conversation.dto.AgentChatResponse;
 import com.example.agentx.application.conversation.dto.ChatResponse;
 
-/**
- * 同步消息传输实现
- */
+/** 同步消息传输实现 */
 @Component
 public class SyncMessageTransport implements MessageTransport<ChatResponse> {
 
@@ -17,6 +15,11 @@ public class SyncMessageTransport implements MessageTransport<ChatResponse> {
 
     @Override
     public void sendMessage(ChatResponse connection, AgentChatResponse streamChatResponse) {
+        if (streamChatResponse.getMessageType() == com.example.agentx.domain.conversation.constant.MessageType.TOOL_NOTICE) {
+            connection.addToolNotice(streamChatResponse.getContent());
+            connection.setTimestamp(streamChatResponse.getTimestamp());
+            return;
+        }
         // 同步模式下，累积消息内容
         String existingContent = connection.getContent() != null ? connection.getContent() : "";
         connection.setContent(existingContent + streamChatResponse.getContent());
@@ -25,6 +28,11 @@ public class SyncMessageTransport implements MessageTransport<ChatResponse> {
 
     @Override
     public void sendEndMessage(ChatResponse connection, AgentChatResponse streamChatResponse) {
+        if (streamChatResponse.getMessageType() == com.example.agentx.domain.conversation.constant.MessageType.TOOL_NOTICE) {
+            connection.addToolNotice(streamChatResponse.getContent());
+            connection.setTimestamp(streamChatResponse.getTimestamp());
+            return;
+        }
         // 同步模式下，设置最终响应
         if (streamChatResponse.getContent() != null && !streamChatResponse.getContent().isEmpty()) {
             String existingContent = connection.getContent() != null ? connection.getContent() : "";

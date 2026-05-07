@@ -1,28 +1,18 @@
 package com.example.agentx.domain.order.constant;
 
-/**
- * 订单类型枚举
- */
+/** 订单类型枚举 */
 public enum OrderType {
 
-    /**
-     * 充值订单
-     */
+    /** 充值订单 */
     RECHARGE("RECHARGE", "账户充值"),
 
-    /**
-     * 购买订单
-     */
+    /** 购买订单 */
     PURCHASE("PURCHASE", "商品购买"),
 
-    /**
-     * 订阅订单
-     */
+    /** 订阅订单 */
     SUBSCRIPTION("SUBSCRIPTION", "服务订阅"),
 
-    /**
-     * 续费订单
-     */
+    /** 续费订单 */
     RENEWAL("RENEWAL", "服务续费");
 
     private final String code;
@@ -41,9 +31,7 @@ public enum OrderType {
         return description;
     }
 
-    /**
-     * 根据代码获取枚举
-     */
+    /** 根据代码获取枚举 */
     public static OrderType fromCode(String code) {
         if (code == null) {
             return null;
@@ -56,16 +44,12 @@ public enum OrderType {
         throw new IllegalArgumentException("未知的订单类型: " + code);
     }
 
-    /**
-     * 检查是否为充值类订单
-     */
+    /** 检查是否为充值类订单 */
     public boolean isRechargeType() {
         return this == RECHARGE;
     }
 
-    /**
-     * 检查是否为购买类订单
-     */
+    /** 检查是否为购买类订单 */
     public boolean isPurchaseType() {
         return this == PURCHASE || this == SUBSCRIPTION || this == RENEWAL;
     }

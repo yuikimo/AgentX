@@ -2,9 +2,7 @@ package com.example.agentx.application.auth.dto;
 
 import java.util.Map;
 
-/**
- * 更新认证配置请求DTO
- */
+/** 更新认证配置请求DTO */
 public class UpdateAuthSettingRequest {
 
     private String featureName;

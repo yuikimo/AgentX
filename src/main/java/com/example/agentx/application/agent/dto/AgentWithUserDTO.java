@@ -5,101 +5,63 @@ import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 
-/**
- * Agent数据传输对象（包含用户信息），用于管理员页面显示
- */
+/** Agent数据传输对象（包含用户信息），用于管理员页面显示 */
 public class AgentWithUserDTO {
 
-    /**
-     * Agent唯一ID
-     */
+    /** Agent唯一ID */
     private String id;
 
-    /**
-     * Agent名称
-     */
+    /** Agent名称 */
     private String name;
 
-    /**
-     * Agent头像URL
-     */
+    /** Agent头像URL */
     private String avatar;
 
-    /**
-     * Agent描述
-     */
+    /** Agent描述 */
     private String description;
 
-    /**
-     * Agent系统提示词
-     */
+    /** Agent系统提示词 */
     private String systemPrompt;
 
-    /**
-     * 欢迎消息
-     */
+    /** 欢迎消息 */
     private String welcomeMessage;
 
-    /**
-     * Agent可使用的工具列表
-     */
+    /** Agent可使用的工具列表 */
     private List<String> toolIds;
 
-    /**
-     * 关联的知识库ID列表
-     */
+    /** 关联的知识库ID列表 */
     private List<String> knowledgeBaseIds;
 
-    /**
-     * 当前发布的版本ID
-     */
+    /** 当前发布的版本ID */
     private String publishedVersion;
 
-    /**
-     * Agent状态：true-启用，false-禁用
-     */
+    /** Agent状态：true-启用，false-禁用 */
     private Boolean enabled = Boolean.TRUE;
 
-    /**
-     * 创建者用户ID
-     */
+    /** 创建者用户ID */
     private String userId;
 
-    /**
-     * 创建者用户昵称
-     */
+    /** 创建者用户昵称 */
     private String userNickname;
 
-    /**
-     * 创建者邮箱
-     */
+    /** 创建者邮箱 */
     private String userEmail;
 
-    /**
-     * 创建者头像
-     */
+    /** 创建者头像 */
     private String userAvatarUrl;
 
     private Map<String, Map<String, Map<String, String>>> toolPresetParams;
 
-    /**
-     * 创建时间
-     */
+    /** 创建时间 */
     private LocalDateTime createdAt;
 
-    /**
-     * 最后更新时间
-     */
+    /** 最后更新时间 */
     private LocalDateTime updatedAt;
 
-    /**
-     * 是否支持多模态
-     */
+    /** 是否支持多模态 */
     private Boolean multiModal;
 
-    /**
-     * Agent的版本列表
-     */
+    /** Agent的版本列表 */
     private List<AgentVersionDTO> versions = new ArrayList<>();
 
     // Getter和Setter方法

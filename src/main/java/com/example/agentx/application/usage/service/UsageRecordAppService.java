@@ -1,5 +1,8 @@
 package com.example.agentx.application.usage.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.stereotype.Service;
 import com.example.agentx.application.usage.assembler.UsageRecordAssembler;
@@ -13,9 +16,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * 使用记录应用服务 处理使用记录相关的业务流程编排
- */
+/** 使用记录应用服务 处理使用记录相关的业务流程编排 */
 @Service
 public class UsageRecordAppService {
 
@@ -25,12 +26,9 @@ public class UsageRecordAppService {
         this.usageRecordDomainService = usageRecordDomainService;
     }
 
-    /**
-     * 根据ID获取使用记录
-     *
+    /** 根据ID获取使用记录
      * @param recordId 记录ID
-     * @return 使用记录DTO
-     */
+     * @return 使用记录DTO */
     public UsageRecordDTO getUsageRecordById(String recordId) {
         UsageRecordEntity entity = usageRecordDomainService.getUsageRecordById(recordId);
         if (entity == null) {
@@ -39,14 +37,11 @@ public class UsageRecordAppService {
         return UsageRecordAssembler.toDTO(entity);
     }
 
-    /**
-     * 获取用户的使用记录（分页）
-     *
+    /** 获取用户的使用记录（分页）
      * @param userId 用户ID
-     * @param page   页码
-     * @param size   每页大小
-     * @return 使用记录分页结果
-     */
+     * @param page 页码
+     * @param size 每页大小
+     * @return 使用记录分页结果 */
     public Page<UsageRecordDTO> getUserUsageRecords(String userId, int page, int size) {
         Page<UsageRecordEntity> entityPage = usageRecordDomainService.getUserUsageHistory(userId, page, size);
 
@@ -59,12 +54,9 @@ public class UsageRecordAppService {
         return resultPage;
     }
 
-    /**
-     * 按条件查询使用记录
-     *
+    /** 按条件查询使用记录
      * @param request 查询请求
-     * @return 使用记录分页结果
-     */
+     * @return 使用记录分页结果 */
     public Page<UsageRecordDTO> queryUsageRecords(QueryUsageRecordRequest request) {
         // 构建查询条件
 
@@ -80,15 +72,12 @@ public class UsageRecordAppService {
         return resultPage;
     }
 
-    /**
-     * 获取用户某个商品的使用记录
-     *
-     * @param userId    用户ID
+    /** 获取用户某个商品的使用记录
+     * @param userId 用户ID
      * @param productId 商品ID
-     * @param page      页码
-     * @param size      每页大小
-     * @return 使用记录分页结果
-     */
+     * @param page 页码
+     * @param size 每页大小
+     * @return 使用记录分页结果 */
     public Page<UsageRecordDTO> getUserProductUsageRecords(String userId, String productId, int page, int size) {
         Page<UsageRecordEntity> entityPage = usageRecordDomainService.getUserProductUsageHistory(userId, productId,
                 page, size);
@@ -102,27 +91,21 @@ public class UsageRecordAppService {
         return resultPage;
     }
 
-    /**
-     * 获取用户在指定时间范围内的使用记录
-     *
-     * @param userId    用户ID
+    /** 获取用户在指定时间范围内的使用记录
+     * @param userId 用户ID
      * @param startTime 开始时间
-     * @param endTime   结束时间
-     * @return 使用记录列表
-     */
+     * @param endTime 结束时间
+     * @return 使用记录列表 */
     public List<UsageRecordDTO> getUserUsageByTimeRange(String userId, LocalDateTime startTime, LocalDateTime endTime) {
         List<UsageRecordEntity> entities = usageRecordDomainService.getUserUsageByTimeRange(userId, startTime, endTime);
         return UsageRecordAssembler.toDTOs(entities);
     }
 
-    /**
-     * 获取商品的使用记录（分页）
-     *
+    /** 获取商品的使用记录（分页）
      * @param productId 商品ID
-     * @param page      页码
-     * @param size      每页大小
-     * @return 使用记录分页结果
-     */
+     * @param page 页码
+     * @param size 每页大小
+     * @return 使用记录分页结果 */
     public Page<UsageRecordDTO> getProductUsageRecords(String productId, int page, int size) {
         Page<UsageRecordEntity> entityPage = usageRecordDomainService.getProductUsageHistory(productId, page, size);
 
@@ -135,22 +118,16 @@ public class UsageRecordAppService {
         return resultPage;
     }
 
-    /**
-     * 检查请求ID是否已存在
-     *
+    /** 检查请求ID是否已存在
      * @param requestId 请求ID
-     * @return 是否存在
-     */
+     * @return 是否存在 */
     public boolean existsByRequestId(String requestId) {
         return usageRecordDomainService.existsByRequestId(requestId);
     }
 
-    /**
-     * 统计用户的总消费金额
-     *
+    /** 统计用户的总消费金额
      * @param userId 用户ID
-     * @return 总消费金额
-     */
+     * @return 总消费金额 */
     public BigDecimal getUserTotalCost(String userId) {
         Page<UsageRecordEntity> entityPage = usageRecordDomainService.getUserUsageHistory(userId, 1, Integer.MAX_VALUE);
 
@@ -158,14 +135,11 @@ public class UsageRecordAppService {
                 BigDecimal::add);
     }
 
-    /**
-     * 统计用户在指定时间范围内的消费金额
-     *
-     * @param userId    用户ID
+    /** 统计用户在指定时间范围内的消费金额
+     * @param userId 用户ID
      * @param startTime 开始时间
-     * @param endTime   结束时间
-     * @return 消费金额
-     */
+     * @param endTime 结束时间
+     * @return 消费金额 */
     public BigDecimal getUserCostByTimeRange(String userId, LocalDateTime startTime, LocalDateTime endTime) {
         List<UsageRecordEntity> entities = usageRecordDomainService.getUserUsageByTimeRange(userId, startTime, endTime);
 

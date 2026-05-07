@@ -7,9 +7,10 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 import com.example.agentx.domain.llm.service.HighAvailabilityDomainService;
 
-/**
- * 高可用初始化器 在应用启动时初始化高可用项目和同步模型
- */
+/** 高可用初始化器 在应用启动时初始化高可用项目和同步模型
+ * 
+ * @author xhy
+ * @since 1.0.0 */
 @Component
 public class HighAvailabilityInitializer implements ApplicationRunner {
 
@@ -22,7 +23,7 @@ public class HighAvailabilityInitializer implements ApplicationRunner {
     }
 
     @Override
-    public void run(ApplicationArguments args) {
+    public void run(ApplicationArguments args) throws Exception {
         logger.info("开始高可用系统初始化...");
 
         try {

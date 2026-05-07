@@ -1,28 +1,21 @@
 package com.example.agentx.infrastructure.highavailability.dto.request;
 
-/**
- * API实例创建请求
- */
+/** API实例创建请求
+ * 
+ * @author xhy
+ * @since 1.0.0 */
 public class ApiInstanceCreateRequest {
 
-    /**
-     * 用户ID
-     */
+    /** 用户ID */
     private String userId;
 
-    /**
-     * API标识符，必填
-     */
+    /** API标识符，必填 */
     private String apiIdentifier;
 
-    /**
-     * API类型，必填
-     */
+    /** API类型，必填 */
     private String apiType;
 
-    /**
-     * 业务ID，必填
-     */
+    /** 业务ID，必填 */
     private String businessId;
 
     public ApiInstanceCreateRequest() {

@@ -4,73 +4,52 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.TableField;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-
 import com.example.agentx.domain.rag.constant.InstallType;
 import com.example.agentx.infrastructure.converter.InstallTypeConverter;
 import com.example.agentx.infrastructure.entity.BaseEntity;
 
-/**
- * 用户安装的RAG实体
+/** 用户安装的RAG实体
+ * @author xhy
+ * @date 2025-07-16 <br/>
  */
-@TableName("user_rags")
+@TableName(value = "user_rags", autoResultMap = true)
 public class UserRagEntity extends BaseEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = -1L;
 
-    /**
-     * 安装记录ID
-     */
+    /** 安装记录ID */
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
-    /**
-     * 用户ID
-     */
+    /** 用户ID */
     private String userId;
 
-    /**
-     * 关联的RAG版本快照ID
-     */
+    /** 关联的RAG版本快照ID */
     private String ragVersionId;
 
-    /**
-     * 安装时的名称
-     */
+    /** 安装时的名称 */
     private String name;
 
-    /**
-     * 安装时的描述
-     */
+    /** 安装时的描述 */
     private String description;
 
-    /**
-     * 安装时的图标
-     */
+    /** 安装时的图标 */
     private String icon;
 
-    /**
-     * 版本号
-     */
+    /** 版本号 */
     private String version;
 
-    /**
-     * 安装时间
-     */
+    /** 安装时间 */
     private LocalDateTime installedAt;
 
-    /**
-     * 原始RAG数据集ID
-     */
+    /** 原始RAG数据集ID */
     private String originalRagId;
 
-    /**
-     * 安装类型
-     */
+    /** 安装类型 */
     @TableField(value = "install_type", typeHandler = InstallTypeConverter.class)
     private InstallType installType = InstallType.SNAPSHOT;
 
@@ -154,20 +133,16 @@ public class UserRagEntity extends BaseEntity implements Serializable {
         this.installType = installType;
     }
 
-    /**
-     * 检查是否为引用类型安装
-     *
-     * @return 是否为引用类型
-     */
+    /** 检查是否为引用类型安装
+     * 
+     * @return 是否为引用类型 */
     public boolean isReferenceType() {
         return this.installType != null && this.installType.isReference();
     }
 
-    /**
-     * 检查是否为快照类型安装
-     *
-     * @return 是否为快照类型
-     */
+    /** 检查是否为快照类型安装
+     * 
+     * @return 是否为快照类型 */
     public boolean isSnapshotType() {
         return this.installType != null && this.installType.isSnapshot();
     }

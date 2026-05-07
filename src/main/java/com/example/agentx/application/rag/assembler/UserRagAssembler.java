@@ -9,14 +9,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * 用户RAG Assembler
+/** 用户RAG Assembler
+ * @author xhy
+ * @date 2025-07-16 <br/>
  */
 public class UserRagAssembler {
 
-    /**
-     * Convert Entity to DTO using BeanUtils
-     */
+    /** Convert Entity to DTO using BeanUtils */
     public static UserRagDTO toDTO(UserRagEntity entity) {
         if (entity == null) {
             return null;
@@ -28,9 +27,7 @@ public class UserRagAssembler {
         return dto;
     }
 
-    /**
-     * Convert Entity list to DTO list
-     */
+    /** Convert Entity list to DTO list */
     public static List<UserRagDTO> toDTOs(List<UserRagEntity> entities) {
         if (entities == null || entities.isEmpty()) {
             return Collections.emptyList();
@@ -38,11 +35,9 @@ public class UserRagAssembler {
         return entities.stream().map(UserRagAssembler::toDTO).collect(Collectors.toList());
     }
 
-    /**
-     * Enrich UserRagDTO with version info
-     */
+    /** Enrich UserRagDTO with version info */
     public static UserRagDTO enrichWithVersionInfo(UserRagEntity entity, String originalRagId, Integer fileCount,
-                                                   Integer documentCount, String creatorNickname) {
+            Integer documentCount, String creatorNickname) {
         if (entity == null) {
             return null;
         }
@@ -56,11 +51,9 @@ public class UserRagAssembler {
         return dto;
     }
 
-    /**
-     * Enrich UserRagDTO with version info including creator ID
-     */
+    /** Enrich UserRagDTO with version info including creator ID */
     public static UserRagDTO enrichWithVersionInfo(UserRagEntity entity, String originalRagId, Integer fileCount,
-                                                   Integer documentCount, String creatorNickname, String creatorId) {
+            Integer documentCount, String creatorNickname, String creatorId) {
         if (entity == null) {
             return null;
         }
@@ -75,16 +68,14 @@ public class UserRagAssembler {
         return dto;
     }
 
-    /**
-     * 处理REFERENCE类型：获取原始RAG的实时信息
-     *
-     * @param entity          用户RAG实体
-     * @param originalRag     原始RAG数据集
+    /** 处理REFERENCE类型：获取原始RAG的实时信息
+     * 
+     * @param entity 用户RAG实体
+     * @param originalRag 原始RAG数据集
      * @param creatorNickname 创建者昵称
-     * @return 丰富信息后的DTO
-     */
+     * @return 丰富信息后的DTO */
     public static UserRagDTO enrichWithReferenceInfo(UserRagEntity entity, RagQaDatasetEntity originalRag,
-                                                     String creatorNickname) {
+            String creatorNickname) {
         if (entity == null) {
             return null;
         }
@@ -103,18 +94,16 @@ public class UserRagAssembler {
         return dto;
     }
 
-    /**
-     * 处理SNAPSHOT类型：使用快照数据
-     *
-     * @param entity          用户RAG实体
-     * @param fileCount       文件数量（从用户快照统计）
-     * @param documentCount   文档数量（从用户快照统计）
+    /** 处理SNAPSHOT类型：使用快照数据
+     * 
+     * @param entity 用户RAG实体
+     * @param fileCount 文件数量（从用户快照统计）
+     * @param documentCount 文档数量（从用户快照统计）
      * @param creatorNickname 创建者昵称
-     * @param creatorId       创建者ID
-     * @return 丰富信息后的DTO
-     */
+     * @param creatorId 创建者ID
+     * @return 丰富信息后的DTO */
     public static UserRagDTO enrichWithSnapshotInfo(UserRagEntity entity, Integer fileCount, Integer documentCount,
-                                                    String creatorNickname, String creatorId) {
+            String creatorNickname, String creatorId) {
         if (entity == null) {
             return null;
         }

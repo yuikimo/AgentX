@@ -13,26 +13,25 @@ import com.example.agentx.infrastructure.mcp_gateway.MCPGatewayService;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 应用层获取工具列表处理器
- * <p>
- * 职责： 1. 从审核容器获取工具定义列表 2. 调用MCPGatewayService和ReviewContainerService 3. 将工具定义存储到工具实体 4. 转换到手动审核状态
- */
+/** 应用层获取工具列表处理器
+ * 
+ * 职责： 1. 从审核容器获取工具定义列表 2. 调用MCPGatewayService和ReviewContainerService 3. 将工具定义存储到工具实体 4. 转换到手动审核状态 */
 public class AppFetchingToolsProcessor implements AppToolStateProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(AppFetchingToolsProcessor.class);
+    private static final long READINESS_TIMEOUT_MS = 60000L;
+    private static final long READINESS_POLL_INTERVAL_MS = 2000L;
+    private static final int READINESS_ATTEMPT_TIMEOUT_MS = 5000;
 
     private final MCPGatewayService mcpGatewayService;
     private final ReviewContainerService reviewContainerService;
 
-    /**
-     * 构造函数，注入依赖服务
-     *
-     * @param mcpGatewayService      MCP网关服务
-     * @param reviewContainerService 审核容器服务
-     */
+    /** 构造函数，注入依赖服务
+     * 
+     * @param mcpGatewayService MCP网关服务
+     * @param reviewContainerService 审核容器服务 */
     public AppFetchingToolsProcessor(MCPGatewayService mcpGatewayService,
-                                     ReviewContainerService reviewContainerService) {
+            ReviewContainerService reviewContainerService) {
         this.mcpGatewayService = mcpGatewayService;
         this.reviewContainerService = reviewContainerService;
     }
@@ -47,27 +46,7 @@ public class AppFetchingToolsProcessor implements AppToolStateProcessor {
         logger.info("工具ID: {} 进入FETCHING_TOOLS状态，开始从审核容器获取工具列表。", tool.getId());
 
         try {
-            // 添加延时以确保部署完成（TODO: 后续可优化为轮询检查部署状态）
-            Thread.sleep(10000);
-
-            // 从installCommand中获取工具名称
-            Map<String, Object> installCommand = tool.getInstallCommand();
-            if (installCommand == null || installCommand.isEmpty()) {
-                throw new BusinessException("安装命令为空");
-            }
-
-            // 解析mcpServers中的第一个key作为工具名称
-            @SuppressWarnings("unchecked")
-            Map<String, Object> mcpServers = (Map<String, Object>) installCommand.get("mcpServers");
-            if (mcpServers == null || mcpServers.isEmpty()) {
-                throw new BusinessException("工具ID: " + tool.getId() + " 安装命令中mcpServers为空。");
-            }
-
-            // 获取第一个key作为工具名称
-            String toolName = mcpServers.keySet().iterator().next();
-            if (toolName == null || toolName.isEmpty()) {
-                throw new BusinessException("工具ID: " + tool.getId() + " 无法从安装命令中获取工具名称。");
-            }
+            String toolName = resolveToolName(tool);
 
             // 存储MCP服务器名称到工具实体
             tool.setMcpServerName(toolName);
@@ -80,9 +59,8 @@ public class AppFetchingToolsProcessor implements AppToolStateProcessor {
             logger.info("从审核容器 {}:{} 获取工具 {} 的列表", reviewConnection.getIpAddress(), reviewConnection.getPort(),
                     toolName);
 
-            // 调用MCPGatewayService从审核容器获取工具列表
-            List<ToolDefinition> toolDefinitions = mcpGatewayService.listToolsFromReviewContainer(toolName,
-                    reviewConnection.getIpAddress(), reviewConnection.getPort());
+            // 轮询等待MCP服务真正可用，替代固定等待，避免服务已就绪仍空等或慢启动时过早失败。
+            List<ToolDefinition> toolDefinitions = waitForToolDefinitions(tool, toolName, reviewConnection);
 
             if (toolDefinitions != null && !toolDefinitions.isEmpty()) {
                 logger.info("从审核容器获取工具列表成功，数量: {}, 工具: {}", toolDefinitions.size(), toolName);
@@ -110,5 +88,66 @@ public class AppFetchingToolsProcessor implements AppToolStateProcessor {
     @Override
     public ToolStatus getNextStatus() {
         return ToolStatus.MANUAL_REVIEW;
+    }
+
+    private String resolveToolName(ToolEntity tool) {
+        // 从installCommand中获取工具名称
+        Map<String, Object> installCommand = tool.getInstallCommand();
+        if (installCommand == null || installCommand.isEmpty()) {
+            throw new BusinessException("安装命令为空");
+        }
+
+        // 解析mcpServers中的第一个key作为工具名称
+        @SuppressWarnings("unchecked")
+        Map<String, Object> mcpServers = (Map<String, Object>) installCommand.get("mcpServers");
+        if (mcpServers == null || mcpServers.isEmpty()) {
+            throw new BusinessException("工具ID: " + tool.getId() + " 安装命令中mcpServers为空。");
+        }
+
+        // 获取第一个key作为工具名称
+        String toolName = mcpServers.keySet().iterator().next();
+        if (toolName == null || toolName.isEmpty()) {
+            throw new BusinessException("工具ID: " + tool.getId() + " 无法从安装命令中获取工具名称。");
+        }
+        return toolName;
+    }
+
+    private List<ToolDefinition> waitForToolDefinitions(ToolEntity tool, String toolName,
+            ReviewContainerService.ReviewContainerConnection reviewConnection) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + READINESS_TIMEOUT_MS;
+        int attempt = 1;
+        Exception lastException = null;
+
+        while (System.currentTimeMillis() < deadline) {
+            try {
+                logger.info("检查审核容器工具服务就绪状态: toolId={}, toolName={}, attempt={}, timeoutMs={}", tool.getId(),
+                        toolName, attempt, READINESS_ATTEMPT_TIMEOUT_MS);
+
+                List<ToolDefinition> toolDefinitions = mcpGatewayService.listToolsFromReviewContainer(toolName,
+                        reviewConnection.getIpAddress(), reviewConnection.getPort(), READINESS_ATTEMPT_TIMEOUT_MS);
+
+                if (toolDefinitions != null && !toolDefinitions.isEmpty()) {
+                    return toolDefinitions;
+                }
+
+                logger.warn("审核容器工具服务已响应但工具列表为空: toolId={}, toolName={}, attempt={}", tool.getId(), toolName,
+                        attempt);
+            } catch (Exception e) {
+                lastException = e;
+                logger.warn("审核容器工具服务尚未就绪: toolId={}, toolName={}, attempt={}, reason={}", tool.getId(), toolName,
+                        attempt, e.getMessage());
+            }
+
+            long remainingMs = deadline - System.currentTimeMillis();
+            if (remainingMs <= 0) {
+                break;
+            }
+            Thread.sleep(Math.min(READINESS_POLL_INTERVAL_MS, remainingMs));
+            attempt++;
+        }
+
+        String lastError = lastException == null ? "工具列表为空" : lastException.getMessage();
+        throw new BusinessException("审核容器工具服务未在 " + READINESS_TIMEOUT_MS + "ms 内就绪，工具: " + toolName
+                + "，最后错误: " + lastError);
     }
 }

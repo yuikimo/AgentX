@@ -8,17 +8,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * 使用记录装配器 处理Entity、DTO之间的转换
- */
+/** 使用记录装配器 处理Entity、DTO之间的转换 */
 public class UsageRecordAssembler {
 
-    /**
-     * 将Entity转换为DTO
-     *
+    /** 将Entity转换为DTO
      * @param entity 使用记录实体
-     * @return 使用记录DTO
-     */
+     * @return 使用记录DTO */
     public static UsageRecordDTO toDTO(UsageRecordEntity entity) {
         if (entity == null) {
             return null;
@@ -29,12 +24,9 @@ public class UsageRecordAssembler {
         return dto;
     }
 
-    /**
-     * 将Entity列表转换为DTO列表
-     *
+    /** 将Entity列表转换为DTO列表
      * @param entities 使用记录实体列表
-     * @return 使用记录DTO列表
-     */
+     * @return 使用记录DTO列表 */
     public static List<UsageRecordDTO> toDTOs(List<UsageRecordEntity> entities) {
         if (entities == null || entities.isEmpty()) {
             return Collections.emptyList();

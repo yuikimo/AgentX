@@ -7,89 +7,55 @@ import com.example.agentx.domain.agent.constant.WidgetType;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Agent小组件配置DTO
- */
+/** Agent小组件配置DTO */
 public class AgentWidgetDTO {
 
-    /**
-     * 主键ID
-     */
+    /** 主键ID */
     private String id;
 
-    /**
-     * Agent ID
-     */
+    /** Agent ID */
     private String agentId;
 
-    /**
-     * 创建者用户ID
-     */
+    /** 创建者用户ID */
     private String userId;
 
-    /**
-     * Widget访问的唯一ID
-     */
+    /** Widget访问的唯一ID */
     private String publicId;
 
-    /**
-     * Widget名称
-     */
+    /** Widget名称 */
     private String name;
 
-    /**
-     * Widget描述
-     */
+    /** Widget描述 */
     private String description;
 
-    /**
-     * 关联的模型信息
-     */
+    /** 关联的模型信息 */
     private ModelDTO model;
 
-    /**
-     * 关联的服务商信息
-     */
+    /** 关联的服务商信息 */
     private ProviderDTO provider;
 
-    /**
-     * 允许的域名列表
-     */
+    /** 允许的域名列表 */
     private List<String> allowedDomains;
 
-    /**
-     * 每日调用限制（-1为无限制）
-     */
+    /** 每日调用限制（-1为无限制） */
     private Integer dailyLimit;
 
-    /**
-     * 是否启用
-     */
+    /** 是否启用 */
     private Boolean enabled;
 
-    /**
-     * Widget类型：AGENT/RAG
-     */
+    /** Widget类型：AGENT/RAG */
     private WidgetType widgetType;
 
-    /**
-     * 知识库ID列表（RAG类型专用）
-     */
+    /** 知识库ID列表（RAG类型专用） */
     private List<String> knowledgeBaseIds;
 
-    /**
-     * Widget嵌入代码
-     */
+    /** Widget嵌入代码 */
     private String widgetCode;
 
-    /**
-     * 创建时间
-     */
+    /** 创建时间 */
     private LocalDateTime createdAt;
 
-    /**
-     * 更新时间
-     */
+    /** 更新时间 */
     private LocalDateTime updatedAt;
 
     // Getter和Setter方法

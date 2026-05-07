@@ -2,45 +2,25 @@ package com.example.agentx.domain.container.model;
 
 import java.util.Map;
 
-/**
- * 容器模板配置
- */
+/** 容器模板配置 */
 public class ContainerTemplate {
-    /**
-     * 镜像名称
-     */
+    /** 镜像名称 */
     private String image;
-    /**
-     * 内部端口
-     */
+    /** 内部端口 */
     private Integer internalPort;
-    /**
-     * CPU限制(核数)
-     */
+    /** CPU限制(核数) */
     private Double cpuLimit;
-    /**
-     * 内存限制(MB)
-     */
+    /** 内存限制(MB) */
     private Integer memoryLimit;
-    /**
-     * 环境变量
-     */
+    /** 环境变量 */
     private Map<String, String> environment;
-    /**
-     * 数据卷挂载路径
-     */
+    /** 数据卷挂载路径 */
     private String volumeMountPath;
-    /**
-     * 命令参数
-     */
+    /** 命令参数 */
     private String[] command;
-    /**
-     * 网络模式
-     */
+    /** 网络模式 */
     private String networkMode;
-    /**
-     * 重启策略
-     */
+    /** 重启策略 */
     private String restartPolicy;
 
     public String getImage() {
@@ -115,9 +95,7 @@ public class ContainerTemplate {
         this.restartPolicy = restartPolicy;
     }
 
-    /**
-     * 获取默认的MCP网关容器模板
-     */
+    /** 获取默认的MCP网关容器模板 */
     public static ContainerTemplate getDefaultMcpGatewayTemplate() {
         ContainerTemplate template = new ContainerTemplate();
         template.setImage("ghcr.io/lucky-aeon/mcp-gateway:latest");

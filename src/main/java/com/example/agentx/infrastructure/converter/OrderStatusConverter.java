@@ -1,19 +1,17 @@
 package com.example.agentx.infrastructure.converter;
 
-import com.example.agentx.domain.order.constant.OrderStatus;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
+import com.example.agentx.domain.order.constant.OrderStatus;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * 订单状态枚举类型转换器
- */
+/** 订单状态枚举类型转换器 */
 @MappedJdbcTypes(JdbcType.INTEGER)
 @MappedTypes(OrderStatus.class)
 public class OrderStatusConverter extends BaseTypeHandler<OrderStatus> {

@@ -9,19 +9,18 @@ import org.springframework.web.socket.*;
 
 import java.net.URI;
 
-/**
- * 终端WebSocket处理器
- */
+/** 终端WebSocket处理器 */
 @Component
 public class TerminalWebSocketHandler implements WebSocketHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(TerminalWebSocketHandler.class);
 
     private final WebTerminalService webTerminalService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
-    public TerminalWebSocketHandler(WebTerminalService webTerminalService) {
+    public TerminalWebSocketHandler(WebTerminalService webTerminalService, ObjectMapper objectMapper) {
         this.webTerminalService = webTerminalService;
+        this.objectMapper = objectMapper;
     }
 
     @Override

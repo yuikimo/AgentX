@@ -2,9 +2,7 @@ package com.example.agentx.domain.llm.model.config;
 
 import java.io.Serializable;
 
-/**
- * 服务商配置
- */
+/** 服务商配置 */
 public class ProviderConfig implements Serializable {
 
     private String apiKey;

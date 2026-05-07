@@ -7,19 +7,16 @@ import com.example.agentx.domain.auth.model.AuthSettingEntity;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * 认证配置转换器
- */
+/** 认证配置转换器 */
 public class AuthSettingAssembler {
 
-    /**
-     * 实体转DTO
-     *
+    /** 实体转DTO
+     * 
      * @param entity 实体
-     * @return DTO
-     */
+     * @return DTO */
     public static AuthSettingDTO toDTO(AuthSettingEntity entity) {
         if (entity == null) {
             return null;
@@ -34,12 +31,10 @@ public class AuthSettingAssembler {
         return dto;
     }
 
-    /**
-     * 实体列表转DTO列表
-     *
+    /** 实体列表转DTO列表
+     * 
      * @param entities 实体列表
-     * @return DTO列表
-     */
+     * @return DTO列表 */
     public static List<AuthSettingDTO> toDTOs(List<AuthSettingEntity> entities) {
         if (entities == null || entities.isEmpty()) {
             return Collections.emptyList();
@@ -47,13 +42,11 @@ public class AuthSettingAssembler {
         return entities.stream().map(AuthSettingAssembler::toDTO).collect(Collectors.toList());
     }
 
-    /**
-     * 更新请求转实体（部分更新）
-     *
-     * @param entity  原实体
+    /** 更新请求转实体（部分更新）
+     * 
+     * @param entity 原实体
      * @param request 更新请求
-     * @return 更新后的实体
-     */
+     * @return 更新后的实体 */
     public static AuthSettingEntity updateEntity(AuthSettingEntity entity, UpdateAuthSettingRequest request) {
         if (request.getFeatureName() != null) {
             entity.setFeatureName(request.getFeatureName());

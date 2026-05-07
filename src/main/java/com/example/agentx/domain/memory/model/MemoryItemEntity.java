@@ -8,13 +8,12 @@ import com.example.agentx.infrastructure.converter.ListStringConverter;
 import com.example.agentx.infrastructure.converter.MapConverter;
 import com.example.agentx.infrastructure.entity.BaseEntity;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 记忆条目实体（memory_items）
- */
-@TableName("memory_items")
+/** 记忆条目实体（memory_items） */
+@TableName(value = "memory_items", autoResultMap = true)
 public class MemoryItemEntity extends BaseEntity {
 
     @TableId(value = "id", type = IdType.ASSIGN_UUID)
@@ -41,11 +40,20 @@ public class MemoryItemEntity extends BaseEntity {
     @TableField("source_session_id")
     private String sourceSessionId;
 
+    @TableField("scope_agent_id")
+    private String scopeAgentId;
+
     @TableField("dedupe_hash")
     private String dedupeHash;
 
     @TableField("status")
     private Integer status; // 1=active, 0=archived/deleted
+
+    @TableField("last_hit_at")
+    private LocalDateTime lastHitAt;
+
+    @TableField("hit_count")
+    private Integer hitCount;
 
     public String getId() {
         return id;
@@ -111,6 +119,14 @@ public class MemoryItemEntity extends BaseEntity {
         this.sourceSessionId = sourceSessionId;
     }
 
+    public String getScopeAgentId() {
+        return scopeAgentId;
+    }
+
+    public void setScopeAgentId(String scopeAgentId) {
+        this.scopeAgentId = scopeAgentId;
+    }
+
     public String getDedupeHash() {
         return dedupeHash;
     }
@@ -125,5 +141,21 @@ public class MemoryItemEntity extends BaseEntity {
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public LocalDateTime getLastHitAt() {
+        return lastHitAt;
+    }
+
+    public void setLastHitAt(LocalDateTime lastHitAt) {
+        this.lastHitAt = lastHitAt;
+    }
+
+    public Integer getHitCount() {
+        return hitCount;
+    }
+
+    public void setHitCount(Integer hitCount) {
+        this.hitCount = hitCount;
     }
 }

@@ -2,6 +2,9 @@ package com.example.agentx.domain.rag.dto.resp;
 
 import java.util.ArrayList;
 
+/** @author shilong.zang
+ * @date 14:44 <br/>
+ */
 public class EmbeddingRespDTO {
 
     private String object;

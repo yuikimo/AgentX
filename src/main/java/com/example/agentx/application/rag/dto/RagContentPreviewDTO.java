@@ -2,49 +2,34 @@ package com.example.agentx.application.rag.dto;
 
 import java.util.List;
 
-/**
- * RAG内容预览DTO
+/** RAG内容预览DTO
+ * @author xhy
+ * @date 2025-07-18 <br/>
  */
 public class RagContentPreviewDTO {
 
-    /**
-     * 版本ID
-     */
+    /** 版本ID */
     private String id;
 
-    /**
-     * 名称
-     */
+    /** 名称 */
     private String name;
 
-    /**
-     * 描述
-     */
+    /** 描述 */
     private String description;
 
-    /**
-     * 版本号
-     */
+    /** 版本号 */
     private String version;
 
-    /**
-     * 文件列表
-     */
+    /** 文件列表 */
     private List<RagVersionFileDTO> files;
 
-    /**
-     * 示例文档内容（前几条）
-     */
+    /** 示例文档内容（前几条） */
     private List<RagVersionDocumentDTO> sampleDocuments;
 
-    /**
-     * 总文档数量
-     */
+    /** 总文档数量 */
     private Integer totalDocuments;
 
-    /**
-     * 总文件大小
-     */
+    /** 总文件大小 */
     private Long totalSize;
 
     public String getId() {

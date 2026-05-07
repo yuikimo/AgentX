@@ -14,11 +14,9 @@ import com.example.agentx.infrastructure.entity.Operator;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * 容器自动清理服务
- * <p>
- * 清理策略： - 1天不使用 -> 暂停容器 - 5天不使用 -> 销毁容器
- */
+/** 容器自动清理服务
+ * 
+ * 清理策略： - 1天不使用 -> 暂停容器 - 5天不使用 -> 销毁容器 */
 @Service
 public class ContainerCleanupService {
 
@@ -32,10 +30,8 @@ public class ContainerCleanupService {
         this.dockerService = dockerService;
     }
 
-    /**
-     * 定时清理空闲容器 每小时执行一次
-     */
-    @Scheduled(fixedRate = 3600000) // 1小时 = 3600000毫秒
+    /** 定时清理空闲容器 每小时执行一次 */
+    @Scheduled(fixedRate = 3600000, initialDelay = 300000) // 1小时执行一次，启动后延迟5分钟
     @Transactional
     public void cleanupIdleContainers() {
         try {
@@ -54,9 +50,7 @@ public class ContainerCleanupService {
         }
     }
 
-    /**
-     * 暂停1天未使用的运行中容器
-     */
+    /** 暂停1天未使用的运行中容器 */
     private void suspendIdleContainers() {
         // 直接查询需要暂停的容器（运行中且1天未访问）
         List<ContainerEntity> containersToSuspend = containerDomainService.getContainersNeedingSuspension();
@@ -64,10 +58,11 @@ public class ContainerCleanupService {
         int suspendedCount = 0;
         for (ContainerEntity container : containersToSuspend) {
             try {
-                suspendContainer(container);
-                suspendedCount++;
-                logger.info("暂停空闲容器: {} (用户: {}, 最后访问: {})", container.getName(), container.getUserId(),
-                        container.getLastAccessedAt());
+                if (suspendContainer(container)) {
+                    suspendedCount++;
+                    logger.info("暂停空闲容器: {} (用户: {}, 最后访问: {})", container.getName(), container.getUserId(),
+                            container.getLastAccessedAt());
+                }
             } catch (Exception e) {
                 logger.error("暂停容器失败: {}", container.getName(), e);
             }
@@ -80,9 +75,7 @@ public class ContainerCleanupService {
         }
     }
 
-    /**
-     * 销毁5天未使用的容器
-     */
+    /** 销毁5天未使用的容器 */
     private void deleteAbandonedContainers() {
         // 直接查询需要删除的容器（5天未访问）
         List<ContainerEntity> containersToDelete = containerDomainService.getContainersNeedingDeletion();
@@ -106,24 +99,25 @@ public class ContainerCleanupService {
         }
     }
 
-    /**
-     * 暂停单个容器
-     */
-    private void suspendContainer(ContainerEntity container) {
+    /** 暂停单个容器 */
+    private boolean suspendContainer(ContainerEntity container) {
         // 1. 停止Docker容器
         if (container.getDockerContainerId() != null) {
-            dockerService.stopContainer(container.getDockerContainerId());
-            logger.debug("Docker容器已停止: {}", container.getDockerContainerId());
+            boolean stopped = dockerService.stopContainer(container.getDockerContainerId());
+            if (!stopped) {
+                logger.warn("Docker容器停止失败，跳过状态更新: {}", container.getDockerContainerId());
+                return false;
+            }
+            logger.debug("Docker容器已停止或已是停止状态: {}", container.getDockerContainerId());
         }
 
         // 2. 更新容器状态为SUSPENDED
         containerDomainService.updateContainerStatus(container.getId(), ContainerStatus.SUSPENDED, Operator.ADMIN,
                 null);
+        return true;
     }
 
-    /**
-     * 销毁单个容器
-     */
+    /** 销毁单个容器 */
     private void deleteContainer(ContainerEntity container) {
         // 1. 删除Docker容器
         if (container.getDockerContainerId() != null) {
@@ -139,9 +133,7 @@ public class ContainerCleanupService {
         containerDomainService.updateContainerStatus(container.getId(), ContainerStatus.DELETED, Operator.ADMIN, null);
     }
 
-    /**
-     * 手动触发清理（用于测试）
-     */
+    /** 手动触发清理（用于测试） */
     public void manualCleanup() {
         logger.info("手动触发容器清理任务");
         cleanupIdleContainers();

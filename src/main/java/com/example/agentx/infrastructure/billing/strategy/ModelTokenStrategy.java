@@ -8,9 +8,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Map;
 
-/**
- * 模型Token计费策略 基于输入输出Token数量分别计费
- */
+/** 模型Token计费策略 基于输入输出Token数量分别计费 */
 @Component
 public class ModelTokenStrategy implements RuleStrategy {
 
@@ -32,13 +30,11 @@ public class ModelTokenStrategy implements RuleStrategy {
         BigDecimal outputCostPerMillion = getBigDecimalValue(pricingConfig, PricingConfigKeys.OUTPUT_COST_PER_MILLION);
 
         // 计算输入Token费用：(inputTokens / 1000000) * inputCostPerMillion
-        BigDecimal inputCost = new BigDecimal(inputTokens)
-                .divide(MILLION, 8, RoundingMode.HALF_UP)
+        BigDecimal inputCost = new BigDecimal(inputTokens).divide(MILLION, 8, RoundingMode.HALF_UP)
                 .multiply(inputCostPerMillion);
 
         // 计算输出Token费用：(outputTokens / 1000000) * outputCostPerMillion
-        BigDecimal outputCost = new BigDecimal(outputTokens)
-                .divide(MILLION, 8, RoundingMode.HALF_UP)
+        BigDecimal outputCost = new BigDecimal(outputTokens).divide(MILLION, 8, RoundingMode.HALF_UP)
                 .multiply(outputCostPerMillion);
 
         // 总费用
@@ -94,9 +90,7 @@ public class ModelTokenStrategy implements RuleStrategy {
         }
     }
 
-    /**
-     * 从配置中获取BigDecimal值，支持多种数值类型转换
-     */
+    /** 从配置中获取BigDecimal值，支持多种数值类型转换 */
     private BigDecimal getBigDecimalValue(Map<String, Object> config, String key) {
         Object value = config.get(key);
         if (value instanceof BigDecimal) {

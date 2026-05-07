@@ -1,13 +1,12 @@
 package com.example.agentx.domain.conversation.constant;
 
+import com.example.agentx.domain.llm.model.enums.ModelType;
 import com.example.agentx.infrastructure.exception.BusinessException;
 
 public enum Role {
 
     USER, SYSTEM, ASSISTANT,
-    /**
-     * 只会存在历史消息表中作为特殊消息存在，而实际发送给大模型的消息时会被转换对应的消息类型：AiMessage
-     */
+    /** 只会存在历史消息表中作为特殊消息存在，而实际发送给大模型的消息时会被转换对应的消息类型：AiMessage */
     SUMMARY;
 
     public static Role fromCode(String code) {

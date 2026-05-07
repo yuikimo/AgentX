@@ -6,41 +6,56 @@ import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.service.tool.ToolExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.StringUtils;
+import com.example.agentx.application.conversation.config.ChatToolProperties;
+import com.example.agentx.infrastructure.utils.JsonUtils;
 import com.example.agentx.domain.agent.model.AgentEntity;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
-/**
- * 内置工具提供者抽象基类
- * <p>
- * 提供模板方法模式和通用功能，简化内置工具的开发 子类只需实现核心的业务逻辑，通用的参数解析、错误处理、日志记录等由基类提供
- */
+/** 内置工具提供者抽象基类
+ * 
+ * 提供模板方法模式和通用功能，简化内置工具的开发 子类只需实现核心的业务逻辑，通用的参数解析、错误处理、日志记录等由基类提供 */
 public abstract class AbstractBuiltInToolProvider implements BuiltInToolProvider {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
-    protected final ObjectMapper objectMapper = new ObjectMapper();
+    protected final ObjectMapper objectMapper;
+    @Autowired
+    @Qualifier("builtInToolExecutionTaskExecutor")
+    private TaskExecutor toolExecutionTaskExecutor;
+    @Autowired
+    private ChatToolProperties chatToolProperties;
+    private final Map<String, TimedValue<List<ToolDefinition>>> toolDefinitionCache = new ConcurrentHashMap<>();
 
-    /**
-     * 模板方法：执行具体的工具逻辑
-     * <p>
+    protected AbstractBuiltInToolProvider(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
+    /** 模板方法：执行具体的工具逻辑
+     * 
      * 子类只需实现这个方法，专注于核心业务逻辑
-     *
-     * @param toolName  工具名称
+     * 
+     * @param toolName 工具名称
      * @param arguments 已解析的参数JSON
-     * @param agent     Agent实体
-     * @param memoryId  内存ID
-     * @return 执行结果
-     */
+     * @param agent Agent实体
+     * @param memoryId 内存ID
+     * @return 执行结果 */
     protected abstract String doExecute(String toolName, JsonNode arguments, AgentEntity agent, Object memoryId);
 
-    /**
-     * 实现BuiltInToolProvider接口：执行工具
-     * <p>
-     * 提供统一的执行流程，包括参数解析、错误处理、日志记录
-     */
+    /** 实现BuiltInToolProvider接口：执行工具
+     * 
+     * 提供统一的执行流程，包括参数解析、错误处理、日志记录 */
     @Override
     public final String executeTools(String toolName, String arguments, AgentEntity agent, Object memoryId) {
         try {
@@ -67,7 +82,7 @@ public abstract class AbstractBuiltInToolProvider implements BuiltInToolProvider
             }
 
             // 委托给子类实现
-            String result = doExecute(toolName, argsNode, agent, memoryId);
+            String result = executeWithTimeout(toolName, argsNode, agent, memoryId);
 
             logger.debug("内置工具执行成功: {} for agent: {}", toolName, agent.getId());
             return result;
@@ -81,14 +96,12 @@ public abstract class AbstractBuiltInToolProvider implements BuiltInToolProvider
         }
     }
 
-    /**
-     * 实现BuiltInToolProvider接口：创建工具
-     * <p>
-     * 使用代理模式，内部委托回executeTools方法 保持与现有架构的兼容性
-     */
+    /** 实现BuiltInToolProvider接口：创建工具
+     * 
+     * 使用代理模式，内部委托回executeTools方法 保持与现有架构的兼容性 */
     @Override
     public final Map<ToolSpecification, ToolExecutor> createTools(AgentEntity agent) {
-        List<ToolDefinition> definitions = defineTools(agent);
+        List<ToolDefinition> definitions = getOrResolveDefinitions(agent);
 
         if (definitions == null || definitions.isEmpty()) {
             return new HashMap<>();
@@ -106,13 +119,11 @@ public abstract class AbstractBuiltInToolProvider implements BuiltInToolProvider
         return tools;
     }
 
-    /**
-     * 检查是否支持指定的工具
-     * <p>
-     * 默认实现：检查工具名称是否在defineTools返回的定义中 子类可以重写此方法提供更复杂的逻辑
-     */
+    /** 检查是否支持指定的工具
+     * 
+     * 默认实现：检查工具名称是否在defineTools返回的定义中 子类可以重写此方法提供更复杂的逻辑 */
     protected boolean supportsTools(String toolName, AgentEntity agent) {
-        List<ToolDefinition> definitions = defineTools(agent);
+        List<ToolDefinition> definitions = getOrResolveDefinitions(agent);
         if (definitions == null) {
             return false;
         }
@@ -120,23 +131,25 @@ public abstract class AbstractBuiltInToolProvider implements BuiltInToolProvider
         return definitions.stream().anyMatch(def -> toolName.equals(def.getName()));
     }
 
-    /**
-     * 创建工具执行器
-     * <p>
-     * 使用代理模式委托回executeTools方法
-     */
+    @Override
+    public boolean supports(AgentEntity agent) {
+        List<ToolDefinition> definitions = getOrResolveDefinitions(agent);
+        return definitions != null && !definitions.isEmpty();
+    }
+
+    /** 创建工具执行器
+     * 
+     * 使用代理模式委托回executeTools方法 */
     private ToolExecutor createToolExecutor(AgentEntity agent) {
         return (request, memoryId) -> executeTools(request.name(), request.arguments(), agent, memoryId);
     }
 
     // ====== 通用工具方法 ======
 
-    /**
-     * 解析参数JSON
-     *
+    /** 解析参数JSON
+     * 
      * @param arguments JSON字符串
-     * @return 解析后的JsonNode，解析失败返回null
-     */
+     * @return 解析后的JsonNode，解析失败返回null */
     protected JsonNode parseArguments(String arguments) {
         try {
             return objectMapper.readTree(arguments);
@@ -146,33 +159,27 @@ public abstract class AbstractBuiltInToolProvider implements BuiltInToolProvider
         }
     }
 
-    /**
-     * 格式化错误信息
-     *
+    /** 格式化错误信息
+     * 
      * @param message 错误消息
-     * @return 格式化后的错误信息
-     */
+     * @return 格式化后的错误信息 */
     protected String formatError(String message) {
         return "❌ " + message;
     }
 
-    /**
-     * 格式化成功信息
-     *
+    /** 格式化成功信息
+     * 
      * @param message 成功消息
-     * @return 格式化后的成功信息
-     */
+     * @return 格式化后的成功信息 */
     protected String formatSuccess(String message) {
         return "✅ " + message;
     }
 
-    /**
-     * 格式化带数据的成功信息
-     *
-     * @param title   标题
+    /** 格式化带数据的成功信息
+     * 
+     * @param title 标题
      * @param content 内容
-     * @return 格式化后的信息
-     */
+     * @return 格式化后的信息 */
     protected String formatSuccessWithData(String title, String content) {
         StringBuilder result = new StringBuilder();
         result.append("✅ ").append(title).append("\n\n");
@@ -180,14 +187,12 @@ public abstract class AbstractBuiltInToolProvider implements BuiltInToolProvider
         return result.toString();
     }
 
-    /**
-     * 获取字符串参数
-     *
-     * @param arguments    参数JSON
-     * @param paramName    参数名
+    /** 获取字符串参数
+     * 
+     * @param arguments 参数JSON
+     * @param paramName 参数名
      * @param defaultValue 默认值
-     * @return 参数值
-     */
+     * @return 参数值 */
     protected String getStringParameter(JsonNode arguments, String paramName, String defaultValue) {
         if (arguments.has(paramName)) {
             return arguments.get(paramName).asText();
@@ -195,14 +200,65 @@ public abstract class AbstractBuiltInToolProvider implements BuiltInToolProvider
         return defaultValue;
     }
 
-    /**
-     * 获取字符串参数（必需）
-     *
+    private String executeWithTimeout(String toolName, JsonNode argsNode, AgentEntity agent, Object memoryId)
+            throws Exception {
+        CompletableFuture<String> future = CompletableFuture
+                .supplyAsync(() -> doExecute(toolName, argsNode, agent, memoryId), toolExecutionTaskExecutor);
+        try {
+            return future.get(Math.max(1L, chatToolProperties.getBuiltIn().getExecutionTimeoutMs()),
+                    TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            future.cancel(true);
+            logger.warn("内置工具执行超时: tool={}, timeoutMs={}", toolName,
+                    chatToolProperties.getBuiltIn().getExecutionTimeoutMs());
+            return formatError("执行超时，请缩小范围或稍后重试");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return formatError("执行被中断，请稍后重试");
+        } catch (ExecutionException | CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof IllegalArgumentException illegalArgumentException) {
+                throw illegalArgumentException;
+            }
+            if (cause instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            }
+            throw new RuntimeException(cause != null ? cause.getMessage() : e.getMessage(), cause != null ? cause : e);
+        }
+    }
+
+    private List<ToolDefinition> getOrResolveDefinitions(AgentEntity agent) {
+        if (agent == null || !StringUtils.hasText(agent.getId())) {
+            return defineTools(agent);
+        }
+        String presetParamsFingerprint = buildPresetParamsFingerprint(agent);
+        String cacheKey = String.join("|", agent.getId(), StringUtils.hasText(agent.getUserId()) ? agent.getUserId() : "",
+                String.join(",", agent.getToolIds()), String.join(",", agent.getKnowledgeBaseIds()),
+                presetParamsFingerprint);
+        TimedValue<List<ToolDefinition>> cached = toolDefinitionCache.get(cacheKey);
+        if (cached != null && !cached.isExpired()) {
+            return cached.getValue();
+        }
+        List<ToolDefinition> definitions = defineTools(agent);
+        toolDefinitionCache.put(cacheKey, new TimedValue<>(definitions,
+                chatToolProperties.getBuiltIn().getDefinitionCacheTtlMs()));
+        return definitions;
+    }
+
+    private String buildPresetParamsFingerprint(AgentEntity agent) {
+        try {
+            return JsonUtils.toJsonString(agent.getToolPresetParams());
+        } catch (Exception e) {
+            return String.valueOf(agent.getToolPresetParams());
+        }
+    }
+
+    /** 获取字符串参数（必需）
+     * 
      * @param arguments 参数JSON
      * @param paramName 参数名
      * @return 参数值
-     * @throws IllegalArgumentException 如果参数不存在或为空
-     */
+     * @throws IllegalArgumentException 如果参数不存在或为空 */
     protected String getRequiredStringParameter(JsonNode arguments, String paramName) {
         if (!arguments.has(paramName)) {
             throw new IllegalArgumentException("缺少必需参数: " + paramName);
@@ -216,14 +272,12 @@ public abstract class AbstractBuiltInToolProvider implements BuiltInToolProvider
         return value;
     }
 
-    /**
-     * 获取整数参数
-     *
-     * @param arguments    参数JSON
-     * @param paramName    参数名
+    /** 获取整数参数
+     * 
+     * @param arguments 参数JSON
+     * @param paramName 参数名
      * @param defaultValue 默认值
-     * @return 参数值
-     */
+     * @return 参数值 */
     protected int getIntegerParameter(JsonNode arguments, String paramName, int defaultValue) {
         if (arguments.has(paramName)) {
             return arguments.get(paramName).asInt(defaultValue);
@@ -231,14 +285,12 @@ public abstract class AbstractBuiltInToolProvider implements BuiltInToolProvider
         return defaultValue;
     }
 
-    /**
-     * 获取双精度参数
-     *
-     * @param arguments    参数JSON
-     * @param paramName    参数名
+    /** 获取双精度参数
+     * 
+     * @param arguments 参数JSON
+     * @param paramName 参数名
      * @param defaultValue 默认值
-     * @return 参数值
-     */
+     * @return 参数值 */
     protected double getDoubleParameter(JsonNode arguments, String paramName, double defaultValue) {
         if (arguments.has(paramName)) {
             return arguments.get(paramName).asDouble(defaultValue);
@@ -246,14 +298,12 @@ public abstract class AbstractBuiltInToolProvider implements BuiltInToolProvider
         return defaultValue;
     }
 
-    /**
-     * 获取布尔参数
-     *
-     * @param arguments    参数JSON
-     * @param paramName    参数名
+    /** 获取布尔参数
+     * 
+     * @param arguments 参数JSON
+     * @param paramName 参数名
      * @param defaultValue 默认值
-     * @return 参数值
-     */
+     * @return 参数值 */
     protected boolean getBooleanParameter(JsonNode arguments, String paramName, boolean defaultValue) {
         if (arguments.has(paramName)) {
             return arguments.get(paramName).asBoolean(defaultValue);
@@ -261,15 +311,13 @@ public abstract class AbstractBuiltInToolProvider implements BuiltInToolProvider
         return defaultValue;
     }
 
-    /**
-     * 验证参数值范围
-     *
-     * @param value     数值
-     * @param min       最小值
-     * @param max       最大值
+    /** 验证参数值范围
+     * 
+     * @param value 数值
+     * @param min 最小值
+     * @param max 最大值
      * @param paramName 参数名（用于错误信息）
-     * @throws IllegalArgumentException 如果值超出范围
-     */
+     * @throws IllegalArgumentException 如果值超出范围 */
     protected void validateRange(double value, double min, double max, String paramName) {
         if (value < min || value > max) {
             throw new IllegalArgumentException(
@@ -277,15 +325,13 @@ public abstract class AbstractBuiltInToolProvider implements BuiltInToolProvider
         }
     }
 
-    /**
-     * 验证参数值范围
-     *
-     * @param value     整数
-     * @param min       最小值
-     * @param max       最大值
+    /** 验证参数值范围
+     * 
+     * @param value 整数
+     * @param min 最小值
+     * @param max 最大值
      * @param paramName 参数名（用于错误信息）
-     * @throws IllegalArgumentException 如果值超出范围
-     */
+     * @throws IllegalArgumentException 如果值超出范围 */
     protected void validateRange(int value, int min, int max, String paramName) {
         if (value < min || value > max) {
             throw new IllegalArgumentException(String.format("参数 %s 的值 %d 超出范围 [%d, %d]", paramName, value, min, max));
@@ -294,30 +340,42 @@ public abstract class AbstractBuiltInToolProvider implements BuiltInToolProvider
 
     // ====== 实现BuiltInToolProvider接口的方法 ======
 
-    /**
-     * 获取工具提供者名称 默认实现：从@BuiltInTool注解中获取
-     */
+    /** 获取工具提供者名称 默认实现：从@BuiltInTool注解中获取 */
     @Override
     public String getName() {
         BuiltInTool annotation = this.getClass().getAnnotation(BuiltInTool.class);
         return annotation != null ? annotation.name() : this.getClass().getSimpleName();
     }
 
-    /**
-     * 获取工具提供者描述 默认实现：从@BuiltInTool注解中获取
-     */
+    /** 获取工具提供者描述 默认实现：从@BuiltInTool注解中获取 */
     @Override
     public String getDescription() {
         BuiltInTool annotation = this.getClass().getAnnotation(BuiltInTool.class);
         return annotation != null ? annotation.description() : "内置工具";
     }
 
-    /**
-     * 获取工具提供者优先级 默认实现：从@BuiltInTool注解中获取
-     */
+    /** 获取工具提供者优先级 默认实现：从@BuiltInTool注解中获取 */
     @Override
     public int getPriority() {
         BuiltInTool annotation = this.getClass().getAnnotation(BuiltInTool.class);
         return annotation != null ? annotation.priority() : 100;
+    }
+
+    private static final class TimedValue<T> {
+        private final T value;
+        private final long expireAt;
+
+        private TimedValue(T value, long ttlMs) {
+            this.value = value;
+            this.expireAt = System.currentTimeMillis() + Math.max(1L, ttlMs);
+        }
+
+        private T getValue() {
+            return value;
+        }
+
+        private boolean isExpired() {
+            return System.currentTimeMillis() > expireAt;
+        }
     }
 }

@@ -1,19 +1,17 @@
 package com.example.agentx.infrastructure.converter;
 
-import com.example.agentx.domain.task.constant.TaskStatus;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
+import com.example.agentx.domain.task.constant.TaskStatus;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * 任务状态枚举转换器
- */
+/** 任务状态枚举转换器 */
 @MappedJdbcTypes(JdbcType.VARCHAR)
 @MappedTypes(TaskStatus.class)
 public class TaskStatusConverter extends BaseTypeHandler<TaskStatus> {

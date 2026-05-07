@@ -5,10 +5,8 @@ import com.github.dockerjava.core.command.PullImageResultCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * 拉取镜像结果回调
- */
-public class CustomPullImageResultCallback extends PullImageResultCallback {
+/** 拉取镜像结果回调 */
+public class CustomPullImageResultCallback extends com.github.dockerjava.core.command.PullImageResultCallback {
 
     private static final Logger logger = LoggerFactory.getLogger(CustomPullImageResultCallback.class);
 

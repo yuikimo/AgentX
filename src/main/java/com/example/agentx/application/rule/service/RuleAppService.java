@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.example.agentx.interfaces.dto.Page;
 import com.example.agentx.interfaces.dto.PageResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,9 +19,7 @@ import com.example.agentx.interfaces.dto.rule.request.UpdateRuleRequest;
 
 import java.util.List;
 
-/**
- * 规则应用服务 处理规则相关的业务流程编排
- */
+/** 规则应用服务 处理规则相关的业务流程编排 */
 @Service
 public class RuleAppService {
 
@@ -30,12 +29,9 @@ public class RuleAppService {
         this.ruleDomainService = ruleDomainService;
     }
 
-    /**
-     * 创建规则
-     *
+    /** 创建规则
      * @param request 创建规则请求
-     * @return 规则DTO
-     */
+     * @return 规则DTO */
     @Transactional
     public RuleDTO createRule(CreateRuleRequest request) {
         // 转换为实体并创建
@@ -45,12 +41,9 @@ public class RuleAppService {
         return RuleAssembler.toDTO(createdEntity);
     }
 
-    /**
-     * 更新规则
-     *
+    /** 更新规则
      * @param request 更新规则请求
-     * @return 规则DTO
-     */
+     * @return 规则DTO */
     @Transactional
     public RuleDTO updateRule(UpdateRuleRequest request, String ruleId) {
         RuleEntity ruleEntity = RuleAssembler.toEntity(request, ruleId);
@@ -60,12 +53,9 @@ public class RuleAppService {
         return RuleAssembler.toDTO(updatedEntity);
     }
 
-    /**
-     * 根据ID获取规则
-     *
+    /** 根据ID获取规则
      * @param ruleId 规则ID
-     * @return 规则DTO
-     */
+     * @return 规则DTO */
     public RuleDTO getRuleById(String ruleId) {
         RuleEntity entity = ruleDomainService.getRuleById(ruleId);
         if (entity == null) {
@@ -74,23 +64,17 @@ public class RuleAppService {
         return RuleAssembler.toDTO(entity);
     }
 
-    /**
-     * 根据处理器标识获取规则
-     *
+    /** 根据处理器标识获取规则
      * @param handlerKey 处理器标识
-     * @return 规则DTO，如果不存在则返回null
-     */
+     * @return 规则DTO，如果不存在则返回null */
     public RuleDTO getRuleByHandlerKey(String handlerKey) {
         RuleEntity entity = ruleDomainService.getRuleByHandlerKey(handlerKey);
         return RuleAssembler.toDTO(entity);
     }
 
-    /**
-     * 分页查询规则
-     *
+    /** 分页查询规则
      * @param request 查询请求
-     * @return 规则分页结果
-     */
+     * @return 规则分页结果 */
     public PageResult<RuleDTO> getRules(QueryRuleRequest request) {
         // 构建查询条件
         LambdaQueryWrapper<RuleEntity> wrapper = Wrappers.<RuleEntity>lambdaQuery()
@@ -112,42 +96,30 @@ public class RuleAppService {
         return resultPage;
     }
 
-    /**
-     * 获取所有规则
-     *
-     * @return 规则DTO列表
-     */
+    /** 获取所有规则
+     * @return 规则DTO列表 */
     public List<RuleDTO> getAllRules() {
         List<RuleEntity> entities = ruleDomainService.getAllRules();
         return RuleAssembler.toDTOs(entities);
     }
 
-    /**
-     * 删除规则
-     *
-     * @param ruleId 规则ID
-     */
+    /** 删除规则
+     * @param ruleId 规则ID */
     @Transactional
     public void deleteRule(String ruleId) {
         ruleDomainService.deleteRule(ruleId);
     }
 
-    /**
-     * 检查规则是否存在
-     *
+    /** 检查规则是否存在
      * @param ruleId 规则ID
-     * @return 是否存在
-     */
+     * @return 是否存在 */
     public boolean existsRule(String ruleId) {
         return ruleDomainService.existsRule(ruleId);
     }
 
-    /**
-     * 检查处理器标识是否存在
-     *
+    /** 检查处理器标识是否存在
      * @param handlerKey 处理器标识
-     * @return 是否存在
-     */
+     * @return 是否存在 */
     public boolean existsByHandlerKey(String handlerKey) {
         return ruleDomainService.existsByHandlerKey(handlerKey);
     }

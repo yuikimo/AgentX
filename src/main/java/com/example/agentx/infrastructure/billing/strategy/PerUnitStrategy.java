@@ -8,9 +8,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Map;
 
-/**
- * 按次计费策略 按使用次数进行固定计费
- */
+/** 按次计费策略 按使用次数进行固定计费 */
 @Component
 public class PerUnitStrategy implements RuleStrategy {
 
@@ -77,9 +75,7 @@ public class PerUnitStrategy implements RuleStrategy {
         }
     }
 
-    /**
-     * 从配置中获取BigDecimal值，支持多种数值类型转换
-     */
+    /** 从配置中获取BigDecimal值，支持多种数值类型转换 */
     private BigDecimal getBigDecimalValue(Map<String, Object> config, String key) {
         Object value = config.get(key);
         if (value instanceof BigDecimal) {

@@ -2,19 +2,13 @@ package com.example.agentx.application.trace.dto;
 
 import java.util.List;
 
-/**
- * 追踪详情响应DTO 包含执行汇总和详细步骤信息
- */
+/** 追踪详情响应DTO 包含执行汇总和详细步骤信息 */
 public class TraceDetailResponse {
 
-    /**
-     * 执行汇总信息
-     */
+    /** 执行汇总信息 */
     private AgentExecutionSummaryDTO summary;
 
-    /**
-     * 执行详细步骤列表
-     */
+    /** 执行详细步骤列表 */
     private List<AgentExecutionDetailDTO> details;
 
     public TraceDetailResponse() {

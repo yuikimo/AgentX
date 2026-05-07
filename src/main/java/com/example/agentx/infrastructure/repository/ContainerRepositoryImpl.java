@@ -14,9 +14,7 @@ import com.example.agentx.domain.container.repository.ContainerRepository;
 
 import java.util.List;
 
-/**
- * 容器仓储实现
- */
+/** 容器仓储实现 */
 @Mapper
 @Repository
 public interface ContainerRepositoryImpl extends ContainerRepository {
@@ -65,7 +63,7 @@ public interface ContainerRepositoryImpl extends ContainerRepository {
 
     @Override
     default Page<ContainerEntity> selectPageWithConditions(Page<ContainerEntity> page, String keyword,
-                                                           ContainerStatus status, ContainerType type) {
+            ContainerStatus status, ContainerType type) {
         LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery();
 
         // 关键词搜索：容器名称、用户ID、Docker容器ID
@@ -99,7 +97,7 @@ public interface ContainerRepositoryImpl extends ContainerRepository {
     }
 
     @Override
-    @Select("SELECT COUNT(*) FROM user_containers WHERE status = 2")
+    @Select("SELECT COUNT(*) FROM user_containers WHERE status = 2 AND deleted_at IS NULL")
     long countRunningContainers();
 
     default long countByStatus(ContainerStatus status) {

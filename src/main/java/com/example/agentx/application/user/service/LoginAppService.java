@@ -1,6 +1,7 @@
 package com.example.agentx.application.user.service;
 
 import org.springframework.stereotype.Service;
+import com.example.agentx.application.user.assembler.UserAssembler;
 import com.example.agentx.domain.auth.constant.AuthFeatureKey;
 import com.example.agentx.domain.auth.service.AuthSettingDomainService;
 import com.example.agentx.domain.user.model.UserEntity;
@@ -8,6 +9,7 @@ import com.example.agentx.domain.user.service.UserDomainService;
 import com.example.agentx.infrastructure.email.EmailService;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.infrastructure.utils.JwtUtils;
+import com.example.agentx.infrastructure.verification.CaptchaUtils;
 import com.example.agentx.infrastructure.verification.VerificationCodeService;
 import com.example.agentx.interfaces.dto.user.request.LoginRequest;
 import com.example.agentx.interfaces.dto.user.request.RegisterRequest;
@@ -21,14 +23,16 @@ public class LoginAppService {
     private final EmailService emailService;
     private final VerificationCodeService verificationCodeService;
     private final AuthSettingDomainService authSettingDomainService;
+    private final JwtUtils jwtUtils;
 
     public LoginAppService(UserDomainService userDomainService, EmailService emailService,
-                           VerificationCodeService verificationCodeService,
-                           AuthSettingDomainService authSettingDomainService) {
+            VerificationCodeService verificationCodeService, AuthSettingDomainService authSettingDomainService,
+            JwtUtils jwtUtils) {
         this.userDomainService = userDomainService;
         this.emailService = emailService;
         this.verificationCodeService = verificationCodeService;
         this.authSettingDomainService = authSettingDomainService;
+        this.jwtUtils = jwtUtils;
     }
 
     public String login(LoginRequest loginRequest) {
@@ -38,7 +42,7 @@ public class LoginAppService {
         }
 
         UserEntity userEntity = userDomainService.login(loginRequest.getAccount(), loginRequest.getPassword());
-        return JwtUtils.generateToken(userEntity.getId());
+        return jwtUtils.generateToken(userEntity.getId());
     }
 
     public void register(RegisterRequest registerRequest) {
@@ -63,9 +67,7 @@ public class LoginAppService {
                 registerRequest.getPassword());
     }
 
-    /**
-     * 发送注册邮箱验证码
-     */
+    /** 发送注册邮箱验证码 */
     public void sendEmailVerificationCode(String email, String captchaUuid, String captchaCode, String ip) {
         // 检查用户注册是否启用
         if (!authSettingDomainService.isFeatureEnabled(AuthFeatureKey.USER_REGISTER)) {
@@ -80,9 +82,7 @@ public class LoginAppService {
         emailService.sendVerificationCode(email, code);
     }
 
-    /**
-     * 发送重置密码邮箱验证码
-     */
+    /** 发送重置密码邮箱验证码 */
     public void sendResetPasswordCode(String email, String captchaUuid, String captchaCode, String ip) {
         // 检查普通登录是否启用
         if (!authSettingDomainService.isFeatureEnabled(AuthFeatureKey.NORMAL_LOGIN)) {
@@ -101,23 +101,17 @@ public class LoginAppService {
         emailService.sendVerificationCode(email, code);
     }
 
-    /**
-     * 验证邮箱验证码（注册）
-     */
+    /** 验证邮箱验证码（注册） */
     public boolean verifyEmailCode(String email, String code) {
         return verificationCodeService.verifyCode(email, code);
     }
 
-    /**
-     * 验证重置密码邮箱验证码
-     */
+    /** 验证重置密码邮箱验证码 */
     public boolean verifyResetPasswordCode(String email, String code) {
         return verificationCodeService.verifyCode(email, code, VerificationCodeService.BUSINESS_TYPE_RESET_PASSWORD);
     }
 
-    /**
-     * 重置密码
-     */
+    /** 重置密码 */
     public void resetPassword(String email, String newPassword, String code) {
         // 检查普通登录是否启用
         if (!authSettingDomainService.isFeatureEnabled(AuthFeatureKey.NORMAL_LOGIN)) {

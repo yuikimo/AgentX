@@ -9,9 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 包含用户信息的工具DTO，用于管理员界面
- */
+/** 包含用户信息的工具DTO，用于管理员界面 */
 public class ToolWithUserDTO {
 
     private String id;

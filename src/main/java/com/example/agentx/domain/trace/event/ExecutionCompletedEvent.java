@@ -4,9 +4,7 @@ import org.springframework.context.ApplicationEvent;
 import com.example.agentx.domain.trace.constant.ExecutionPhase;
 import com.example.agentx.domain.trace.model.TraceContext;
 
-/**
- * 执行完成事件
- */
+/** 执行完成事件 */
 public class ExecutionCompletedEvent extends ApplicationEvent {
 
     private final TraceContext traceContext;
@@ -15,7 +13,7 @@ public class ExecutionCompletedEvent extends ApplicationEvent {
     private final String errorMessage;
 
     public ExecutionCompletedEvent(Object source, TraceContext traceContext, boolean success, ExecutionPhase errorPhase,
-                                   String errorMessage) {
+            String errorMessage) {
         super(source);
         this.traceContext = traceContext;
         this.success = success;

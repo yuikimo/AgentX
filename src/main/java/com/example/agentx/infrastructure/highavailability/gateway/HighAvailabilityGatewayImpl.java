@@ -13,9 +13,10 @@ import com.example.agentx.infrastructure.highavailability.dto.response.ApiInstan
 
 import java.util.List;
 
-/**
- * 高可用网关基础设施实现 负责所有技术细节，包括HTTP调用、序列化、网络异常处理等
- */
+/** 高可用网关基础设施实现 负责所有技术细节，包括HTTP调用、序列化、网络异常处理等
+ * 
+ * @author xhy
+ * @since 1.0.0 */
 @Component
 public class HighAvailabilityGatewayImpl implements HighAvailabilityGateway {
 

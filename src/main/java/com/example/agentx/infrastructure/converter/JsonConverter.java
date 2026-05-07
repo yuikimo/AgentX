@@ -1,38 +1,33 @@
 package com.example.agentx.infrastructure.converter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.example.agentx.infrastructure.utils.JsonUtils;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * JSON字段转换器
- */
+/** JSON字段转换器 */
 @MappedJdbcTypes(JdbcType.OTHER)
 @MappedTypes({Object.class})
 public class JsonConverter extends BaseTypeHandler<Object> {
 
     private static final Logger logger = LoggerFactory.getLogger(JsonConverter.class);
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, Object parameter, JdbcType jdbcType)
             throws SQLException {
         try {
-            String json = objectMapper.writeValueAsString(parameter);
+            String json = JsonUtils.toJsonString(parameter);
             // 对于PostgreSQL的JSONB类型，需要使用setObject而不是setString
             ps.setObject(i, json, java.sql.Types.OTHER);
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             logger.error("JSON序列化失败", e);
             throw new SQLException("JSON序列化失败", e);
         }
@@ -62,9 +57,8 @@ public class JsonConverter extends BaseTypeHandler<Object> {
         }
 
         try {
-            return objectMapper.readValue(json, new TypeReference<Object>() {
-            });
-        } catch (JsonProcessingException e) {
+            return JsonUtils.parseObject(json, Object.class);
+        } catch (Exception e) {
             logger.error("JSON反序列化失败: {}", json, e);
             return null;
         }

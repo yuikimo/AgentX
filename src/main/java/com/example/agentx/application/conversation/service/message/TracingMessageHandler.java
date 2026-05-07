@@ -1,9 +1,11 @@
 package com.example.agentx.application.conversation.service.message;
 
+import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.rag.content.Content;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.example.agentx.application.billing.service.BillingService;
+import com.example.agentx.application.conversation.config.ChatContextProperties;
 import com.example.agentx.application.conversation.service.handler.context.ChatContext;
 import com.example.agentx.application.conversation.service.handler.context.TracingChatContext;
 import com.example.agentx.application.conversation.service.message.builtin.BuiltInToolRegistry;
@@ -23,6 +25,7 @@ import com.example.agentx.domain.trace.model.TraceContext;
 import com.example.agentx.domain.user.service.AccountDomainService;
 import com.example.agentx.domain.user.service.UserSettingsDomainService;
 import com.example.agentx.infrastructure.llm.LLMServiceFactory;
+import com.example.agentx.infrastructure.llm.config.ProviderConfigFactory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
@@ -34,40 +37,36 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-/**
- * 带追踪功能的消息处理器基类 在关键节点集成链路追踪逻辑
- * <p>
+/** 带追踪功能的消息处理器基类 在关键节点集成链路追踪逻辑
+ * 
  * 线程上下文传递说明： - 使用 InheritableThreadLocal 将追踪上下文传递到子线程 - 适用于直接创建子线程的场景（如 tokenStream 回调）
- * <p>
+ * 
  * 重要警告 - 线程池环境： 如果项目中引入了线程池（如 @Async、ThreadPoolExecutor、CompletableFuture 等）， InheritableThreadLocal 会导致线程复用时的上下文污染问题。
- * <p>
+ * 
  * 线程池场景解决方案： 请使用阿里巴巴的 TransmittableThreadLocal (TTL) 替代： 1. 添加依赖：com.alibaba:transmittable-thread-local 2. 将
  * InheritableThreadLocal 替换为 TransmittableThreadLocal 3. 使用 TtlExecutors.getTtlExecutor() 包装线程池
  * 参考文档：https://github.com/alibaba/transmittable-thread-local
- * <p>
- * 但是目前使用了 langchan4j 的 tokenStream，内置的线程池，不方便改，就算了
- */
+ *
+ * 但是目前使用了 langchan4j 的 tokenStream，内置的线程池，不方便改，就算了 */
 public abstract class TracingMessageHandler extends AbstractMessageHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(TracingMessageHandler.class);
 
     protected final TraceCollector traceCollector;
 
-    /**
-     * 当前请求的追踪上下文 - 使用InheritableThreadLocal支持子线程继承
-     */
+    /** 当前请求的追踪上下文 - 使用InheritableThreadLocal支持子线程继承 */
     private static final InheritableThreadLocal<TraceContext> currentTraceContext = new InheritableThreadLocal<>();
 
     public TracingMessageHandler(LLMServiceFactory llmServiceFactory, MessageDomainService messageDomainService,
-                                 HighAvailabilityDomainService highAvailabilityDomainService,
-                                 SessionDomainService sessionDomainService,
-                                 UserSettingsDomainService userSettingsDomainService, LLMDomainService llmDomainService,
-                                 BuiltInToolRegistry builtInToolRegistry, BillingService billingService,
-                                 AccountDomainService accountDomainService, ChatSessionManager chatSessionManager,
-                                 TraceCollector traceCollector) {
+            HighAvailabilityDomainService highAvailabilityDomainService, SessionDomainService sessionDomainService,
+            UserSettingsDomainService userSettingsDomainService, LLMDomainService llmDomainService,
+            BuiltInToolRegistry builtInToolRegistry, BillingService billingService,
+            AccountDomainService accountDomainService, ChatSessionManager chatSessionManager,
+            TraceCollector traceCollector, ProviderConfigFactory providerConfigFactory,
+            ChatContextProperties chatContextProperties) {
         super(llmServiceFactory, messageDomainService, highAvailabilityDomainService, sessionDomainService,
                 userSettingsDomainService, llmDomainService, builtInToolRegistry, billingService, accountDomainService,
-                chatSessionManager);
+                chatSessionManager, providerConfigFactory, chatContextProperties);
         this.traceCollector = traceCollector;
     }
 
@@ -98,13 +97,13 @@ public abstract class TracingMessageHandler extends AbstractMessageHandler {
         TraceContext traceContext = getCurrentTraceContext();
         if (traceContext != null && traceContext.isTraceEnabled()) {
             logger.debug("用户消息已处理 - TraceId: {}, 消息长度: {}", traceContext.getTraceId(),
-                    userMessage.getContent().length());
+                    userMessage.getContent() == null ? 0 : userMessage.getContent().length());
         }
     }
 
     @Override
     protected void onModelCallCompleted(ChatContext chatContext, ChatResponse chatResponse,
-                                        ModelCallInfo modelCallInfo) {
+            ModelCallInfo modelCallInfo) {
         TraceContext traceContext = getCurrentTraceContext();
         if (traceContext != null && traceContext.isTraceEnabled()) {
             try {
@@ -185,21 +184,17 @@ public abstract class TracingMessageHandler extends AbstractMessageHandler {
         }
     }
 
-    /**
-     * 获取当前线程的追踪上下文
-     *
-     * @return 追踪上下文，可能为null
-     */
+    /** 获取当前线程的追踪上下文
+     * 
+     * @return 追踪上下文，可能为null */
     protected TraceContext getCurrentTraceContext() {
         return currentTraceContext.get();
     }
 
-    /**
-     * 将ChatContext包装为TracingChatContext
-     *
+    /** 将ChatContext包装为TracingChatContext
+     * 
      * @param chatContext 原始上下文
-     * @return 追踪上下文
-     */
+     * @return 追踪上下文 */
     protected TracingChatContext wrapWithTracingContext(ChatContext chatContext) {
         if (chatContext instanceof TracingChatContext) {
             return (TracingChatContext) chatContext;
@@ -215,10 +210,12 @@ public abstract class TracingMessageHandler extends AbstractMessageHandler {
 
     @Override
     protected Agent buildStreamingAgent(StreamingChatModel model, MessageWindowChatMemory memory,
-                                        ToolProvider toolProvider, AgentEntity agent) {
+            ToolProvider toolProvider, AgentEntity agent, List<CapturedToolExecution> capturedToolExecutions,
+            ToolExecutionProgressListener progressListener) {
 
         // 调用父类方法，获取原始 Agent
-        Agent originalAgent = super.buildStreamingAgent(model, memory, toolProvider, agent);
+        Agent originalAgent = super.buildStreamingAgent(model, memory, toolProvider, agent, capturedToolExecutions,
+                progressListener);
 
         // 捕获当前线程的 TraceContext
         TraceContext currentTrace = getCurrentTraceContext();
@@ -227,9 +224,7 @@ public abstract class TracingMessageHandler extends AbstractMessageHandler {
         return new TracingAgentWrapper(originalAgent, currentTrace);
     }
 
-    /**
-     * 带追踪功能的 Agent 包装器
-     */
+    /** 带追踪功能的 Agent 包装器 */
     private class TracingAgentWrapper implements Agent {
         private final Agent originalAgent;
         private final TraceContext capturedTraceContext;
@@ -240,7 +235,7 @@ public abstract class TracingMessageHandler extends AbstractMessageHandler {
         }
 
         @Override
-        public TokenStream chat(String message) {
+        public TokenStream chat(UserMessage message) {
             // 调用原始 Agent 的 chat 方法
             TokenStream originalTokenStream = originalAgent.chat(message);
 
@@ -249,9 +244,7 @@ public abstract class TracingMessageHandler extends AbstractMessageHandler {
         }
     }
 
-    /**
-     * 带追踪功能的 TokenStream 包装器
-     */
+    /** 带追踪功能的 TokenStream 包装器 */
     private class TracingTokenStreamWrapper implements TokenStream {
         private final TokenStream originalStream;
         private final TraceContext capturedTraceContext;

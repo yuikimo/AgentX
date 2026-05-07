@@ -5,6 +5,8 @@ import static com.example.agentx.infrastructure.mq.core.MessageHeaders.TRACE_ID;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +22,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import com.example.agentx.infrastructure.mq.core.MessageEnvelope;
 import com.example.agentx.infrastructure.mq.core.MessagePublisher;
 import org.springframework.stereotype.Component;
+import com.example.agentx.domain.rag.config.RagProperties;
 import com.example.agentx.domain.rag.message.RagDocMessage;
 import com.example.agentx.domain.rag.message.RagDocSyncStorageMessage;
 import com.example.agentx.domain.rag.model.DocumentUnitEntity;
@@ -41,38 +44,37 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rabbitmq.client.Channel;
-import com.example.agentx.infrastructure.rag.service.UserModelConfigResolver;
+import com.example.agentx.infrastructure.rag.service.DatasetEmbeddingConfigResolver;
 
-/**
- * document预处理消费者
- */
-@RabbitListener(bindings = @QueueBinding(value = @Queue(RagDocSyncOcrEvent.QUEUE_NAME),
-        exchange = @Exchange(value = RagDocSyncOcrEvent.EXCHANGE_NAME, type = ExchangeTypes.TOPIC),
-        key = RagDocSyncOcrEvent.ROUTE_KEY))
+/** document预处理消费者
+ * @author zang
+ * @date 2025-01-10 */
+@RabbitListener(bindings = @QueueBinding(value = @Queue(RagDocSyncOcrEvent.QUEUE_NAME), exchange = @Exchange(value = RagDocSyncOcrEvent.EXCHANGE_NAME, type = ExchangeTypes.TOPIC), key = RagDocSyncOcrEvent.ROUTE_KEY))
 @Component
 public class RagDocConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(RagDocConsumer.class);
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .registerModule(new JavaTimeModule())
-            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
     private final DocumentProcessingFactory documentProcessingFactory;
     private final FileDetailDomainService fileDetailDomainService;
     private final DocumentUnitRepository documentUnitRepository;
     private final MessagePublisher messagePublisher;
-    private final UserModelConfigResolver userModelConfigResolver;
+    private final DatasetEmbeddingConfigResolver datasetEmbeddingConfigResolver;
+    private final ObjectMapper objectMapper;
+    private final RagProperties ragProperties;
 
     public RagDocConsumer(DocumentProcessingFactory ragDocSyncOcrContext,
-                          FileDetailDomainService fileDetailDomainService,
-                          DocumentUnitRepository documentUnitRepository,
-                          MessagePublisher messagePublisher, UserModelConfigResolver userModelConfigResolver) {
+            FileDetailDomainService fileDetailDomainService, DocumentUnitRepository documentUnitRepository,
+            MessagePublisher messagePublisher, DatasetEmbeddingConfigResolver datasetEmbeddingConfigResolver,
+            ObjectMapper objectMapper, RagProperties ragProperties) {
         this.documentProcessingFactory = ragDocSyncOcrContext;
         this.fileDetailDomainService = fileDetailDomainService;
         this.documentUnitRepository = documentUnitRepository;
         this.messagePublisher = messagePublisher;
-        this.userModelConfigResolver = userModelConfigResolver;
+        this.datasetEmbeddingConfigResolver = datasetEmbeddingConfigResolver;
+        this.ragProperties = ragProperties;
+        this.objectMapper = objectMapper.copy().registerModule(new JavaTimeModule())
+                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     @RabbitHandler
@@ -84,7 +86,7 @@ public class RagDocConsumer {
         RagDocMessage docMessage = null;
         try {
             // 将已由 Jackson 转换的 Map 转为强类型 Envelope
-            MessageEnvelope<RagDocMessage> envelope = OBJECT_MAPPER.convertValue(payload, new TypeReference<>() {
+            MessageEnvelope<RagDocMessage> envelope = objectMapper.convertValue(payload, new TypeReference<>() {
             });
 
             MDC.put(TRACE_ID, Objects.nonNull(envelope.getTraceId()) ? envelope.getTraceId() : IdWorker.getTimeId());
@@ -107,8 +109,8 @@ public class RagDocConsumer {
                 throw new BusinessException("文件扩展名不能为空");
             }
 
-            DocumentProcessingStrategy strategy =
-                    documentProcessingFactory.getDocumentStrategyHandler(fileExt.toUpperCase());
+            DocumentProcessingStrategy strategy = documentProcessingFactory
+                    .getDocumentStrategyHandler(fileExt.toUpperCase());
             if (strategy == null) {
                 throw new BusinessException("不支持的文件类型: " + fileExt);
             }
@@ -147,28 +149,25 @@ public class RagDocConsumer {
             } catch (Exception ex) {
                 log.error("更新文件状态为失败失败，文件ID: {}", docMessage != null ? docMessage.getFileId() : "unknown", ex);
             }
+            if (docMessage != null) {
+                scheduleRetryOrDeadLetter(docMessage, e);
+            }
         } finally {
             channel.basicAck(deliveryTag, false);
         }
     }
 
-    /**
-     * 自动启动向量化处理
-     *
-     * @param fileId     文件ID
-     * @param fileEntity 文件实体
-     */
+    /** 自动启动向量化处理
+     * @param fileId 文件ID
+     * @param fileEntity 文件实体 */
     private void autoStartVectorization(String fileId, FileDetailEntity fileEntity) {
         try {
             log.info("自动启动向量化处理，文件ID: {}", fileId);
 
             // 检查是否有可用的文档单元进行向量化
-            List<DocumentUnitEntity> documentUnits = documentUnitRepository.selectList(
-                    Wrappers.lambdaQuery(DocumentUnitEntity.class)
-                            .eq(DocumentUnitEntity::getFileId, fileId)
-                            .eq(DocumentUnitEntity::getIsOcr, true)
-                            .eq(DocumentUnitEntity::getIsVector, false)
-            );
+            List<DocumentUnitEntity> documentUnits = documentUnitRepository
+                    .selectList(Wrappers.lambdaQuery(DocumentUnitEntity.class).eq(DocumentUnitEntity::getFileId, fileId)
+                            .eq(DocumentUnitEntity::getIsOcr, true).eq(DocumentUnitEntity::getIsVector, false));
 
             if (documentUnits.isEmpty()) {
                 log.warn("未找到用于向量化的文档单元，文件ID: {}", fileId);
@@ -181,6 +180,8 @@ public class RagDocConsumer {
                 log.warn("无法开始向量化处理，文件状态不允许，文件ID: {}", fileId);
                 return;
             }
+            var embeddingContext = datasetEmbeddingConfigResolver.resolveActive(fileEntity.getDataSetId(),
+                    fileEntity.getUserId());
 
             // 为每个DocumentUnit发送向量化MQ消息
             for (DocumentUnitEntity documentUnit : documentUnits) {
@@ -193,13 +194,11 @@ public class RagDocConsumer {
                 storageMessage.setVector(true);
                 storageMessage.setDatasetId(fileEntity.getDataSetId());
                 storageMessage.setUserId(fileEntity.getUserId());
-                // 获取用户的嵌入模型配置
-                storageMessage.setEmbeddingModelConfig(
-                        userModelConfigResolver.getUserEmbeddingModelConfig(fileEntity.getUserId()));
+                storageMessage.setEmbeddingModelConfig(embeddingContext.modelConfig());
+                storageMessage.setEmbeddingProfileId(embeddingContext.profileId());
 
                 MessageEnvelope<RagDocSyncStorageMessage> env = MessageEnvelope.builder(storageMessage)
-                        .addEventType(EventType.DOC_SYNC_RAG)
-                        .description("文件自动向量化处理任务 - 页面 " + documentUnit.getPage())
+                        .addEventType(EventType.DOC_SYNC_RAG).description("文件自动向量化处理任务 - 页面 " + documentUnit.getPage())
                         .build();
                 messagePublisher.publish(RagDocSyncStorageEvent.route(), env);
             }
@@ -215,5 +214,44 @@ public class RagDocConsumer {
                 log.error("更新文件嵌入状态为失败失败，文件ID: {}", fileId, ex);
             }
         }
+    }
+
+    private void scheduleRetryOrDeadLetter(RagDocMessage docMessage, Exception exception) {
+        int currentRetry = docMessage.getRetryCount() == null ? 0 : Math.max(0, docMessage.getRetryCount());
+        docMessage.setLastError(truncateError(exception));
+        if (currentRetry >= Math.max(0, ragProperties.getDoc().getOcr().getRetry().getMaxAttempts())) {
+            log.warn("OCR消息达到最大重试次数，转入DLQ: fileId={}, retryCount={}", docMessage.getFileId(), currentRetry);
+            publishAsync(RagDocSyncOcrEvent.deadLetterRoute(), buildEnvelope(docMessage, "OCR任务进入死信队列"));
+            return;
+        }
+        docMessage.setRetryCount(currentRetry + 1);
+        long delay = Math.max(0L, ragProperties.getDoc().getOcr().getRetry().getDelayMs())
+                * Math.max(1, docMessage.getRetryCount());
+        log.warn("OCR消息准备重试: fileId={}, retryCount={}, delayMs={}", docMessage.getFileId(),
+                docMessage.getRetryCount(), delay);
+        CompletableFuture.delayedExecutor(delay, TimeUnit.MILLISECONDS)
+                .execute(() -> publishAsync(RagDocSyncOcrEvent.route(), buildEnvelope(docMessage,
+                        "OCR任务自动重试 #" + docMessage.getRetryCount())));
+    }
+
+    private MessageEnvelope<RagDocMessage> buildEnvelope(RagDocMessage docMessage, String description) {
+        return MessageEnvelope.builder(docMessage).addEventType(EventType.DOC_SYNC_RAG).description(description).build();
+    }
+
+    private void publishAsync(com.example.agentx.infrastructure.mq.core.MessageRoute route, MessageEnvelope<RagDocMessage> envelope) {
+        try {
+            messagePublisher.publish(route, envelope);
+        } catch (Exception publishException) {
+            log.error("发布OCR重试/死信消息失败，fileId={}", envelope.getData() != null ? envelope.getData().getFileId() : "unknown",
+                    publishException);
+        }
+    }
+
+    private String truncateError(Exception exception) {
+        String message = exception == null ? "unknown" : exception.getMessage();
+        if (message == null) {
+            return "unknown";
+        }
+        return message.length() > 300 ? message.substring(0, 300) : message;
     }
 }

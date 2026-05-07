@@ -11,95 +11,55 @@ import com.example.agentx.infrastructure.converter.JsonConverter;
 
 import java.util.Map;
 
-/**
- * 容器模板实体
- */
-@TableName(value = "container_templates")
+/** 容器模板实体 */
+@TableName(value = "container_templates", autoResultMap = true)
 public class ContainerTemplateEntity extends BaseEntity {
 
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
-    /**
-     * 模板名称
-     */
+    /** 模板名称 */
     private String name;
-    /**
-     * 模板描述
-     */
+    /** 模板描述 */
     private String description;
-    /**
-     * 模板类型
-     */
+    /** 模板类型 */
     @TableField(typeHandler = ContainerTypeConverter.class)
     private ContainerType type;
-    /**
-     * 镜像名称
-     */
+    /** 镜像名称 */
     private String image;
-    /**
-     * 镜像版本标签
-     */
+    /** 镜像版本标签 */
     private String imageTag;
-    /**
-     * 内部端口
-     */
+    /** 内部端口 */
     private Integer internalPort;
-    /**
-     * CPU限制(核数)
-     */
+    /** CPU限制(核数) */
     private Double cpuLimit;
-    /**
-     * 内存限制(MB)
-     */
+    /** 内存限制(MB) */
     private Integer memoryLimit;
-    /**
-     * 环境变量配置
-     */
+    /** 环境变量配置 */
     @TableField(typeHandler = JsonConverter.class)
     private Map<String, String> environment;
-    /**
-     * 数据卷挂载路径
-     */
+    /** 数据卷挂载路径 */
     private String volumeMountPath;
-    /**
-     * 启动命令
-     */
+    /** 启动命令 */
     @TableField(typeHandler = JsonConverter.class)
     private String[] command;
-    /**
-     * 网络模式
-     */
+    /** 网络模式 */
     private String networkMode;
-    /**
-     * 重启策略
-     */
+    /** 重启策略 */
     private String restartPolicy;
-    /**
-     * 健康检查配置
-     */
+    /** 健康检查配置 */
     @TableField(typeHandler = JsonConverter.class)
     private Map<String, Object> healthCheck;
-    /**
-     * 资源配置
-     */
+    /** 资源配置 */
     @TableField(typeHandler = JsonConverter.class)
     private Map<String, Object> resourceConfig;
-    /**
-     * 是否启用
-     */
+    /** 是否启用 */
     private Boolean enabled;
-    /**
-     * 是否为默认模板
-     */
+    /** 是否为默认模板 */
     private Boolean isDefault;
-    /**
-     * 创建者用户ID
-     */
+    /** 创建者用户ID */
     private String createdBy;
-    /**
-     * 排序权重
-     */
+    /** 排序权重 */
     private Integer sortOrder;
 
     public String getId() {
@@ -262,9 +222,7 @@ public class ContainerTemplateEntity extends BaseEntity {
         this.sortOrder = sortOrder;
     }
 
-    /**
-     * 获取完整的镜像名称
-     */
+    /** 获取完整的镜像名称 */
     public String getFullImageName() {
         if (imageTag == null || imageTag.trim().isEmpty()) {
             return image;
@@ -272,9 +230,7 @@ public class ContainerTemplateEntity extends BaseEntity {
         return image + ":" + imageTag;
     }
 
-    /**
-     * 转换为容器模板配置
-     */
+    /** 转换为容器模板配置 */
     public ContainerTemplate toContainerTemplate() {
         ContainerTemplate template = new ContainerTemplate();
         template.setImage(getFullImageName());
@@ -289,9 +245,7 @@ public class ContainerTemplateEntity extends BaseEntity {
         return template;
     }
 
-    /**
-     * 验证模板配置是否有效
-     */
+    /** 验证模板配置是否有效 */
     public boolean isValid() {
         return name != null && !name.trim().isEmpty() && image != null && !image.trim().isEmpty()
                 && internalPort != null && internalPort > 0 && internalPort <= 65535 && cpuLimit != null && cpuLimit > 0

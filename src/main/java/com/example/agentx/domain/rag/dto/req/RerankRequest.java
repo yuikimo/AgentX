@@ -1,11 +1,13 @@
 package com.example.agentx.domain.rag.dto.req;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
+/** @author shilong.zang
+ * @date 15:15 <br/>
+ */
 public class RerankRequest implements Serializable {
 
     @Serial
@@ -21,7 +23,7 @@ public class RerankRequest implements Serializable {
     private boolean returnDocuments = false;
 
     @JsonProperty("max_chunks_per_doc")
-    private Integer maxChucksPerDoc = 10;
+    private Integer maxChunksPerDoc = 10;
 
     @JsonProperty("overlap_tokens")
     private Integer overlapTokens = 80;
@@ -59,11 +61,19 @@ public class RerankRequest implements Serializable {
     }
 
     public Integer getMaxChucksPerDoc() {
-        return maxChucksPerDoc;
+        return maxChunksPerDoc;
     }
 
     public void setMaxChucksPerDoc(Integer maxChucksPerDoc) {
-        this.maxChucksPerDoc = maxChucksPerDoc;
+        this.maxChunksPerDoc = maxChucksPerDoc;
+    }
+
+    public Integer getMaxChunksPerDoc() {
+        return maxChunksPerDoc;
+    }
+
+    public void setMaxChunksPerDoc(Integer maxChunksPerDoc) {
+        this.maxChunksPerDoc = maxChunksPerDoc;
     }
 
     public Integer getOverlapTokens() {

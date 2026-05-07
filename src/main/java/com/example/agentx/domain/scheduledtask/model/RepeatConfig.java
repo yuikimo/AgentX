@@ -4,44 +4,28 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * 重复配置值对象 根据不同的重复类型存储相应的配置信息
- */
+/** 重复配置值对象 根据不同的重复类型存储相应的配置信息 */
 public class RepeatConfig {
 
-    /**
-     * 执行时间
-     */
+    /** 执行时间 */
     private LocalDateTime executeDateTime;
 
-    /**
-     * 每周重复时的星期几列表 (1-7, 1表示周一)
-     */
+    /** 每周重复时的星期几列表 (1-7, 1表示周一) */
     private List<Integer> weekdays;
 
-    /**
-     * 每月重复时的日期 (1-31)
-     */
+    /** 每月重复时的日期 (1-31) */
     private Integer monthDay;
 
-    /**
-     * 自定义重复的间隔数
-     */
+    /** 自定义重复的间隔数 */
     private Integer interval;
 
-    /**
-     * 自定义重复的时间单位 (DAYS, WEEKS, MONTHS)
-     */
+    /** 自定义重复的时间单位 (DAYS, WEEKS, MONTHS) */
     private String timeUnit;
 
-    /**
-     * 自定义重复的执行时间
-     */
+    /** 自定义重复的执行时间 */
     private String executeTime;
 
-    /**
-     * 自定义重复的截止日期
-     */
+    /** 自定义重复的截止日期 */
     private LocalDateTime endDateTime;
 
     public RepeatConfig() {

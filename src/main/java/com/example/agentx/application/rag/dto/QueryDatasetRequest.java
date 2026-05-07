@@ -2,14 +2,12 @@ package com.example.agentx.application.rag.dto;
 
 import com.example.agentx.interfaces.dto.Page;
 
-/**
- * 数据集查询请求
- */
+/** 数据集查询请求
+ * @author shilong.zang
+ * @date 2024-12-09 */
 public class QueryDatasetRequest extends Page {
 
-    /**
-     * 搜索关键词
-     */
+    /** 搜索关键词 */
     private String keyword;
 
     public String getKeyword() {

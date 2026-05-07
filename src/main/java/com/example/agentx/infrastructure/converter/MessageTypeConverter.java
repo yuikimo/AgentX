@@ -11,9 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * 消息类型枚举转换器
- */
+/** 消息类型枚举转换器 */
 @MappedJdbcTypes(JdbcType.VARCHAR)
 @MappedTypes(MessageType.class)
 public class MessageTypeConverter extends BaseTypeHandler<MessageType> {

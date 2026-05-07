@@ -2,39 +2,25 @@ package com.example.agentx.domain.scheduledtask.constant;
 
 import com.example.agentx.infrastructure.exception.BusinessException;
 
-/**
- * 定时任务重复类型枚举
- */
+/** 定时任务重复类型枚举 */
 public enum RepeatType {
 
-    /**
-     * 不重复
-     */
+    /** 不重复 */
     NONE,
 
-    /**
-     * 每天
-     */
+    /** 每天 */
     DAILY,
 
-    /**
-     * 每周
-     */
+    /** 每周 */
     WEEKLY,
 
-    /**
-     * 每月
-     */
+    /** 每月 */
     MONTHLY,
 
-    /**
-     * 工作日
-     */
+    /** 工作日 */
     WORKDAYS,
 
-    /**
-     * 自定义
-     */
+    /** 自定义 */
     CUSTOM;
 
     public static RepeatType fromCode(String code) {

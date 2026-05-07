@@ -2,15 +2,12 @@ package com.example.agentx.infrastructure.verification;
 
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.LineCaptcha;
-
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 图形验证码工具类 用于生成和验证图形验证码
- */
+/** 图形验证码工具类 用于生成和验证图形验证码 */
 public class CaptchaUtils {
     // 存储UUID和对应的验证码
     private static final Map<String, CaptchaInfo> captchaMap = new ConcurrentHashMap<>();
@@ -18,11 +15,8 @@ public class CaptchaUtils {
     // 验证码有效期（分钟）
     private static final int EXPIRATION_MINUTES = 5;
 
-    /**
-     * 生成图形验证码
-     *
-     * @return 包含图形验证码Base64编码和唯一ID的对象
-     */
+    /** 生成图形验证码
+     * @return 包含图形验证码Base64编码和唯一ID的对象 */
     public static CaptchaResult generateCaptcha() {
         // 生成验证码
         LineCaptcha captcha = CaptchaUtil.createLineCaptcha(120, 40, 4, 100);
@@ -38,13 +32,10 @@ public class CaptchaUtils {
         return new CaptchaResult(uuid, captcha.getImageBase64Data());
     }
 
-    /**
-     * 验证图形验证码
-     *
+    /** 验证图形验证码
      * @param uuid 唯一标识
      * @param code 用户输入的验证码
-     * @return 验证是否成功
-     */
+     * @return 验证是否成功 */
     public static boolean verifyCaptcha(String uuid, String code) {
         if (uuid == null || code == null) {
             return false;
@@ -70,9 +61,7 @@ public class CaptchaUtils {
         return result;
     }
 
-    /**
-     * 清理过期的验证码 可以通过定时任务调用此方法
-     */
+    /** 清理过期的验证码 可以通过定时任务调用此方法 */
     public static void cleanExpiredCaptchas() {
         long currentTime = System.currentTimeMillis();
         captchaMap.entrySet().removeIf(entry -> entry.getValue().getExpirationTime() < currentTime);

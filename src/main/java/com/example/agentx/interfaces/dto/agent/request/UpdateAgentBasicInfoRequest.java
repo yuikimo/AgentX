@@ -2,9 +2,7 @@ package com.example.agentx.interfaces.dto.agent.request;
 
 import com.example.agentx.infrastructure.utils.ValidationUtils;
 
-/**
- * 更新Agent基本信息的请求对象
- */
+/** 更新Agent基本信息的请求对象 */
 public class UpdateAgentBasicInfoRequest {
 
     private String name;
@@ -21,9 +19,7 @@ public class UpdateAgentBasicInfoRequest {
         this.description = description;
     }
 
-    /**
-     * 校验请求参数
-     */
+    /** 校验请求参数 */
     public void validate() {
         ValidationUtils.notEmpty(name, "name");
         ValidationUtils.length(name, 1, 50, "name");

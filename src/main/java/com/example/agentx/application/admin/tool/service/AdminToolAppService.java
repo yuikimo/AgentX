@@ -28,19 +28,17 @@ public class AdminToolAppService {
     private final ToolAppService toolAppService;
 
     public AdminToolAppService(ToolDomainService toolDomainService,
-                               ToolStateStateMachineAppService toolStateStateMachine, ToolAppService toolAppService) {
+            ToolStateStateMachineAppService toolStateStateMachine, ToolAppService toolAppService) {
         this.toolDomainService = toolDomainService;
         this.toolStateStateMachine = toolStateStateMachine;
         this.toolAppService = toolAppService;
     }
 
-    /**
-     * 创建官方工具（管理员专用）
-     *
+    /** 创建官方工具（管理员专用）
+     * 
      * @param request 工具创建请求
-     * @param userId  创建者用户ID
-     * @return 工具ID
-     */
+     * @param userId 创建者用户ID
+     * @return 工具ID */
     @Transactional
     public String createOfficialTool(CreateToolRequest request, String userId) {
         logger.info("管理员创建官方工具: userId={}, toolName={}", userId, request.getName());
@@ -56,13 +54,11 @@ public class AdminToolAppService {
         return toolId;
     }
 
-    /**
-     * 该接口用于管理员修改状态，如果当前工具是人工审核则需要
+    /** 该接口用于管理员修改状态，如果当前工具是人工审核则需要
      *
-     * @param toolId       工具 id
-     * @param status       状态
-     * @param rejectReason 拒绝原因
-     */
+     * @param toolId 工具 id
+     * @param status 状态
+     * @param rejectReason 拒绝原因 */
     public void updateToolStatus(String toolId, ToolStatus status, String rejectReason) {
 
         ToolEntity tool = toolDomainService.getTool(toolId);
@@ -86,32 +82,26 @@ public class AdminToolAppService {
         }
     }
 
-    /**
-     * 分页查询工具列表（管理员使用，包含用户信息）
-     *
+    /** 分页查询工具列表（管理员使用，包含用户信息）
+     * 
      * @param queryToolRequest 查询条件
-     * @return 工具分页数据（包含用户信息）
-     */
+     * @return 工具分页数据（包含用户信息） */
     public Page<ToolWithUserDTO> getTools(QueryToolRequest queryToolRequest) {
         Page<ToolEntity> page = toolDomainService.getTools(queryToolRequest);
         return toolDomainService.getToolsWithUserInfo(page);
     }
 
-    /**
-     * 获取工具统计信息
-     *
-     * @return 工具统计数据
-     */
+    /** 获取工具统计信息
+     * 
+     * @return 工具统计数据 */
     public ToolStatisticsDTO getToolStatistics() {
         return toolDomainService.getToolStatistics();
     }
 
-    /**
-     * 更新工具全局状态
-     *
-     * @param toolId   工具ID
-     * @param isGlobal 是否为全局工具
-     */
+    /** 更新工具全局状态
+     * 
+     * @param toolId 工具ID
+     * @param isGlobal 是否为全局工具 */
     @Transactional
     public void updateToolGlobalStatus(String toolId, Boolean isGlobal) {
         logger.info("更新工具全局状态: toolId={}, isGlobal={}", toolId, isGlobal);

@@ -7,10 +7,8 @@ import com.example.agentx.infrastructure.converter.ModelTypeConverter;
 import com.example.agentx.infrastructure.entity.BaseEntity;
 import com.example.agentx.infrastructure.exception.BusinessException;
 
-/**
- * 模型领域模型
- */
-@TableName("models")
+/** 模型领域模型 */
+@TableName(value = "models", autoResultMap = true)
 public class ModelEntity extends BaseEntity {
 
     @TableId(type = IdType.ASSIGN_UUID)
@@ -22,9 +20,7 @@ public class ModelEntity extends BaseEntity {
     private String name;
     private String description;
 
-    /**
-     * 模型部署名称
-     */
+    /** 模型部署名称 */
     private String modelEndpoint;
 
     private Boolean isOfficial;
@@ -115,7 +111,7 @@ public class ModelEntity extends BaseEntity {
     }
 
     public void isActive() {
-        if (!status) {
+        if (!Boolean.TRUE.equals(status)) {
             throw new BusinessException("模型未激活");
         }
     }

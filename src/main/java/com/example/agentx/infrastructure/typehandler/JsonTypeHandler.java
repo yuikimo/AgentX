@@ -1,10 +1,10 @@
 package com.example.agentx.infrastructure.typehandler;
 
-import com.example.agentx.infrastructure.utils.JsonUtils;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
+import com.example.agentx.infrastructure.utils.JsonUtils;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
@@ -12,9 +12,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * JSON类型转换处理器
- */
+/** JSON类型转换处理器
+ * @param <T> 要转换的类型 */
 @MappedJdbcTypes(JdbcType.VARCHAR)
 @MappedTypes(List.class)
 public class JsonTypeHandler<T> extends BaseTypeHandler<T> {

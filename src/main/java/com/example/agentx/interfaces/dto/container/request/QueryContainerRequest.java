@@ -4,24 +4,16 @@ import com.example.agentx.domain.container.constant.ContainerStatus;
 import com.example.agentx.domain.container.constant.ContainerType;
 import com.example.agentx.interfaces.dto.Page;
 
-/**
- * 查询容器请求
- */
+/** 查询容器请求 */
 public class QueryContainerRequest extends Page {
 
-    /**
-     * 搜索关键词
-     */
+    /** 搜索关键词 */
     private String keyword;
 
-    /**
-     * 容器状态
-     */
+    /** 容器状态 */
     private ContainerStatus status;
 
-    /**
-     * 容器类型
-     */
+    /** 容器类型 */
     private ContainerType type;
 
     public String getKeyword() {

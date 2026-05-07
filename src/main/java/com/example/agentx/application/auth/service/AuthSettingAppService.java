@@ -16,9 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 认证配置应用服务
- */
+/** 认证配置应用服务 */
 @Service
 public class AuthSettingAppService {
 
@@ -28,11 +26,9 @@ public class AuthSettingAppService {
         this.authSettingDomainService = authSettingDomainService;
     }
 
-    /**
-     * 获取前端认证配置
-     *
-     * @return 认证配置DTO
-     */
+    /** 获取前端认证配置
+     * 
+     * @return 认证配置DTO */
     public AuthConfigDTO getAuthConfig() {
         // 获取启用的登录方式
         List<AuthSettingEntity> loginSettings = authSettingDomainService.getEnabledFeatures(FeatureType.LOGIN);
@@ -62,45 +58,37 @@ public class AuthSettingAppService {
         return config;
     }
 
-    /**
-     * 获取所有认证配置
-     *
-     * @return 认证配置列表
-     */
+    /** 获取所有认证配置
+     * 
+     * @return 认证配置列表 */
     public List<AuthSettingDTO> getAllAuthSettings() {
         List<AuthSettingEntity> entities = authSettingDomainService.getAllAuthSettings();
         return AuthSettingAssembler.toDTOs(entities);
     }
 
-    /**
-     * 根据ID获取认证配置
-     *
+    /** 根据ID获取认证配置
+     * 
      * @param id 配置ID
-     * @return 认证配置DTO
-     */
+     * @return 认证配置DTO */
     public AuthSettingDTO getAuthSettingById(String id) {
         AuthSettingEntity entity = authSettingDomainService.getById(id);
         return AuthSettingAssembler.toDTO(entity);
     }
 
-    /**
-     * 切换认证配置启用状态
-     *
+    /** 切换认证配置启用状态
+     * 
      * @param id 配置ID
-     * @return 更新后的配置DTO
-     */
+     * @return 更新后的配置DTO */
     public AuthSettingDTO toggleAuthSetting(String id) {
         AuthSettingEntity entity = authSettingDomainService.toggleEnabled(id);
         return AuthSettingAssembler.toDTO(entity);
     }
 
-    /**
-     * 更新认证配置
-     *
-     * @param id      配置ID
+    /** 更新认证配置
+     * 
+     * @param id 配置ID
      * @param request 更新请求
-     * @return 更新后的配置DTO
-     */
+     * @return 更新后的配置DTO */
     public AuthSettingDTO updateAuthSetting(String id, UpdateAuthSettingRequest request) {
         AuthSettingEntity entity = authSettingDomainService.getById(id);
         AuthSettingEntity updatedEntity = AuthSettingAssembler.updateEntity(entity, request);
@@ -108,21 +96,17 @@ public class AuthSettingAppService {
         return AuthSettingAssembler.toDTO(savedEntity);
     }
 
-    /**
-     * 删除认证配置
-     *
-     * @param id 配置ID
-     */
+    /** 删除认证配置
+     * 
+     * @param id 配置ID */
     public void deleteAuthSetting(String id) {
         authSettingDomainService.deleteAuthSetting(id);
     }
 
-    /**
-     * 根据认证功能键获取对应的SSO提供商代码
-     *
+    /** 根据认证功能键获取对应的SSO提供商代码
+     * 
      * @param featureKey 认证功能键
-     * @return SSO提供商代码（大写）
-     */
+     * @return SSO提供商代码（大写） */
     private String getProviderCodeByFeatureKey(String featureKey) {
         if (AuthFeatureKey.GITHUB_LOGIN.getCode().equals(featureKey)) {
             return SsoProvider.GITHUB.getCode().toUpperCase();

@@ -12,11 +12,9 @@ import com.example.agentx.domain.rag.strategy.context.ProcessingContext;
 import com.example.agentx.infrastructure.llm.LLMProviderService;
 import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 
-/**
- * 表格翻译器
- * <p>
- * 将表格内容翻译为自然语言描述，便于RAG检索
- */
+/** 表格翻译器
+ * 
+ * 将表格内容翻译为自然语言描述，便于RAG检索 */
 @Component
 public class TableTranslator implements NodeTranslator {
 
@@ -62,9 +60,7 @@ public class TableTranslator implements NodeTranslator {
         return 15; // 表格处理优先级稍低于代码
     }
 
-    /**
-     * 使用LLM分析表格内容
-     */
+    /** 使用LLM分析表格内容 */
     private String analyzeTableWithLLM(String tableContent, ProcessingContext context) {
         try {
             ChatModel chatModel = LLMProviderService.getStrand(ProviderProtocol.OPENAI, context.getLlmConfig());
@@ -85,9 +81,7 @@ public class TableTranslator implements NodeTranslator {
         }
     }
 
-    /**
-     * 构建表格分析提示词
-     */
+    /** 构建表格分析提示词 */
     private String buildTableAnalysisPrompt(String tableContent) {
         StringBuilder prompt = new StringBuilder();
         prompt.append("请分析以下Markdown表格的内容，用中文描述表格的结构、主要信息和数据特点，便于搜索和理解。\n\n");
@@ -103,9 +97,7 @@ public class TableTranslator implements NodeTranslator {
         return prompt.toString();
     }
 
-    /**
-     * 生成回退描述（LLM不可用时）
-     */
+    /** 生成回退描述（LLM不可用时） */
     private String generateFallbackTableDescription(String tableContent) {
         StringBuilder description = new StringBuilder();
 

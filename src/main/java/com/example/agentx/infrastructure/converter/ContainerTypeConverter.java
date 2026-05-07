@@ -1,19 +1,17 @@
 package com.example.agentx.infrastructure.converter;
 
-import com.example.agentx.domain.container.constant.ContainerType;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
+import com.example.agentx.domain.container.constant.ContainerType;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * 容器类型转换器
- */
+/** 容器类型转换器 */
 @MappedTypes(ContainerType.class)
 @MappedJdbcTypes(JdbcType.VARCHAR)
 public class ContainerTypeConverter extends BaseTypeHandler<ContainerType> {

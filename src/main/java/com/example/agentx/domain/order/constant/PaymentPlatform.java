@@ -1,23 +1,15 @@
 package com.example.agentx.domain.order.constant;
 
-/**
- * 支付平台枚举
- */
+/** 支付平台枚举 */
 public enum PaymentPlatform {
 
-    /**
-     * 支付宝
-     */
+    /** 支付宝 */
     ALIPAY("alipay", "支付宝"),
 
-    /**
-     * 微信支付
-     */
+    /** 微信支付 */
     WECHAT("wechat", "微信支付"),
 
-    /**
-     * Stripe
-     */
+    /** Stripe */
     STRIPE("stripe", "Stripe");
 
     private final String code;
@@ -36,9 +28,7 @@ public enum PaymentPlatform {
         return name;
     }
 
-    /**
-     * 根据代码获取枚举值
-     */
+    /** 根据代码获取枚举值 */
     public static PaymentPlatform fromCode(String code) {
         if (code == null || code.trim().isEmpty()) {
             return null;
@@ -51,37 +41,27 @@ public enum PaymentPlatform {
         throw new IllegalArgumentException("未知的支付平台代码: " + code);
     }
 
-    /**
-     * 检查是否支持退款
-     */
+    /** 检查是否支持退款 */
     public boolean supportsRefund() {
         return this == ALIPAY || this == STRIPE;
     }
 
-    /**
-     * 检查是否为第三方支付
-     */
+    /** 检查是否为第三方支付 */
     public boolean isThirdParty() {
         return true; // 目前所有支付平台都是第三方
     }
 
-    /**
-     * 检查是否支持二维码支付
-     */
+    /** 检查是否支持二维码支付 */
     public boolean supportsQrCode() {
         return this == ALIPAY || this == WECHAT;
     }
 
-    /**
-     * 检查是否支持网页支付
-     */
+    /** 检查是否支持网页支付 */
     public boolean supportsWeb() {
         return true; // 所有平台都支持网页支付
     }
 
-    /**
-     * 检查是否支持移动端支付
-     */
+    /** 检查是否支持移动端支付 */
     public boolean supportsMobile() {
         return true; // 所有平台都支持移动端支付
     }

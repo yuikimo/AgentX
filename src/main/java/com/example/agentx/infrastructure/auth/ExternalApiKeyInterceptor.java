@@ -16,9 +16,7 @@ import com.example.agentx.interfaces.api.common.Result;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-/**
- * 外部API Key拦截器 用于验证外部API请求的API Key
- */
+/** 外部API Key拦截器 用于验证外部API请求的API Key */
 @Component
 public class ExternalApiKeyInterceptor implements HandlerInterceptor {
 
@@ -87,9 +85,7 @@ public class ExternalApiKeyInterceptor implements HandlerInterceptor {
         logger.debug("外部API上下文已清理");
     }
 
-    /**
-     * 从请求中提取API Key
-     */
+    /** 从请求中提取API Key */
     private String extractApiKey(HttpServletRequest request) {
         String authHeader = request.getHeader(API_KEY_HEADER);
         if (StringUtils.hasText(authHeader) && authHeader.startsWith(BEARER_PREFIX)) {
@@ -98,9 +94,7 @@ public class ExternalApiKeyInterceptor implements HandlerInterceptor {
         return null;
     }
 
-    /**
-     * 写入错误响应
-     */
+    /** 写入错误响应 */
     private void writeErrorResponse(HttpServletResponse response, int statusCode, String message) throws IOException {
         response.setStatus(statusCode);
         response.setContentType("application/json");

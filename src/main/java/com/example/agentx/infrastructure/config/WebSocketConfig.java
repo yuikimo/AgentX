@@ -8,9 +8,7 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import com.example.agentx.infrastructure.terminal.TerminalWebSocketHandler;
 
-/**
- * WebSocket配置
- */
+/** WebSocket配置 */
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
@@ -26,8 +24,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         logger.info("注册WebSocket处理器: /ws/terminal");
-        registry.addHandler(terminalWebSocketHandler, "/ws/terminal")
-                .setAllowedOriginPatterns("*"); // 开发环境允许所有来源，生产环境应该限制
+        registry.addHandler(terminalWebSocketHandler, "/ws/terminal").setAllowedOriginPatterns("*"); // 开发环境允许所有来源，生产环境应该限制
         logger.info("WebSocket处理器注册完成");
     }
 }

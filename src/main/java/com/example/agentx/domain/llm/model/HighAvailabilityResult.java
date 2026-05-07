@@ -1,28 +1,21 @@
 package com.example.agentx.domain.llm.model;
 
-/**
- * 高可用选择结果
- */
+/** 高可用选择结果
+ * 
+ * @author xhy
+ * @since 1.0.0 */
 public class HighAvailabilityResult {
 
-    /**
-     * 选择的Provider
-     */
+    /** 选择的Provider */
     private ProviderEntity provider;
 
-    /**
-     * 选择的Model（可能有不同的部署名称）
-     */
+    /** 选择的Model（可能有不同的部署名称） */
     private ModelEntity model;
 
-    /**
-     * 实例ID（用于结果上报）
-     */
+    /** 实例ID（用于结果上报） */
     private String instanceId;
 
-    /**
-     * 模型是否被切换（降级到备用模型）
-     */
+    /** 模型是否被切换（降级到备用模型） */
     private boolean switched;
 
     public HighAvailabilityResult() {

@@ -22,21 +22,18 @@ public class MemoryAppService {
         this.memoryDomainService = memoryDomainService;
     }
 
-    /**
-     * 分页列出用户记忆
-     */
+    /** 分页列出用户记忆 */
     public Page<MemoryItemDTO> listUserMemories(String userId, QueryMemoryRequest request) {
         int pageNo = request.getPage() != null ? request.getPage() : 1;
         int pageSize = request.getPageSize() != null ? request.getPageSize() : 20;
-        Page<MemoryItemEntity> page = memoryDomainService.pageMemories(userId, request.getType(), pageNo, pageSize);
+        Page<MemoryItemEntity> page = memoryDomainService.pageMemories(userId, request.getType(), request.getKeyword(),
+                pageNo, pageSize);
         Page<MemoryItemDTO> dtoPage = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
         dtoPage.setRecords(MemoryAssembler.toDTOs(page.getRecords()));
         return dtoPage;
     }
 
-    /**
-     * 手动创建记忆
-     */
+    /** 手动创建记忆 */
     public List<String> createMemory(String userId, CreateMemoryRequest request) {
         CandidateMemory cm = com.example.agentx.application.memory.assembler.MemoryCommandAssembler.toCandidate(request);
         List<CandidateMemory> list = new ArrayList<>();
@@ -44,10 +41,13 @@ public class MemoryAppService {
         return memoryDomainService.saveMemories(userId, null, list);
     }
 
-    /**
-     * 归档（软删除）记忆
-     */
+    /** 归档（软删除）记忆 */
     public boolean deleteMemory(String userId, String itemId) {
         return memoryDomainService.delete(userId, itemId);
+    }
+
+    /** 批量归档（软删除）记忆 */
+    public int deleteMemories(String userId, List<String> itemIds) {
+        return memoryDomainService.deleteBatch(userId, itemIds);
     }
 }

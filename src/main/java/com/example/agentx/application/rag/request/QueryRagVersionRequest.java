@@ -2,19 +2,16 @@ package com.example.agentx.application.rag.request;
 
 import com.example.agentx.interfaces.dto.Page;
 
-/**
- * 查询RAG版本请求
+/** 查询RAG版本请求
+ * @author xhy
+ * @date 2025-07-18 <br/>
  */
 public class QueryRagVersionRequest extends Page {
 
-    /**
-     * 搜索关键词
-     */
+    /** 搜索关键词 */
     private String keyword;
 
-    /**
-     * 状态筛选
-     */
+    /** 状态筛选 */
     private Integer status;
 
     public String getKeyword() {

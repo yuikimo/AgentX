@@ -9,11 +9,9 @@ import com.example.agentx.domain.rag.strategy.context.ProcessingContext;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * 节点翻译服务
- * <p>
- * 负责协调所有的 NodeTranslator 实现，选择合适的翻译器处理特定类型的节点
- */
+/** 节点翻译服务
+ * 
+ * 负责协调所有的 NodeTranslator 实现，选择合适的翻译器处理特定类型的节点 */
 @Service
 public class NodeTranslatorService {
 
@@ -29,13 +27,11 @@ public class NodeTranslatorService {
                 this.translators.stream().map(NodeTranslator::getType).toList());
     }
 
-    /**
-     * 翻译节点内容
-     *
-     * @param node    AST节点
+    /** 翻译节点内容
+     * 
+     * @param node AST节点
      * @param context 处理上下文
-     * @return 翻译后的内容，如果没有合适的翻译器则返回原内容
-     */
+     * @return 翻译后的内容，如果没有合适的翻译器则返回原内容 */
     public String translate(Node node, ProcessingContext context) {
         if (node == null) {
             return "";
@@ -69,12 +65,10 @@ public class NodeTranslatorService {
         return originalContent;
     }
 
-    /**
-     * 检查是否有翻译器可以处理指定类型的节点
-     *
+    /** 检查是否有翻译器可以处理指定类型的节点
+     * 
      * @param node AST节点
-     * @return 是否有翻译器可以处理
-     */
+     * @return 是否有翻译器可以处理 */
     public boolean canTranslate(Node node) {
         return translators.stream().anyMatch(translator -> {
             try {
@@ -86,11 +80,9 @@ public class NodeTranslatorService {
         });
     }
 
-    /**
-     * 获取所有已注册的翻译器信息
-     *
-     * @return 翻译器信息列表
-     */
+    /** 获取所有已注册的翻译器信息
+     * 
+     * @return 翻译器信息列表 */
     public List<String> getTranslatorInfo() {
         return translators.stream()
                 .map(translator -> String.format("%s (priority: %d)", translator.getType(), translator.getPriority()))

@@ -8,6 +8,9 @@ import com.example.agentx.domain.rag.strategy.DocumentProcessingStrategy;
 
 import jakarta.annotation.Resource;
 
+/** @author shilong.zang
+ * @date 09:39 <br/>
+ */
 @Service
 public class DocumentProcessingFactory {
 

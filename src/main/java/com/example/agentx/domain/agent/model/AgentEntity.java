@@ -15,93 +15,63 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Agent实体类，代表一个AI助手
- */
+/** Agent实体类，代表一个AI助手 */
 @TableName(value = "agents", autoResultMap = true)
 public class AgentEntity extends BaseEntity {
 
-    /**
-     * Agent唯一ID
-     */
+    /** Agent唯一ID */
     @TableId(value = "id", type = IdType.ASSIGN_UUID)
     private String id;
 
-    /**
-     * Agent名称
-     */
+    /** Agent名称 */
     @TableField("name")
     private String name;
 
-    /**
-     * Agent头像URL
-     */
+    /** Agent头像URL */
     @TableField("avatar")
     private String avatar;
 
-    /**
-     * Agent描述
-     */
+    /** Agent描述 */
     @TableField("description")
     private String description;
 
-    /**
-     * Agent系统提示词
-     */
+    /** Agent系统提示词 */
     @TableField("system_prompt")
     private String systemPrompt;
 
-    /**
-     * 欢迎消息
-     */
+    /** 欢迎消息 */
     @TableField("welcome_message")
     private String welcomeMessage;
 
-    /**
-     * Agent可使用的工具列表
-     */
+    /** Agent可使用的工具列表 */
     @TableField(value = "tool_ids", typeHandler = ListStringConverter.class)
     private List<String> toolIds;
 
-    /**
-     * 关联的知识库ID列表
-     */
+    /** 关联的知识库ID列表 */
     @TableField(value = "knowledge_base_ids", typeHandler = ListStringConverter.class)
     private List<String> knowledgeBaseIds;
 
-    /**
-     * 当前发布的版本ID
-     */
+    /** 当前发布的版本ID */
     @TableField("published_version")
     private String publishedVersion;
 
-    /**
-     * Agent状态：1-启用，0-禁用
-     */
+    /** Agent状态：1-启用，0-禁用 */
     @TableField("enabled")
     private Boolean enabled;
 
-    /**
-     * 创建者用户ID
-     */
+    /** 创建者用户ID */
     @TableField("user_id")
     private String userId;
 
-    /**
-     * 预先设置工具参数，结构如下： { "<mcpServerName>":{ "toolName":"paranms" } }
-     */
+    /** 预先设置工具参数，结构如下： { "<mcpServerName>":{ "toolName":"paranms" } } */
     @TableField(value = "tool_preset_params", typeHandler = MapConverter.class)
     private Map<String, Map<String, Map<String, String>>> toolPresetParams;
 
-    /**
-     * 是否支持多模态
-     */
+    /** 是否支持多模态 */
     @TableField("multi_modal")
     private Boolean multiModal;
 
-    /**
-     * 无参构造函数
-     */
+    /** 无参构造函数 */
     public AgentEntity() {
         this.toolIds = new ArrayList<>();
         this.knowledgeBaseIds = new ArrayList<>();
@@ -196,9 +166,7 @@ public class AgentEntity extends BaseEntity {
         this.userId = userId;
     }
 
-    /**
-     * 创建新的Agent对象
-     */
+    /** 创建新的Agent对象 */
     public static AgentEntity createNew(String name, String description, String avatar, String userId) {
         AgentEntity agent = new AgentEntity();
         agent.setName(name);
@@ -211,9 +179,7 @@ public class AgentEntity extends BaseEntity {
         return agent;
     }
 
-    /**
-     * 更新Agent基本信息
-     */
+    /** 更新Agent基本信息 */
     public void updateBasicInfo(String name, String avatar, String description) {
         this.name = name;
         this.avatar = avatar;
@@ -221,33 +187,25 @@ public class AgentEntity extends BaseEntity {
         this.updatedAt = LocalDateTime.now();
     }
 
-    /**
-     * 启用Agent
-     */
+    /** 启用Agent */
     public void enable() {
         this.enabled = true;
         this.updatedAt = LocalDateTime.now();
     }
 
-    /**
-     * 禁用Agent
-     */
+    /** 禁用Agent */
     public void disable() {
         this.enabled = false;
         this.updatedAt = LocalDateTime.now();
     }
 
-    /**
-     * 发布新版本
-     */
+    /** 发布新版本 */
     public void publishVersion(String versionId) {
         this.publishedVersion = versionId;
         this.updatedAt = LocalDateTime.now();
     }
 
-    /**
-     * 软删除
-     */
+    /** 软删除 */
     public void delete() {
         this.deletedAt = LocalDateTime.now();
     }
@@ -258,9 +216,7 @@ public class AgentEntity extends BaseEntity {
         }
     }
 
-    /**
-     * 获取预先设置的工具参数
-     */
+    /** 获取预先设置的工具参数 */
     public Map<String, Map<String, Map<String, String>>> getToolPresetParams() {
         return toolPresetParams;
     }

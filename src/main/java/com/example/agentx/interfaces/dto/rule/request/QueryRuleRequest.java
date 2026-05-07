@@ -2,19 +2,13 @@ package com.example.agentx.interfaces.dto.rule.request;
 
 import com.example.agentx.interfaces.dto.Page;
 
-/**
- * 查询规则请求
- */
+/** 查询规则请求 */
 public class QueryRuleRequest extends Page {
 
-    /**
-     * 处理器标识过滤
-     */
+    /** 处理器标识过滤 */
     private String handlerKey;
 
-    /**
-     * 关键词搜索（规则名称或描述）
-     */
+    /** 关键词搜索（规则名称或描述） */
     private String keyword;
 
     public QueryRuleRequest() {

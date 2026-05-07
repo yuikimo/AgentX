@@ -1,10 +1,9 @@
 package com.example.agentx.infrastructure.mq.core;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.MDC;
 import com.example.agentx.infrastructure.mq.enums.EventType;
+import com.example.agentx.infrastructure.utils.JsonUtils;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -12,13 +11,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Canonical message envelope wrapping any payload with metadata.
- */
+/** Canonical message envelope wrapping any payload with metadata. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public final class MessageEnvelope<T> {
-
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private String traceId;
     private String description;
@@ -63,11 +58,7 @@ public final class MessageEnvelope<T> {
     }
 
     public String toJson() {
-        try {
-            return MAPPER.writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException("Failed to serialize message envelope", e);
-        }
+        return JsonUtils.toJsonString(this);
     }
 
     public static final class Builder<T> {

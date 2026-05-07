@@ -1,12 +1,9 @@
 package com.example.agentx.interfaces.dto.container.request;
 
 import jakarta.validation.constraints.*;
-
 import java.util.Map;
 
-/**
- * 创建容器模板请求
- */
+/** 创建容器模板请求 */
 public class CreateContainerTemplateRequest {
 
     @NotBlank(message = "模板名称不可为空")

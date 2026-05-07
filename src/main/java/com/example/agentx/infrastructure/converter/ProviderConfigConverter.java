@@ -1,9 +1,12 @@
 package com.example.agentx.infrastructure.converter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.example.agentx.domain.llm.model.config.ProviderConfig;
 import com.example.agentx.infrastructure.utils.JsonUtils;
 import com.example.agentx.infrastructure.utils.ValidationUtils;
@@ -13,9 +16,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * 服务商配置转换器 处理加密存储的配置信息
- */
+/** 服务商配置转换器 处理加密存储的配置信息 */
 @MappedTypes(ProviderConfig.class)
 @MappedJdbcTypes({JdbcType.VARCHAR, JdbcType.LONGVARCHAR, JdbcType.OTHER})
 public class ProviderConfigConverter extends BaseTypeHandler<ProviderConfig> {
@@ -50,8 +51,7 @@ public class ProviderConfigConverter extends BaseTypeHandler<ProviderConfig> {
             return new ProviderConfig();
         }
 
-        String jsonStr = ValidationUtils.EncryptUtils.decrypt(encryptedStr);
-        ;
+        String jsonStr = ValidationUtils.EncryptUtils.decrypt(encryptedStr);;
 
         return JsonUtils.parseObject(jsonStr, ProviderConfig.class);
 

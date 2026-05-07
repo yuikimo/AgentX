@@ -4,13 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import com.example.agentx.application.container.dto.ContainerDTO;
+import com.example.agentx.domain.container.model.ContainerEntity;
 import com.example.agentx.infrastructure.exception.BusinessException;
 
-/**
- * 审核容器服务
- * <p>
- * 负责管理工具审核所需的容器环境
- */
+/** 审核容器服务
+ * 
+ * 负责管理工具审核所需的容器环境 */
 @Service
 public class ReviewContainerService {
 
@@ -22,12 +21,10 @@ public class ReviewContainerService {
         this.containerAppService = containerAppService;
     }
 
-    /**
-     * 获取审核容器连接信息
-     *
+    /** 获取审核容器连接信息
+     * 
      * @return 审核容器连接信息
-     * @throws BusinessException 如果审核容器不可用
-     */
+     * @throws BusinessException 如果审核容器不可用 */
     public ReviewContainerConnection getReviewContainerConnection() {
         try {
             // 获取或创建审核容器（现在会等待容器完全准备就绪）
@@ -55,11 +52,9 @@ public class ReviewContainerService {
         }
     }
 
-    /**
-     * 检查审核容器健康状态
-     *
-     * @return 健康检查结果
-     */
+    /** 检查审核容器健康状态
+     * 
+     * @return 健康检查结果 */
     public ReviewContainerHealthStatus checkReviewContainerHealth() {
         try {
             ContainerDTO reviewContainer = containerAppService.getOrCreateReviewContainer();
@@ -80,11 +75,9 @@ public class ReviewContainerService {
         }
     }
 
-    /**
-     * 重新创建审核容器
-     *
-     * @return 新的审核容器信息
-     */
+    /** 重新创建审核容器
+     * 
+     * @return 新的审核容器信息 */
     public ContainerDTO recreateReviewContainer() {
         logger.info("重新创建审核容器");
 
@@ -99,9 +92,7 @@ public class ReviewContainerService {
         }
     }
 
-    /**
-     * 检查容器是否健康（使用统一的健康检查标准）
-     */
+    /** 检查容器是否健康（使用统一的健康检查标准） */
     private boolean isContainerHealthy(ContainerDTO container) {
         if (container == null) {
             return false;
@@ -126,9 +117,7 @@ public class ReviewContainerService {
         return basicHealthy;
     }
 
-    /**
-     * 审核容器连接信息
-     */
+    /** 审核容器连接信息 */
     public static class ReviewContainerConnection {
         private final String ipAddress;
         private final Integer port;
@@ -158,9 +147,7 @@ public class ReviewContainerService {
             return containerName;
         }
 
-        /**
-         * 构建容器基础URL
-         */
+        /** 构建容器基础URL */
         public String getBaseUrl() {
             return "http://" + ipAddress + ":" + port;
         }
@@ -172,9 +159,7 @@ public class ReviewContainerService {
         }
     }
 
-    /**
-     * 审核容器健康状态
-     */
+    /** 审核容器健康状态 */
     public static class ReviewContainerHealthStatus {
         private final boolean healthy;
         private final String message;

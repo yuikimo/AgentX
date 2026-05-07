@@ -1,8 +1,6 @@
 package com.example.agentx.infrastructure.exception;
 
-/**
- * 实体未找到异常
- */
+/** 实体未找到异常 */
 public class EntityNotFoundException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;

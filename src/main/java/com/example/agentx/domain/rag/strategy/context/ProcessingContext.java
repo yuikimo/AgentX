@@ -9,40 +9,28 @@ import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 import com.example.agentx.infrastructure.rag.factory.EmbeddingModelFactory;
 import com.example.agentx.infrastructure.rag.service.UserModelConfigResolver;
 
-/**
- * Markdown处理上下文
- */
+/** Markdown处理上下文 */
 public class ProcessingContext {
 
     private static final Logger log = LoggerFactory.getLogger(ProcessingContext.class);
 
-    /**
-     * 嵌入模型配置
-     */
+    /** 嵌入模型配置 */
     private final EmbeddingModelFactory.EmbeddingConfig embeddingConfig;
 
-    /**
-     * LLM配置（用于公式和表格翻译）
-     */
+    /** LLM配置（用于公式和表格翻译） */
     private final ProviderConfig llmConfig;
 
-    /**
-     * 视觉模型配置（用于图片处理）
-     */
+    /** 视觉模型配置（用于图片处理） */
     private final ProviderConfig visionModelConfig;
 
-    /**
-     * 用户ID
-     */
+    /** 用户ID */
     private final String userId;
 
-    /**
-     * 文件ID
-     */
+    /** 文件ID */
     private final String fileId;
 
     public ProcessingContext(EmbeddingModelFactory.EmbeddingConfig embeddingConfig, ProviderConfig llmConfig,
-                             ProviderConfig visionModelConfig, String userId, String fileId) {
+            ProviderConfig visionModelConfig, String userId, String fileId) {
         this.embeddingConfig = embeddingConfig;
         this.llmConfig = llmConfig;
         this.visionModelConfig = visionModelConfig;
@@ -50,13 +38,11 @@ public class ProcessingContext {
         this.fileId = fileId;
     }
 
-    /**
-     * 从RagDocSyncOcrMessage构建处理上下文
+    /** 从RagDocSyncOcrMessage构建处理上下文
      *
-     * @param message                 消息对象
+     * @param message 消息对象
      * @param userModelConfigResolver 用户模型配置解析器
-     * @return 处理上下文
-     */
+     * @return 处理上下文 */
     public static ProcessingContext from(RagDocMessage message, UserModelConfigResolver userModelConfigResolver) {
         try {
             String userId = message.getUserId();
@@ -71,14 +57,15 @@ public class ProcessingContext {
                 log.warn("获取用户 {} 嵌入模型配置失败: {}", userId, e.getMessage());
             }
 
-            // 获取聊天模型配置（用于LLM处理）
+            // 获取聊天模型配置（优先会话/工作区，兜底用户默认模型，用于LLM处理）
             ProviderConfig llmConfig = null;
             try {
-                ModelConfig chatModelConfig = userModelConfigResolver.getUserChatModelConfig(userId);
+                ModelConfig chatModelConfig = userModelConfigResolver.getPreferredChatModelConfig(userId,
+                        message.getSessionId());
                 llmConfig = new ProviderConfig(chatModelConfig.getApiKey(), chatModelConfig.getBaseUrl(),
                         chatModelConfig.getModelEndpoint(), ProviderProtocol.OPENAI);
             } catch (Exception e) {
-                log.warn("获取用户 {} 聊天模型配置失败: {}", userId, e.getMessage());
+                log.warn("获取用户 {} 聊天模型配置失败(sessionId={}): {}", userId, message.getSessionId(), e.getMessage());
             }
 
             // 获取OCR/视觉模型配置
@@ -87,6 +74,7 @@ public class ProcessingContext {
                 ModelConfig ocrModelConfig = userModelConfigResolver.getUserOcrModelConfig(userId);
                 visionModelConfig = new ProviderConfig(ocrModelConfig.getApiKey(), ocrModelConfig.getBaseUrl(),
                         ocrModelConfig.getModelEndpoint(), ProviderProtocol.OPENAI);
+                visionModelConfig.setDisableEnableThinking(true);
             } catch (Exception e) {
                 log.warn("获取用户 {} OCR模型配置失败: {}", userId, e.getMessage());
             }

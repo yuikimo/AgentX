@@ -2,20 +2,14 @@ package com.example.agentx.interfaces.dto.apikey.request;
 
 import jakarta.validation.constraints.NotBlank;
 
-/**
- * 创建API密钥请求对象
- */
+/** 创建API密钥请求对象 */
 public class CreateApiKeyRequest {
 
-    /**
-     * 关联的Agent ID
-     */
+    /** 关联的Agent ID */
     @NotBlank(message = "Agent ID不可为空")
     private String agentId;
 
-    /**
-     * API Key名称/描述
-     */
+    /** API Key名称/描述 */
     @NotBlank(message = "API Key名称不可为空")
     private String name;
 

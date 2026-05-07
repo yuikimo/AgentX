@@ -5,6 +5,7 @@ import static dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metad
 import org.dromara.x.file.storage.core.FileInfo;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Qualifier;
+import com.example.agentx.domain.file.constant.FileTypeEnum;
 import com.example.agentx.domain.rag.constant.FileProcessingStatusEnum;
 import com.example.agentx.domain.rag.constant.MetadataConstant;
 import com.example.agentx.domain.rag.model.DocumentUnitEntity;
@@ -24,25 +25,27 @@ import cn.hutool.core.util.StrUtil;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 
-/**
- * RAG 文件存储策略
- * <p>
+/** RAG 文件存储策略
+ * 
  * 处理RAG文档的完整业务流程，包括文档单元创建、向量存储等
- */
+ * 
+ * @author shilong.zang
+ * @date 2024-12-09 */
 @Component
 public class RagFileStorageStrategy implements FileStorageStrategy {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final FileDetailRepository fileDetailRepository;
     private final DocumentUnitRepository documentUnitRepository;
     private final EmbeddingStore<TextSegment> embeddingStore;
 
     public RagFileStorageStrategy(FileDetailRepository fileDetailRepository,
-                                  DocumentUnitRepository documentUnitRepository,
-                                  @Qualifier("initEmbeddingStore") EmbeddingStore<TextSegment> embeddingStore) {
+            DocumentUnitRepository documentUnitRepository,
+            @Qualifier("initEmbeddingStore") EmbeddingStore<TextSegment> embeddingStore, ObjectMapper objectMapper) {
         this.fileDetailRepository = fileDetailRepository;
         this.documentUnitRepository = documentUnitRepository;
         this.embeddingStore = embeddingStore;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -115,9 +118,7 @@ public class RagFileStorageStrategy implements FileStorageStrategy {
         return true;
     }
 
-    /**
-     * 将FileInfo转换为FileDetailEntity
-     */
+    /** 将FileInfo转换为FileDetailEntity */
     private FileDetailEntity convertToFileDetailEntity(FileInfo fileInfo) throws JsonProcessingException {
         FileDetailEntity fileDetailEntity = BeanUtil.copyProperties(fileInfo, FileDetailEntity.class, "metadata",
                 "userMetadata", "thMetadata", "thUserMetadata", "attr", "hashInfo");
@@ -144,9 +145,7 @@ public class RagFileStorageStrategy implements FileStorageStrategy {
         return fileDetailEntity;
     }
 
-    /**
-     * 将FileDetailEntity转换为FileInfo
-     */
+    /** 将FileDetailEntity转换为FileInfo */
     private FileInfo convertToFileInfo(FileDetailEntity fileDetailEntity) throws JsonProcessingException {
         FileInfo fileInfo = BeanUtil.copyProperties(fileDetailEntity, FileInfo.class, "metadata", "userMetadata",
                 "thMetadata", "thUserMetadata", "attr", "hashInfo");
@@ -167,9 +166,7 @@ public class RagFileStorageStrategy implements FileStorageStrategy {
         return fileInfo;
     }
 
-    /**
-     * 将对象转换为JSON字符串
-     */
+    /** 将对象转换为JSON字符串 */
     private String valueToJson(Object value) throws JsonProcessingException {
         if (value == null) {
             return null;
@@ -177,9 +174,7 @@ public class RagFileStorageStrategy implements FileStorageStrategy {
         return objectMapper.writeValueAsString(value);
     }
 
-    /**
-     * 将JSON字符串转换为元数据Map
-     */
+    /** 将JSON字符串转换为元数据Map */
     private java.util.Map<String, String> jsonToMetadata(String json) throws JsonProcessingException {
         if (StrUtil.isBlank(json)) {
             return null;
@@ -188,9 +183,7 @@ public class RagFileStorageStrategy implements FileStorageStrategy {
         });
     }
 
-    /**
-     * 将JSON字符串转换为字典对象
-     */
+    /** 将JSON字符串转换为字典对象 */
     private Dict jsonToDict(String json) throws JsonProcessingException {
         if (StrUtil.isBlank(json)) {
             return null;

@@ -20,28 +20,22 @@ public class SsoController {
         this.ssoAppService = ssoAppService;
     }
 
-    /**
-     * 获取SSO登录URL
-     *
-     * @param provider    SSO提供商（community、github等）
+    /** 获取SSO登录URL
+     * @param provider SSO提供商（community、github等）
      * @param redirectUrl 登录成功后的回调地址
-     * @return 登录URL
-     */
+     * @return 登录URL */
     @GetMapping("/{provider}/login")
     public Result<Map<String, String>> getSsoLoginUrl(@PathVariable String provider,
-                                                      @RequestParam(required = false) String redirectUrl) {
+            @RequestParam(required = false) String redirectUrl) {
 
         String loginUrl = ssoAppService.getSsoLoginUrl(provider, redirectUrl);
         return Result.success(Map.of("loginUrl", loginUrl));
     }
 
-    /**
-     * SSO登录回调处理
-     *
+    /** SSO登录回调处理
      * @param provider SSO提供商
-     * @param code     授权码
-     * @return 登录token
-     */
+     * @param code 授权码
+     * @return 登录token */
     @GetMapping("/{provider}/callback")
     public Result<Map<String, Object>> handleSsoCallback(@PathVariable String provider, @RequestParam String code) {
 

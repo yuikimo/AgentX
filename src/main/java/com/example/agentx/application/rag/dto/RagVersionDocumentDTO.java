@@ -2,34 +2,25 @@ package com.example.agentx.application.rag.dto;
 
 import java.time.LocalDateTime;
 
-/**
- * RAG版本文档DTO
+/** RAG版本文档DTO
+ * @author xhy
+ * @date 2025-07-18 <br/>
  */
 public class RagVersionDocumentDTO {
 
-    /**
-     * 文档ID
-     */
+    /** 文档ID */
     private String id;
 
-    /**
-     * 文档内容
-     */
+    /** 文档内容 */
     private String content;
 
-    /**
-     * 页码
-     */
+    /** 页码 */
     private Integer page;
 
-    /**
-     * 关联的文件名
-     */
+    /** 关联的文件名 */
     private String fileName;
 
-    /**
-     * 创建时间
-     */
+    /** 创建时间 */
     private LocalDateTime createdAt;
 
     public String getId() {

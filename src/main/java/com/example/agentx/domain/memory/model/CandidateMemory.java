@@ -3,9 +3,7 @@ package com.example.agentx.domain.memory.model;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 记忆候选（抽取器输出）
- */
+/** 记忆候选（抽取器输出） */
 public class CandidateMemory {
     private MemoryType type;
     private String text;

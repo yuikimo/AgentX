@@ -168,11 +168,9 @@ public class GitHubSsoService implements SsoService {
         return null;
     }
 
-    /**
-     * 获取有效的配置（仅从数据库读取）
-     *
-     * @return 有效的GitHub配置
-     */
+    /** 获取有效的配置（仅从数据库读取）
+     * 
+     * @return 有效的GitHub配置 */
     private SsoConfigProvider.GitHubSsoConfig getEffectiveConfig() {
         SsoConfigProvider.GitHubSsoConfig config = ssoConfigProvider.getGitHubConfig();
 

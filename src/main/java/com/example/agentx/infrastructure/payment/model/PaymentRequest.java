@@ -3,84 +3,52 @@ package com.example.agentx.infrastructure.payment.model;
 import java.math.BigDecimal;
 import java.util.Map;
 
-/**
- * 支付请求封装类
- */
+/** 支付请求封装类 */
 public class PaymentRequest {
 
-    /**
-     * 订单ID
-     */
+    /** 订单ID */
     private String orderId;
 
-    /**
-     * 支付ID
-     */
+    /** 支付ID */
     private String paymentId;
 
-    /**
-     * 订单号
-     */
+    /** 订单号 */
     private String orderNo;
 
-    /**
-     * 订单标题
-     */
+    /** 订单标题 */
     private String title;
 
-    /**
-     * 订单描述
-     */
+    /** 订单描述 */
     private String description;
 
-    /**
-     * 支付金额
-     */
+    /** 支付金额 */
     private BigDecimal amount;
 
-    /**
-     * 货币代码
-     */
+    /** 货币代码 */
     private String currency;
 
-    /**
-     * 用户ID
-     */
+    /** 用户ID */
     private String userId;
 
-    /**
-     * 支付成功回调URL
-     */
+    /** 支付成功回调URL */
     private String successUrl;
 
-    /**
-     * 支付取消回调URL
-     */
+    /** 支付取消回调URL */
     private String cancelUrl;
 
-    /**
-     * 异步通知URL
-     */
+    /** 异步通知URL */
     private String notifyUrl;
 
-    /**
-     * 客户端IP
-     */
+    /** 客户端IP */
     private String clientIp;
 
-    /**
-     * 用户代理
-     */
+    /** 用户代理 */
     private String userAgent;
 
-    /**
-     * 支付类型
-     */
+    /** 支付类型 */
     private String paymentType;
 
-    /**
-     * 扩展参数
-     */
+    /** 扩展参数 */
     private Map<String, String> extraParams;
 
     public PaymentRequest() {
@@ -207,16 +175,12 @@ public class PaymentRequest {
         this.paymentType = paymentType;
     }
 
-    /**
-     * 获取扩展参数值
-     */
+    /** 获取扩展参数值 */
     public String getExtraParam(String key) {
         return extraParams != null ? extraParams.get(key) : null;
     }
 
-    /**
-     * 设置扩展参数值
-     */
+    /** 设置扩展参数值 */
     public void setExtraParam(String key, String value) {
         if (extraParams == null) {
             extraParams = new java.util.HashMap<>();
@@ -224,9 +188,7 @@ public class PaymentRequest {
         extraParams.put(key, value);
     }
 
-    /**
-     * 验证请求参数
-     */
+    /** 验证请求参数 */
     public void validate() {
         if (orderId == null || orderId.trim().isEmpty()) {
             throw new IllegalArgumentException("订单ID不能为空");

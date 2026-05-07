@@ -21,8 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 用户RAG快照服务 - 负责SNAPSHOT类型RAG的数据复制和管理
+/** 用户RAG快照服务 - 负责SNAPSHOT类型RAG的数据复制和管理
+ * @author xhy
+ * @date 2025-07-22 <br/>
  */
 @Service
 public class UserRagSnapshotDomainService {
@@ -35,21 +36,18 @@ public class UserRagSnapshotDomainService {
     private final RagVersionDocumentRepository ragVersionDocumentRepository;
 
     public UserRagSnapshotDomainService(UserRagFileRepository userRagFileRepository,
-                                        UserRagDocumentRepository userRagDocumentRepository,
-                                        RagVersionFileRepository ragVersionFileRepository,
-                                        RagVersionDocumentRepository ragVersionDocumentRepository) {
+            UserRagDocumentRepository userRagDocumentRepository, RagVersionFileRepository ragVersionFileRepository,
+            RagVersionDocumentRepository ragVersionDocumentRepository) {
         this.userRagFileRepository = userRagFileRepository;
         this.userRagDocumentRepository = userRagDocumentRepository;
         this.ragVersionFileRepository = ragVersionFileRepository;
         this.ragVersionDocumentRepository = ragVersionDocumentRepository;
     }
 
-    /**
-     * 为用户安装创建完整快照
-     *
-     * @param userRagId    用户RAG安装记录ID
-     * @param ragVersionId RAG版本ID
-     */
+    /** 为用户安装创建完整快照
+     * 
+     * @param userRagId 用户RAG安装记录ID
+     * @param ragVersionId RAG版本ID */
     public void createUserSnapshot(String userRagId, String ragVersionId) {
         logger.info("开始为用户RAG [{}] 创建版本 [{}] 的完整快照", userRagId, ragVersionId);
 
@@ -69,12 +67,10 @@ public class UserRagSnapshotDomainService {
         }
     }
 
-    /**
-     * 复制版本文件快照到用户快照
-     *
-     * @param userRagId    用户RAG安装记录ID
-     * @param ragVersionId RAG版本ID
-     */
+    /** 复制版本文件快照到用户快照
+     * 
+     * @param userRagId 用户RAG安装记录ID
+     * @param ragVersionId RAG版本ID */
     public void copyVersionFilesToUser(String userRagId, String ragVersionId) {
         // 查询版本文件快照
         LambdaQueryWrapper<RagVersionFileEntity> wrapper = Wrappers.<RagVersionFileEntity>lambdaQuery()
@@ -99,12 +95,10 @@ public class UserRagSnapshotDomainService {
         logger.info("文件快照复制完成，共复制 {} 个文件", versionFiles.size());
     }
 
-    /**
-     * 复制版本文档快照到用户快照
-     *
-     * @param userRagId    用户RAG安装记录ID
-     * @param ragVersionId RAG版本ID
-     */
+    /** 复制版本文档快照到用户快照
+     * 
+     * @param userRagId 用户RAG安装记录ID
+     * @param ragVersionId RAG版本ID */
     public void copyVersionDocumentsToUser(String userRagId, String ragVersionId) {
         // 查询版本文档快照
         LambdaQueryWrapper<RagVersionDocumentEntity> wrapper = Wrappers.<RagVersionDocumentEntity>lambdaQuery()
@@ -132,11 +126,9 @@ public class UserRagSnapshotDomainService {
         logger.info("文档快照复制完成，共复制 {} 个文档", versionDocuments.size());
     }
 
-    /**
-     * 删除用户RAG的所有快照数据
-     *
-     * @param userRagId 用户RAG安装记录ID
-     */
+    /** 删除用户RAG的所有快照数据
+     * 
+     * @param userRagId 用户RAG安装记录ID */
     public void deleteUserSnapshot(String userRagId) {
         logger.info("开始删除用户RAG [{}] 的所有快照数据", userRagId);
 
@@ -153,24 +145,20 @@ public class UserRagSnapshotDomainService {
         logger.info("用户RAG [{}] 快照数据删除完成", userRagId);
     }
 
-    /**
-     * 获取用户RAG的文件数量
-     *
+    /** 获取用户RAG的文件数量
+     * 
      * @param userRagId 用户RAG安装记录ID
-     * @return 文件数量
-     */
+     * @return 文件数量 */
     public Integer getUserRagFileCount(String userRagId) {
         LambdaQueryWrapper<UserRagFileEntity> wrapper = Wrappers.<UserRagFileEntity>lambdaQuery()
                 .eq(UserRagFileEntity::getUserRagId, userRagId);
         return Math.toIntExact(userRagFileRepository.selectCount(wrapper));
     }
 
-    /**
-     * 获取用户RAG的文档数量
-     *
+    /** 获取用户RAG的文档数量
+     * 
      * @param userRagId 用户RAG安装记录ID
-     * @return 文档数量
-     */
+     * @return 文档数量 */
     public Integer getUserRagDocumentCount(String userRagId) {
         LambdaQueryWrapper<UserRagDocumentEntity> wrapper = Wrappers.<UserRagDocumentEntity>lambdaQuery()
                 .eq(UserRagDocumentEntity::getUserRagId, userRagId);
@@ -179,9 +167,7 @@ public class UserRagSnapshotDomainService {
 
     // ========== 私有辅助方法 ==========
 
-    /**
-     * 回滚用户快照数据
-     */
+    /** 回滚用户快照数据 */
     private void rollbackUserSnapshot(String userRagId) {
         try {
             deleteUserSnapshot(userRagId);
@@ -190,9 +176,7 @@ public class UserRagSnapshotDomainService {
         }
     }
 
-    /**
-     * 转换版本文件为用户文件
-     */
+    /** 转换版本文件为用户文件 */
     private UserRagFileEntity convertToUserRagFile(RagVersionFileEntity versionFile, String userRagId) {
         UserRagFileEntity userFile = new UserRagFileEntity();
         BeanUtils.copyProperties(versionFile, userFile);
@@ -200,11 +184,9 @@ public class UserRagSnapshotDomainService {
         return userFile;
     }
 
-    /**
-     * 转换版本文档为用户文档
-     */
+    /** 转换版本文档为用户文档 */
     private UserRagDocumentEntity convertToUserRagDocument(RagVersionDocumentEntity versionDoc, String userRagId,
-                                                           Map<String, String> fileIdMapping) {
+            Map<String, String> fileIdMapping) {
         UserRagDocumentEntity userDoc = new UserRagDocumentEntity();
         userDoc.setUserRagId(userRagId);
 
@@ -223,9 +205,7 @@ public class UserRagSnapshotDomainService {
         return userDoc;
     }
 
-    /**
-     * 建立文件ID映射关系：版本文件ID -> 用户文件ID
-     */
+    /** 建立文件ID映射关系：版本文件ID -> 用户文件ID */
     private Map<String, String> buildFileIdMapping(String userRagId, String ragVersionId) {
         // 获取版本文件列表
         LambdaQueryWrapper<RagVersionFileEntity> versionWrapper = Wrappers.<RagVersionFileEntity>lambdaQuery()

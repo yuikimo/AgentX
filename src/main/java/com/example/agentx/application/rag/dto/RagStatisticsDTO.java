@@ -1,38 +1,27 @@
 package com.example.agentx.application.rag.dto;
 
-/**
- * RAG统计数据DTO
+/** RAG统计数据DTO
+ * @author xhy
+ * @date 2025-07-18 <br/>
  */
 public class RagStatisticsDTO {
 
-    /**
-     * 总RAG数量
-     */
+    /** 总RAG数量 */
     private Long totalRags;
 
-    /**
-     * 待审核数量
-     */
+    /** 待审核数量 */
     private Long pendingReview;
 
-    /**
-     * 已发布数量
-     */
+    /** 已发布数量 */
     private Long approved;
 
-    /**
-     * 已拒绝数量
-     */
+    /** 已拒绝数量 */
     private Long rejected;
 
-    /**
-     * 已下架数量
-     */
+    /** 已下架数量 */
     private Long removed;
 
-    /**
-     * 总安装次数
-     */
+    /** 总安装次数 */
     private Long totalInstalls;
 
     public Long getTotalRags() {

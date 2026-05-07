@@ -15,14 +15,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Agent领域对象组装器 负责DTO、Entity和Request之间的转换
- */
+/** Agent领域对象组装器 负责DTO、Entity和Request之间的转换 */
 public class AgentAssembler {
 
-    /**
-     * 将CreateAgentRequest转换为AgentEntity
-     */
+    /** 将CreateAgentRequest转换为AgentEntity */
     public static AgentEntity toEntity(CreateAgentRequest request, String userId) {
         AgentEntity entity = new AgentEntity();
         entity.setName(request.getName());
@@ -48,30 +44,28 @@ public class AgentAssembler {
         entity.setToolIds(request.getToolIds());
         // 设置预先设置的工具参数
         entity.setToolPresetParams(request.getToolPresetParams());
-        entity.setMultiModal(request.getMultiModal());
+        entity.setMultiModal(Boolean.TRUE.equals(request.getMultiModal()));
         return entity;
     }
 
-    /**
-     * 将UpdateAgentRequest转换为AgentEntity
-     */
+    /** 将UpdateAgentRequest转换为AgentEntity */
     public static AgentEntity toEntity(UpdateAgentRequest request, String userId) {
         AgentEntity entity = new AgentEntity();
 
         BeanUtils.copyProperties(request, entity);
         entity.setUserId(userId);
+        entity.setMultiModal(Boolean.TRUE.equals(request.getMultiModal()));
         return entity;
     }
 
-    /**
-     * 将AgentEntity转换为AgentDTO
-     */
+    /** 将AgentEntity转换为AgentDTO */
     public static AgentDTO toDTO(AgentEntity entity) {
         if (entity == null) {
             return null;
         }
         AgentDTO dto = new AgentDTO();
         BeanUtils.copyProperties(entity, dto);
+        dto.setMultiModal(Boolean.TRUE.equals(entity.getMultiModal()));
         return dto;
     }
 
@@ -88,9 +82,7 @@ public class AgentAssembler {
         return agentEntity;
     }
 
-    /**
-     * 将Entity分页对象转换为DTO分页对象
-     */
+    /** 将Entity分页对象转换为DTO分页对象 */
     public static Page<AgentDTO> toPageDTO(Page<AgentEntity> page) {
         Page<AgentDTO> dtoPage = new Page<>();
         dtoPage.setCurrent(page.getCurrent());

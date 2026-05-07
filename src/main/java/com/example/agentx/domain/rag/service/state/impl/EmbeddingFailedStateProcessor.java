@@ -7,9 +7,10 @@ import com.example.agentx.domain.rag.constant.FileProcessingStatusEnum;
 import com.example.agentx.domain.rag.model.FileDetailEntity;
 import com.example.agentx.domain.rag.service.state.FileProcessingStateProcessor;
 
-/**
- * 向量化处理失败状态处理器
- */
+/** 向量化处理失败状态处理器
+ * 
+ * @author zang
+ * @date 2025-07-17 */
 @Component
 public class EmbeddingFailedStateProcessor implements FileProcessingStateProcessor {
 

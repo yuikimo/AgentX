@@ -6,11 +6,9 @@ import com.example.agentx.application.tool.service.state.AppToolStateProcessor;
 import com.example.agentx.domain.tool.constant.ToolStatus;
 import com.example.agentx.domain.tool.model.ToolEntity;
 
-/**
- * 人工审核状态处理器
- * <p>
- * 职责： 1. 处理进入人工审核状态的工具 2. 等待人工操作，不会自动流转到下一状态
- */
+/** 人工审核状态处理器
+ * 
+ * 职责： 1. 处理进入人工审核状态的工具 2. 等待人工操作，不会自动流转到下一状态 */
 public class AppManualReviewProcessor implements AppToolStateProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(AppManualReviewProcessor.class);

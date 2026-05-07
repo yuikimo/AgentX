@@ -10,45 +10,31 @@ import com.example.agentx.infrastructure.exception.BusinessException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * 账户实体 管理用户的资金余额信息
- */
+/** 账户实体 管理用户的资金余额信息 */
 @TableName(value = "accounts", autoResultMap = true)
 public class AccountEntity extends BaseEntity {
 
-    /**
-     * 账户唯一ID
-     */
+    /** 账户唯一ID */
     @TableId(value = "id", type = IdType.ASSIGN_UUID)
     private String id;
 
-    /**
-     * 用户ID
-     */
+    /** 用户ID */
     @TableField("user_id")
     private String userId;
 
-    /**
-     * 账户余额
-     */
+    /** 账户余额 */
     @TableField("balance")
     private BigDecimal balance;
 
-    /**
-     * 信用额度/赠送额度
-     */
+    /** 信用额度/赠送额度 */
     @TableField("credit")
     private BigDecimal credit;
 
-    /**
-     * 累计消费金额
-     */
+    /** 累计消费金额 */
     @TableField("total_consumed")
     private BigDecimal totalConsumed;
 
-    /**
-     * 最后交易时间
-     */
+    /** 最后交易时间 */
     @TableField("last_transaction_at")
     private LocalDateTime lastTransactionAt;
 
@@ -106,19 +92,14 @@ public class AccountEntity extends BaseEntity {
         this.lastTransactionAt = lastTransactionAt;
     }
 
-    /**
-     * 获取可用余额（余额 + 信用额度）
-     */
+    /** 获取可用余额（余额 + 信用额度） */
     public BigDecimal getAvailableBalance() {
         return balance.add(credit);
     }
 
-    /**
-     * 检查余额是否充足
-     *
+    /** 检查余额是否充足
      * @param amount 需要扣除的金额
-     * @return 是否充足
-     */
+     * @return 是否充足 */
     public boolean checkSufficientBalance(BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) < 0) {
             throw new BusinessException("扣费金额必须大于0");
@@ -126,12 +107,9 @@ public class AccountEntity extends BaseEntity {
         return getAvailableBalance().compareTo(amount) >= 0;
     }
 
-    /**
-     * 扣除余额
-     *
+    /** 扣除余额
      * @param amount 扣除金额
-     * @throws BusinessException 余额不足时抛出异常
-     */
+     * @throws BusinessException 余额不足时抛出异常 */
     public void deduct(BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BusinessException("扣费金额必须大于0");
@@ -157,11 +135,8 @@ public class AccountEntity extends BaseEntity {
         this.lastTransactionAt = LocalDateTime.now();
     }
 
-    /**
-     * 充值
-     *
-     * @param amount 充值金额
-     */
+    /** 充值
+     * @param amount 充值金额 */
     public void recharge(BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BusinessException("充值金额必须大于0");
@@ -171,11 +146,8 @@ public class AccountEntity extends BaseEntity {
         this.lastTransactionAt = LocalDateTime.now();
     }
 
-    /**
-     * 增加信用额度
-     *
-     * @param amount 增加的信用额度
-     */
+    /** 增加信用额度
+     * @param amount 增加的信用额度 */
     public void addCredit(BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BusinessException("信用额度必须大于0");
@@ -185,9 +157,7 @@ public class AccountEntity extends BaseEntity {
         this.lastTransactionAt = LocalDateTime.now();
     }
 
-    /**
-     * 验证账户信息
-     */
+    /** 验证账户信息 */
     public void validate() {
         if (userId == null || userId.trim().isEmpty()) {
             throw new BusinessException("用户ID不能为空");
@@ -203,12 +173,9 @@ public class AccountEntity extends BaseEntity {
         }
     }
 
-    /**
-     * 创建新账户
-     *
+    /** 创建新账户
      * @param userId 用户ID
-     * @return 账户实体
-     */
+     * @return 账户实体 */
     public static AccountEntity createNew(String userId) {
         AccountEntity account = new AccountEntity();
         account.setUserId(userId);

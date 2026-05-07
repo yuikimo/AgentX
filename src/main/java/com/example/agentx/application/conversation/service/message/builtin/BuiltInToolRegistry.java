@@ -9,15 +9,13 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import com.example.agentx.domain.agent.model.AgentEntity;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
-/**
- * 内置工具注册器
- * <p>
- * 负责自动发现、注册和管理所有内置工具提供者 通过Spring的ApplicationContext自动扫描带有@BuiltInTool注解的组件
- */
+/** 内置工具注册器
+ * 
+ * 负责自动发现、注册和管理所有内置工具提供者 通过Spring的ApplicationContext自动扫描带有@BuiltInTool注解的组件 */
 @Component
 public class BuiltInToolRegistry {
 
@@ -25,23 +23,17 @@ public class BuiltInToolRegistry {
 
     private final ApplicationContext applicationContext;
 
-    /**
-     * 所有已注册的内置工具提供者，按优先级排序
-     */
+    /** 所有已注册的内置工具提供者，按优先级排序 */
     private final List<BuiltInToolProvider> toolProviders = new ArrayList<>();
 
-    /**
-     * 工具提供者的元数据缓存
-     */
+    /** 工具提供者的元数据缓存 */
     private final Map<String, BuiltInToolMetadata> toolMetadataCache = new ConcurrentHashMap<>();
 
     public BuiltInToolRegistry(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 
-    /**
-     * 初始化方法，在Spring上下文刷新完成后自动执行 扫描并注册所有带有@BuiltInTool注解的工具提供者
-     */
+    /** 初始化方法，在Spring上下文刷新完成后自动执行 扫描并注册所有带有@BuiltInTool注解的工具提供者 */
     @EventListener(ContextRefreshedEvent.class)
     public void initialize() {
         logger.info("开始初始化内置工具注册器...");
@@ -96,12 +88,10 @@ public class BuiltInToolRegistry {
         }
     }
 
-    /**
-     * 为指定Agent创建所有适用的内置工具
-     *
+    /** 为指定Agent创建所有适用的内置工具
+     * 
      * @param agent Agent实体
-     * @return 所有内置工具的合并映射
-     */
+     * @return 所有内置工具的合并映射 */
     public Map<ToolSpecification, ToolExecutor> createToolsForAgent(AgentEntity agent) {
         Map<ToolSpecification, ToolExecutor> allTools = new HashMap<>();
 
@@ -128,64 +118,52 @@ public class BuiltInToolRegistry {
         return allTools;
     }
 
-    /**
-     * 获取所有已注册的工具提供者
-     *
-     * @return 工具提供者列表的副本
-     */
+    /** 获取所有已注册的工具提供者
+     * 
+     * @return 工具提供者列表的副本 */
     public List<BuiltInToolProvider> getAllProviders() {
         synchronized (toolProviders) {
             return new ArrayList<>(toolProviders);
         }
     }
 
-    /**
-     * 根据名称获取工具提供者
-     *
+    /** 根据名称获取工具提供者
+     * 
      * @param name 工具名称
-     * @return 工具提供者，如果不存在则返回null
-     */
+     * @return 工具提供者，如果不存在则返回null */
     public BuiltInToolProvider getProviderByName(String name) {
         synchronized (toolProviders) {
             return toolProviders.stream().filter(provider -> name.equals(provider.getName())).findFirst().orElse(null);
         }
     }
 
-    /**
-     * 获取所有工具的元数据信息
-     *
-     * @return 工具元数据列表
-     */
+    /** 获取所有工具的元数据信息
+     * 
+     * @return 工具元数据列表 */
     public List<BuiltInToolMetadata> getAllToolMetadata() {
         return new ArrayList<>(toolMetadataCache.values());
     }
 
-    /**
-     * 获取已注册工具的数量
-     *
-     * @return 工具数量
-     */
+    /** 获取已注册工具的数量
+     * 
+     * @return 工具数量 */
     public int getToolCount() {
         synchronized (toolProviders) {
             return toolProviders.size();
         }
     }
 
-    /**
-     * 检查是否有工具支持指定的Agent
-     *
+    /** 检查是否有工具支持指定的Agent
+     * 
      * @param agent Agent实体
-     * @return 如果有工具支持该Agent则返回true
-     */
+     * @return 如果有工具支持该Agent则返回true */
     public boolean hasToolsForAgent(AgentEntity agent) {
         synchronized (toolProviders) {
             return toolProviders.stream().anyMatch(provider -> provider.supports(agent));
         }
     }
 
-    /**
-     * 内置工具元数据类 用于缓存和查询工具信息
-     */
+    /** 内置工具元数据类 用于缓存和查询工具信息 */
     public static class BuiltInToolMetadata {
         private final String name;
         private final String description;

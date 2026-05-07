@@ -1,92 +1,60 @@
 package com.example.agentx.application.rag.dto;
 
 import java.time.LocalDateTime;
-
 import com.example.agentx.domain.rag.constant.InstallType;
 
-/**
- * 用户安装的RAG DTO
+/** 用户安装的RAG DTO
+ * @author xhy
+ * @date 2025-07-16 <br/>
  */
 public class UserRagDTO {
 
-    /**
-     * 安装记录ID
-     */
+    /** 安装记录ID */
     private String id;
 
-    /**
-     * 用户ID
-     */
+    /** 用户ID */
     private String userId;
 
-    /**
-     * RAG版本ID
-     */
+    /** RAG版本ID */
     private String ragVersionId;
 
-    /**
-     * 安装时的名称
-     */
+    /** 安装时的名称 */
     private String name;
 
-    /**
-     * 安装时的描述
-     */
+    /** 安装时的描述 */
     private String description;
 
-    /**
-     * 安装时的图标
-     */
+    /** 安装时的图标 */
     private String icon;
 
-    /**
-     * 版本号
-     */
+    /** 版本号 */
     private String version;
 
-    /**
-     * 安装时间
-     */
+    /** 安装时间 */
     private LocalDateTime installedAt;
 
-    /**
-     * 创建时间
-     */
+    /** 创建时间 */
     private LocalDateTime createdAt;
 
-    /**
-     * 更新时间
-     */
+    /** 更新时间 */
     private LocalDateTime updatedAt;
 
-    /**
-     * 原始RAG ID
-     */
+    /** 原始RAG ID */
     private String originalRagId;
 
-    /**
-     * 文件数量
-     */
+    /** 文件数量 */
     private Integer fileCount;
 
-    /**
-     * 文档单元数量
-     */
+    /** 文档单元数量 */
     private Integer documentCount;
 
-    /**
-     * 创建者昵称
-     */
+    /** 创建者昵称 */
     private String creatorNickname;
 
-    /**
-     * 创建者ID
-     */
+    /** 创建者ID */
     private String creatorId;
 
-    /**
-     * 安装类型
-     */
+    /** 安装类型 */
     private InstallType installType;
 
     public String getId() {
@@ -217,20 +185,16 @@ public class UserRagDTO {
         this.installType = installType;
     }
 
-    /**
-     * 检查是否为引用类型安装
-     *
-     * @return 是否为引用类型
-     */
+    /** 检查是否为引用类型安装
+     * 
+     * @return 是否为引用类型 */
     public boolean isReferenceType() {
         return this.installType != null && this.installType.isReference();
     }
 
-    /**
-     * 检查是否为快照类型安装
-     *
-     * @return 是否为快照类型
-     */
+    /** 检查是否为快照类型安装
+     * 
+     * @return 是否为快照类型 */
     public boolean isSnapshotType() {
         return this.installType != null && this.installType.isSnapshot();
     }

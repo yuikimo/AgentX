@@ -4,20 +4,16 @@ import com.vladsch.flexmark.ast.*;
 import com.vladsch.flexmark.util.ast.Node;
 import org.springframework.stereotype.Component;
 
-/**
- * Markdown 文本提取器
- * <p>
- * 职责： - 从AST节点提取纯文本内容 - 从AST节点提取原始内容（保持格式） - 递归处理嵌套节点结构
- */
+/** Markdown 文本提取器
+ * 
+ * 职责： - 从AST节点提取纯文本内容 - 从AST节点提取原始内容（保持格式） - 递归处理嵌套节点结构 */
 @Component
 public class MarkdownTextExtractor {
 
-    /**
-     * 提取节点的纯文本内容
-     *
+    /** 提取节点的纯文本内容
+     * 
      * @param node AST节点
-     * @return 纯文本内容
-     */
+     * @return 纯文本内容 */
     public String extractTextContent(Node node) {
         if (node == null) {
             return "";
@@ -28,12 +24,10 @@ public class MarkdownTextExtractor {
         return text.toString();
     }
 
-    /**
-     * 提取节点的原始内容（保持格式）
-     *
+    /** 提取节点的原始内容（保持格式）
+     * 
      * @param node AST节点
-     * @return 原始内容
-     */
+     * @return 原始内容 */
     public String extractRawContent(Node node) {
         if (node == null) {
             return "";
@@ -42,12 +36,10 @@ public class MarkdownTextExtractor {
         return node.getChars().toString();
     }
 
-    /**
-     * 递归提取文本内容
-     *
+    /** 递归提取文本内容
+     * 
      * @param node 当前节点
-     * @param text 文本构建器
-     */
+     * @param text 文本构建器 */
     private void extractTextRecursively(Node node, StringBuilder text) {
         if (node instanceof Text) {
             text.append(node.getChars().toString());

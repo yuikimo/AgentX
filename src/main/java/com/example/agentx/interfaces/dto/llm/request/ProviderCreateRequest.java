@@ -5,36 +5,24 @@ import jakarta.validation.constraints.NotNull;
 import com.example.agentx.domain.llm.model.config.ProviderConfig;
 import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 
-/**
- * 服务提供商创建请求
- */
+/** 服务提供商创建请求 */
 public class ProviderCreateRequest {
 
-    /**
-     * 服务商协议
-     */
+    /** 服务商协议 */
     @NotNull(message = "协议不能为空")
     private ProviderProtocol protocol;
 
-    /**
-     * 服务商名称
-     */
+    /** 服务商名称 */
     @NotBlank(message = "名称不可为空")
     private String name;
 
-    /**
-     * 服务商描述
-     */
+    /** 服务商描述 */
     private String description;
 
-    /**
-     * 服务商配置
-     */
+    /** 服务商配置 */
     private ProviderConfig config;
 
-    /**
-     * 服务商状态
-     */
+    /** 服务商状态 */
     private Boolean status = true;
 
     public ProviderProtocol getProtocol() {

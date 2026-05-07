@@ -2,12 +2,10 @@ package com.example.agentx.domain.llm.model.enums;
 
 import com.example.agentx.infrastructure.exception.BusinessException;
 
-/**
- * 模型类型枚举
- */
+/** 模型类型枚举 */
 public enum ModelType {
 
-    CHAT("CHAT", "对话模型"), EMBEDDING("EMBEDDING", "嵌入模型");
+    CHAT("CHAT", "对话模型"), OCR("OCR", "OCR模型"), EMBEDDING("EMBEDDING", "嵌入模型");
 
     private final String code;
     private final String description;

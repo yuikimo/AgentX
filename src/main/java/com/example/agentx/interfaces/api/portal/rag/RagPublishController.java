@@ -12,8 +12,9 @@ import com.example.agentx.interfaces.dto.rag.request.QueryUserRagVersionRequest;
 
 import java.util.List;
 
-/**
- * RAG发布控制器
+/** RAG发布控制器
+ * @author xhy
+ * @date 2025-07-16 <br/>
  */
 @RestController
 @RequestMapping("/rag/publish")
@@ -25,12 +26,10 @@ public class RagPublishController {
         this.ragPublishAppService = ragPublishAppService;
     }
 
-    /**
-     * 发布RAG版本
-     *
+    /** 发布RAG版本
+     * 
      * @param request 发布请求
-     * @return 发布的版本信息
-     */
+     * @return 发布的版本信息 */
     @PostMapping
     public Result<RagVersionDTO> publishRagVersion(@RequestBody @Validated PublishRagRequest request) {
         String userId = UserContext.getCurrentUserId();
@@ -38,12 +37,10 @@ public class RagPublishController {
         return Result.success(result);
     }
 
-    /**
-     * 获取用户的RAG版本列表
-     *
+    /** 获取用户的RAG版本列表
+     * 
      * @param request 查询请求
-     * @return 版本列表
-     */
+     * @return 版本列表 */
     @GetMapping("/versions")
     public Result<Page<RagVersionDTO>> getUserRagVersions(QueryUserRagVersionRequest request) {
         String userId = UserContext.getCurrentUserId();
@@ -51,12 +48,10 @@ public class RagPublishController {
         return Result.success(result);
     }
 
-    /**
-     * 获取RAG的版本历史
-     *
+    /** 获取RAG的版本历史
+     * 
      * @param ragId 原始RAG数据集ID
-     * @return 版本历史列表
-     */
+     * @return 版本历史列表 */
     @GetMapping("/versions/history/{ragId}")
     public Result<List<RagVersionDTO>> getRagVersionHistory(@PathVariable String ragId) {
         String userId = UserContext.getCurrentUserId();
@@ -64,12 +59,10 @@ public class RagPublishController {
         return Result.success(result);
     }
 
-    /**
-     * 获取RAG版本详情
-     *
+    /** 获取RAG版本详情
+     * 
      * @param versionId 版本ID
-     * @return 版本详情
-     */
+     * @return 版本详情 */
     @GetMapping("/versions/{versionId}")
     public Result<RagVersionDTO> getRagVersionDetail(@PathVariable String versionId) {
         String userId = UserContext.getCurrentUserId();
@@ -77,12 +70,10 @@ public class RagPublishController {
         return Result.success(result);
     }
 
-    /**
-     * 获取RAG数据集的最新版本号
-     *
+    /** 获取RAG数据集的最新版本号
+     * 
      * @param ragId 原始RAG数据集ID
-     * @return 最新版本号，如果没有版本则返回null
-     */
+     * @return 最新版本号，如果没有版本则返回null */
     @GetMapping("/versions/latest/{ragId}")
     public Result<String> getLatestVersionNumber(@PathVariable String ragId) {
         String userId = UserContext.getCurrentUserId();

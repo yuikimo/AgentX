@@ -2,19 +2,13 @@ package com.example.agentx.application.order.dto;
 
 import com.example.agentx.interfaces.dto.Page;
 
-/**
- * 用户订单查询请求
- */
+/** 用户订单查询请求 */
 public class QueryUserOrderRequest extends Page {
 
-    /**
-     * 订单类型（可选）
-     */
+    /** 订单类型（可选） */
     private String orderType;
 
-    /**
-     * 订单状态（可选）
-     */
+    /** 订单状态（可选） */
     private Integer status;
 
     public QueryUserOrderRequest() {

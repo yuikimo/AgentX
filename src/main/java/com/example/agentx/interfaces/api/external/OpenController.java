@@ -1,7 +1,9 @@
 package com.example.agentx.interfaces.api.external;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import com.example.agentx.application.agent.service.AgentSessionAppService;
 import com.example.agentx.application.conversation.dto.ChatRequest;
 import com.example.agentx.application.conversation.dto.ChatResponse;
@@ -10,6 +12,7 @@ import com.example.agentx.application.conversation.service.ConversationAppServic
 import com.example.agentx.application.llm.dto.ModelDTO;
 import com.example.agentx.application.llm.service.LLMAppService;
 import com.example.agentx.infrastructure.auth.ExternalApiContext;
+import com.example.agentx.infrastructure.config.GlobalExceptionHandler;
 import com.example.agentx.infrastructure.exception.BusinessException;
 import com.example.agentx.interfaces.api.common.Result;
 import com.example.agentx.interfaces.dto.external.request.ExternalChatRequest;
@@ -17,9 +20,7 @@ import com.example.agentx.interfaces.dto.external.request.ExternalCreateSessionR
 
 import java.util.List;
 
-/**
- * 外部API控制器 提供给外部系统的API接口，使用API Key进行身份验证
- */
+/** 外部API控制器 提供给外部系统的API接口，使用API Key进行身份验证 */
 @RestController
 @RequestMapping("/v1")
 public class OpenController {
@@ -29,22 +30,22 @@ public class OpenController {
     private final LLMAppService llmAppService;
 
     public OpenController(ConversationAppService conversationAppService, AgentSessionAppService agentSessionAppService,
-                          LLMAppService llmAppService) {
+            LLMAppService llmAppService) {
         this.conversationAppService = conversationAppService;
         this.agentSessionAppService = agentSessionAppService;
         this.llmAppService = llmAppService;
     }
 
-    /**
-     * 发起对话
-     *
+    /** 发起对话
      * @param request 聊天请求
-     * @return 流式或同步响应
-     */
+     * @return 流式或同步响应 */
     @PostMapping("/chat/completions")
-    public Object chat(@RequestBody @Validated ExternalChatRequest request) {
+    public Object chat(@RequestBody @Validated ExternalChatRequest request, HttpServletRequest httpRequest) {
         String userId = ExternalApiContext.getUserId();
         String agentId = ExternalApiContext.getAgentId();
+        if (Boolean.TRUE.equals(request.getStream())) {
+            httpRequest.setAttribute(GlobalExceptionHandler.SSE_REQUEST_ATTRIBUTE, Boolean.TRUE);
+        }
 
         // 异常分支：如果指定了模型但无权限使用
         if (request.getModel() != null && !llmAppService.canUserUseModel(request.getModel(), userId)) {
@@ -68,22 +69,16 @@ public class OpenController {
         }
     }
 
-    /**
-     * 获取可用模型列表
-     *
-     * @return 模型列表
-     */
+    /** 获取可用模型列表
+     * @return 模型列表 */
     @GetMapping("/models")
     public Result<List<ModelDTO>> getAvailableModels() {
         String userId = ExternalApiContext.getUserId();
         return Result.success(llmAppService.getAvailableModelsForUser(userId));
     }
 
-    /**
-     * 获取会话列表
-     *
-     * @return 会话列表
-     */
+    /** 获取会话列表
+     * @return 会话列表 */
     @GetMapping("/sessions")
     public Result<List<SessionDTO>> getSessions() {
         String userId = ExternalApiContext.getUserId();
@@ -91,14 +86,11 @@ public class OpenController {
         return Result.success(agentSessionAppService.getAgentSessionList(userId, agentId));
     }
 
-    /**
-     * 创建新会话
-     *
+    /** 创建新会话
      * @param request 创建会话请求
-     * @return 会话信息
-     */
+     * @return 会话信息 */
     @PostMapping("/sessions")
-    public Result<SessionDTO> createSession(@RequestBody ExternalCreateSessionRequest request) {
+    public Result<SessionDTO> createSession(@RequestBody @Validated ExternalCreateSessionRequest request) {
         String userId = ExternalApiContext.getUserId();
         String agentId = ExternalApiContext.getAgentId();
 
@@ -113,12 +105,9 @@ public class OpenController {
         return Result.success(session);
     }
 
-    /**
-     * 删除会话
-     *
+    /** 删除会话
      * @param id 会话ID
-     * @return 操作结果
-     */
+     * @return 操作结果 */
     @DeleteMapping("/sessions/{id}")
     public Result<Void> deleteSession(@PathVariable String id) {
         String userId = ExternalApiContext.getUserId();

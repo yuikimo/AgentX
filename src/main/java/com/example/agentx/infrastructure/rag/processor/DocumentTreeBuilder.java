@@ -7,11 +7,9 @@ import com.example.agentx.infrastructure.rag.config.MarkdownProcessorProperties;
 
 import java.util.Stack;
 
-/**
- * 文档树构建器
- * <p>
- * 职责： - 根据AST构建层次化的文档树 - 支持原始内容模式和常规处理模式 - 维护标题层级关系
- */
+/** 文档树构建器
+ * 
+ * 职责： - 根据AST构建层次化的文档树 - 支持原始内容模式和常规处理模式 - 维护标题层级关系 */
 @Component
 public class DocumentTreeBuilder {
 
@@ -21,13 +19,11 @@ public class DocumentTreeBuilder {
         this.textExtractor = textExtractor;
     }
 
-    /**
-     * 构建保持原始内容的文档树
-     *
-     * @param document    AST根节点
+    /** 构建保持原始内容的文档树
+     * 
+     * @param document AST根节点
      * @param splitConfig 分割配置
-     * @return 文档树
-     */
+     * @return 文档树 */
     public DocumentTree buildRawDocumentTree(Node document, MarkdownProcessorProperties.SegmentSplit splitConfig) {
         DocumentTree tree = new DocumentTree(splitConfig);
 
@@ -82,13 +78,11 @@ public class DocumentTreeBuilder {
         return tree;
     }
 
-    /**
-     * 构建常规处理的文档树
-     *
-     * @param document    AST根节点
+    /** 构建常规处理的文档树
+     * 
+     * @param document AST根节点
      * @param splitConfig 分割配置
-     * @return 文档树
-     */
+     * @return 文档树 */
     public DocumentTree buildDocumentTree(Node document, MarkdownProcessorProperties.SegmentSplit splitConfig) {
         DocumentTree tree = new DocumentTree(splitConfig);
 

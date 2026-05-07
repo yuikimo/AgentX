@@ -2,99 +2,65 @@ package com.example.agentx.application.rag.dto;
 
 import com.example.agentx.domain.rag.constant.FileProcessingStatusEnum;
 
-/**
- * 文件处理进度响应
- */
+/** 文件处理进度响应
+ * @author zang
+ * @date 2025-01-10 */
 public class FileProcessProgressDTO {
 
-    /**
-     * 文件ID
-     */
+    /** 文件ID */
     private String fileId;
 
-    /**
-     * 文件名
-     */
+    /** 文件名 */
     private String filename;
 
-    /**
-     * 统一处理状态枚举
-     */
+    /** 统一处理状态枚举 */
     private FileProcessingStatusEnum processingStatusEnum;
 
-    /**
-     * 处理状态编码
-     */
+    /** 处理状态编码 */
     private Integer processingStatus;
 
-    /**
-     * 处理状态描述（中文）
-     */
+    /** 处理状态描述（中文） */
     private String processingStatusDescription;
 
-    /**
-     * 当前OCR处理页数
-     */
+    /** 当前OCR处理页数 */
     private Integer currentOcrPageNumber;
 
-    /**
-     * 当前向量化处理页数
-     */
+    /** 当前向量化处理页数 */
     private Integer currentEmbeddingPageNumber;
 
-    /**
-     * 总页数
-     */
+    /** 总页数 */
     private Integer filePageSize;
 
-    /**
-     * OCR处理进度百分比
-     */
+    /** OCR处理进度百分比 */
     private Double ocrProcessProgress;
 
-    /**
-     * 向量化处理进度百分比
-     */
+    /** 向量化处理进度百分比 */
     private Double embeddingProcessProgress;
 
-    /**
-     * 状态描述
-     */
+    /** 状态描述 */
     private String statusDescription;
 
     // 为了兼容旧版本，保留原有字段
-    /**
-     * 初始化状态（数字） - 已弃用，使用processingStatus
-     */
+    /** 初始化状态（数字） - 已弃用，使用processingStatus */
     @Deprecated
     private Integer isInitialize;
 
-    /**
-     * 向量化状态（数字） - 已弃用，使用processingStatus
-     */
+    /** 向量化状态（数字） - 已弃用，使用processingStatus */
     @Deprecated
     private Integer isEmbedding;
 
-    /**
-     * 初始化状态（中文） - 已弃用，使用processingStatusDescription
-     */
+    /** 初始化状态（中文） - 已弃用，使用processingStatusDescription */
     @Deprecated
     private String initializeStatus;
 
-    /**
-     * 向量化状态（中文） - 已弃用，使用processingStatusDescription
-     */
+    /** 向量化状态（中文） - 已弃用，使用processingStatusDescription */
     @Deprecated
     private String embeddingStatus;
 
-    /**
-     * 当前处理页数（兼容字段，指向OCR页数）
-     */
+    /** 当前处理页数（兼容字段，指向OCR页数） */
     private Integer currentPageNumber;
 
-    /**
-     * 处理进度百分比（兼容字段，指向OCR进度）
-     */
+    /** 处理进度百分比（兼容字段，指向OCR进度） */
     private Double processProgress;
 
     public String getFileId() {

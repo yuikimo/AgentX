@@ -1,6 +1,7 @@
 package com.example.agentx.interfaces.api.public_api;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -15,9 +16,7 @@ import com.example.agentx.interfaces.api.common.Result;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-/**
- * 小组件聊天控制器 - 公开API，无需认证
- */
+/** 小组件聊天控制器 - 公开API，无需认证 */
 @RestController
 @RequestMapping("/widget")
 public class WidgetChatController {
@@ -26,18 +25,16 @@ public class WidgetChatController {
     private final AgentWidgetAppService agentWidgetAppService;
 
     public WidgetChatController(ConversationAppService conversationAppService,
-                                AgentWidgetAppService agentWidgetAppService) {
+            AgentWidgetAppService agentWidgetAppService) {
         this.conversationAppService = conversationAppService;
         this.agentWidgetAppService = agentWidgetAppService;
     }
 
-    /**
-     * 获取小组件配置信息（公开访问）
+    /** 获取小组件配置信息（公开访问）
      *
      * @param publicId 公开访问ID
-     * @param request  HTTP请求
-     * @return 小组件配置基本信息
-     */
+     * @param request HTTP请求
+     * @return 小组件配置基本信息 */
     @GetMapping("/{publicId}/info")
     public Result<WidgetInfoResponse> getWidgetInfo(@PathVariable String publicId, HttpServletRequest request) {
         try {
@@ -81,17 +78,15 @@ public class WidgetChatController {
         }
     }
 
-    /**
-     * 小组件聊天接口（流式）
+    /** 小组件聊天接口（流式）
      *
-     * @param publicId    公开访问ID
-     * @param request     聊天请求
+     * @param publicId 公开访问ID
+     * @param request 聊天请求
      * @param httpRequest HTTP请求
-     * @return SSE流
-     */
-    @PostMapping("/{publicId}/chat")
+     * @return SSE流 */
+    @PostMapping(value = "/{publicId}/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter widgetChat(@PathVariable String publicId, @RequestBody @Validated WidgetChatRequest request,
-                                 HttpServletRequest httpRequest) {
+            HttpServletRequest httpRequest) {
         try {
             // 1. 验证域名访问权限
             String referer = httpRequest.getHeader("Referer");
@@ -112,18 +107,15 @@ public class WidgetChatController {
         }
     }
 
-    /**
-     * 小组件聊天接口（同步）
+    /** 小组件聊天接口（同步）
      *
-     * @param publicId    公开访问ID
-     * @param request     聊天请求
+     * @param publicId 公开访问ID
+     * @param request 聊天请求
      * @param httpRequest HTTP请求
-     * @return 同步聊天响应
-     */
+     * @return 同步聊天响应 */
     @PostMapping("/{publicId}/chat/sync")
     public Result<ChatResponse> widgetChatSync(@PathVariable String publicId,
-                                               @RequestBody @Validated WidgetChatRequest request,
-                                               HttpServletRequest httpRequest) {
+            @RequestBody @Validated WidgetChatRequest request, HttpServletRequest httpRequest) {
         try {
             // 1. 验证域名访问权限
             String referer = httpRequest.getHeader("Referer");
@@ -145,13 +137,11 @@ public class WidgetChatController {
         }
     }
 
-    /**
-     * 验证域名访问权限
+    /** 验证域名访问权限
      *
      * @param publicId 公开访问ID
-     * @param referer  来源域名
-     * @return 是否允许访问
-     */
+     * @param referer 来源域名
+     * @return 是否允许访问 */
     private boolean validateDomainAccess(String publicId, String referer) {
         try {
             // 如果没有Referer，可能是直接访问或API调用，根据业务需求决定是否允许
@@ -176,9 +166,7 @@ public class WidgetChatController {
         }
     }
 
-    /**
-     * 小组件信息响应类
-     */
+    /** 小组件信息响应类 */
     public static class WidgetInfoResponse {
         private String publicId;
         private String name;

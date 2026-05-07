@@ -6,11 +6,9 @@ import com.example.agentx.application.tool.service.state.AppToolStateProcessor;
 import com.example.agentx.domain.tool.constant.ToolStatus;
 import com.example.agentx.domain.tool.model.ToolEntity;
 
-/**
- * 等待审核状态处理器
- * <p>
- * 职责： 1. 处理刚提交的工具，从等待审核状态开始流转 2. 自动转换到GitHub URL验证状态
- */
+/** 等待审核状态处理器
+ * 
+ * 职责： 1. 处理刚提交的工具，从等待审核状态开始流转 2. 自动转换到GitHub URL验证状态 */
 public class AppWaitingReviewProcessor implements AppToolStateProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(AppWaitingReviewProcessor.class);

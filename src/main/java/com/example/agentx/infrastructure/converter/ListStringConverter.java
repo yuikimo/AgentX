@@ -1,13 +1,8 @@
 package com.example.agentx.infrastructure.converter;
 
-import org.apache.ibatis.type.MappedTypes;
-
 import java.util.List;
 
-/**
- * 字符串列表JSON转换器
- */
-@MappedTypes(List.class)
+/** 字符串列表JSON转换器 */
 public class ListStringConverter extends JsonToStringConverter<List<String>> {
 
     public ListStringConverter() {

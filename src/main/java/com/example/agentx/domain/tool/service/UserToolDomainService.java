@@ -14,9 +14,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * 用户已安装工具 service
- */
+/** 用户已安装工具 service */
 @Service
 public class UserToolDomainService {
 
@@ -70,12 +68,10 @@ public class UserToolDomainService {
         return toolInstallMap;
     }
 
-    /**
-     * 检查工具版本是否已安装
+    /** 检查工具版本是否已安装
      *
      * @param toolIds 工具版本id列表
-     * @param userId  用户id
-     */
+     * @param userId 用户id */
     public List<UserToolEntity> getInstallTool(List<String> toolIds, String userId) {
         if (toolIds == null || toolIds.isEmpty()) {
             return new ArrayList<>();
@@ -96,13 +92,11 @@ public class UserToolDomainService {
         return userToolEntities;
     }
 
-    /**
-     * 根据工具ID列表获取用户安装的工具
-     *
-     * @param userId  用户ID
+    /** 根据工具ID列表获取用户安装的工具
+     * 
+     * @param userId 用户ID
      * @param toolIds 工具ID列表
-     * @return 用户安装的工具列表
-     */
+     * @return 用户安装的工具列表 */
     public List<UserToolEntity> getUserToolsByIds(String userId, List<String> toolIds) {
         if (toolIds == null || toolIds.isEmpty()) {
             return new ArrayList<>();

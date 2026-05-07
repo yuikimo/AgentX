@@ -14,20 +14,23 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * 用户鉴权拦截器 用于拦截需要鉴权的请求，验证用户身份并设置用户上下文
- */
+/** 用户鉴权拦截器 用于拦截需要鉴权的请求，验证用户身份并设置用户上下文 */
 @Component
 public class UserAuthInterceptor implements HandlerInterceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(UserAuthInterceptor.class);
 
     private static final String BEARER_PREFIX = "Bearer ";
+    private final JwtUtils jwtUtils;
 
     // 不需要检查的路径列表，与WebMvcConfig保持一致
     private static final List<String> EXCLUDED_PATHS = Arrays.asList("/login", "/health", "/register", "/auth/config",
             "/send-email-code", "/verify-email-code", "/get-captcha", "/reset-password", "/send-reset-password-code",
             "/oauth/github/authorize", "/oauth/github/callback");
+
+    public UserAuthInterceptor(JwtUtils jwtUtils) {
+        this.jwtUtils = jwtUtils;
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -62,7 +65,7 @@ public class UserAuthInterceptor implements HandlerInterceptor {
             }
 
             // 验证token
-            if (!JwtUtils.validateToken(token)) {
+            if (!jwtUtils.validateToken(token)) {
                 logger.warn("认证失败 - Token验证失败: {} {}, token前缀: {}", method, requestURI,
                         token.length() > 20 ? token.substring(0, 20) + "..." : token);
                 writeErrorResponse(response, "Token无效或已过期");
@@ -70,7 +73,7 @@ public class UserAuthInterceptor implements HandlerInterceptor {
             }
 
             // 从token中获取用户ID并设置到上下文
-            String userId = JwtUtils.getUserIdFromToken(token);
+            String userId = jwtUtils.getUserIdFromToken(token);
 
             if (!StringUtils.hasText(userId)) {
                 logger.warn("认证失败 - 无法从Token中获取用户ID: {} {}", method, requestURI);
@@ -93,7 +96,7 @@ public class UserAuthInterceptor implements HandlerInterceptor {
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
-                                Exception ex) {
+            Exception ex) {
         // 请求结束后清除上下文，防止内存泄漏
         String userId = UserContext.getCurrentUserId();
         if (userId != null) {
@@ -102,12 +105,9 @@ public class UserAuthInterceptor implements HandlerInterceptor {
         UserContext.clear();
     }
 
-    /**
-     * 写入错误响应
-     *
+    /** 写入错误响应
      * @param response HTTP响应
-     * @param message  错误消息
-     */
+     * @param message 错误消息 */
     private void writeErrorResponse(HttpServletResponse response, String message) {
         try {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

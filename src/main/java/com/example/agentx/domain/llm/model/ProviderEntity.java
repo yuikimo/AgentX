@@ -10,10 +10,8 @@ import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 
 import java.util.Objects;
 
-/**
- * 服务提供商领域模型
- */
-@TableName("providers")
+/** 服务提供商领域模型 */
+@TableName(value = "providers", autoResultMap = true)
 public class ProviderEntity extends BaseEntity {
 
     @TableId(type = IdType.ASSIGN_UUID)
@@ -97,7 +95,7 @@ public class ProviderEntity extends BaseEntity {
     }
 
     public void isActive() {
-        if (!status) {
+        if (!Boolean.TRUE.equals(status)) {
             throw new BusinessException("服务商未激活");
         }
     }

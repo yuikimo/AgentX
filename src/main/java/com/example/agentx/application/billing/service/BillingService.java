@@ -20,9 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * 计费服务 协调整个计费流程的核心服务
- */
+/** 计费服务 协调整个计费流程的核心服务 */
 @Service
 public class BillingService {
 
@@ -34,9 +32,8 @@ public class BillingService {
     private final UsageRecordBusinessInfoService businessInfoService;
 
     public BillingService(ProductDomainService productDomainService, RuleDomainService ruleDomainService,
-                          AccountDomainService accountDomainService, UsageRecordDomainService usageRecordDomainService,
-                          BillingStrategyFactory billingStrategyFactory,
-                          UsageRecordBusinessInfoService businessInfoService) {
+            AccountDomainService accountDomainService, UsageRecordDomainService usageRecordDomainService,
+            BillingStrategyFactory billingStrategyFactory, UsageRecordBusinessInfoService businessInfoService) {
         this.productDomainService = productDomainService;
         this.ruleDomainService = ruleDomainService;
         this.accountDomainService = accountDomainService;
@@ -45,12 +42,10 @@ public class BillingService {
         this.businessInfoService = businessInfoService;
     }
 
-    /**
-     * 执行计费
-     *
+    /** 执行计费
+     * 
      * @param context 计费上下文
-     * @throws BusinessException 余额不足或其他业务异常
-     */
+     * @throws BusinessException 余额不足或其他业务异常 */
     @Transactional
     public void charge(RuleContext context) {
         // 1. 验证上下文
@@ -110,12 +105,10 @@ public class BillingService {
         recordUsage(context, product, cost);
     }
 
-    /**
-     * 检查余额是否充足（不实际扣费）
-     *
+    /** 检查余额是否充足（不实际扣费）
+     * 
      * @param context 计费上下文
-     * @return 是否余额充足
-     */
+     * @return 是否余额充足 */
     public boolean checkBalance(RuleContext context) {
         try {
             // 查找商品
@@ -155,9 +148,7 @@ public class BillingService {
         }
     }
 
-    /**
-     * 记录用量
-     */
+    /** 记录用量 */
     private void recordUsage(RuleContext context, ProductEntity product, BigDecimal cost) {
         // 获取业务信息
         Map<String, UsageRecordBusinessInfoService.BusinessInfo> businessInfoMap = businessInfoService

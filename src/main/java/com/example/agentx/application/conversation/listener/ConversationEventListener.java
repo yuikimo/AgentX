@@ -9,9 +9,7 @@ import com.example.agentx.application.conversation.dto.ChatRequest;
 import com.example.agentx.application.conversation.service.ConversationAppService;
 import com.example.agentx.domain.scheduledtask.event.ScheduledTaskExecuteEvent;
 
-/**
- * 定时任务事件监听器 监听Domain层发布的任务执行事件，调用ConversationAppService执行对话
- */
+/** 定时任务事件监听器 监听Domain层发布的任务执行事件，调用ConversationAppService执行对话 */
 @Component
 public class ConversationEventListener {
 
@@ -23,11 +21,8 @@ public class ConversationEventListener {
         this.conversationAppService = conversationAppService;
     }
 
-    /**
-     * 处理定时任务执行事件
-     *
-     * @param event 任务执行事件
-     */
+    /** 处理定时任务执行事件
+     * @param event 任务执行事件 */
     @EventListener
     @Async
     public void chatEvent(ScheduledTaskExecuteEvent event) {

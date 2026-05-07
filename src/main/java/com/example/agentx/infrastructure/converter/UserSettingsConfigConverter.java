@@ -1,21 +1,19 @@
 package com.example.agentx.infrastructure.converter;
 
-import com.example.agentx.domain.user.model.config.UserSettingsConfig;
-import com.example.agentx.infrastructure.utils.JsonUtils;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 import org.postgresql.util.PGobject;
+import com.example.agentx.domain.user.model.config.UserSettingsConfig;
+import com.example.agentx.infrastructure.utils.JsonUtils;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * 用户设置配置转换器 处理JSON存储的用户设置配置信息
- */
+/** 用户设置配置转换器 处理JSON存储的用户设置配置信息 */
 @MappedTypes(UserSettingsConfig.class)
 @MappedJdbcTypes({JdbcType.OTHER})
 public class UserSettingsConfigConverter extends BaseTypeHandler<UserSettingsConfig> {

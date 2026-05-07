@@ -12,13 +12,12 @@ import com.example.agentx.domain.product.service.ProductDomainService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * 用量记录业务信息服务 负责高效映射业务信息，避免循环查询
- */
+/** 用量记录业务信息服务 负责高效映射业务信息，避免循环查询 */
 @Service
 public class UsageRecordBusinessInfoService {
 
@@ -27,15 +26,13 @@ public class UsageRecordBusinessInfoService {
     private final AgentDomainService agentDomainService;
 
     public UsageRecordBusinessInfoService(ProductDomainService productDomainService, LLMDomainService llmDomainService,
-                                          AgentDomainService agentDomainService) {
+            AgentDomainService agentDomainService) {
         this.productDomainService = productDomainService;
         this.llmDomainService = llmDomainService;
         this.agentDomainService = agentDomainService;
     }
 
-    /**
-     * 业务信息数据结构
-     */
+    /** 业务信息数据结构 */
     public static class BusinessInfo {
         private String serviceName;
         private String serviceType;
@@ -44,7 +41,7 @@ public class UsageRecordBusinessInfoService {
         private String relatedEntityName;
 
         public BusinessInfo(String serviceName, String serviceType, String serviceDescription, String pricingRule,
-                            String relatedEntityName) {
+                String relatedEntityName) {
             this.serviceName = serviceName;
             this.serviceType = serviceType;
             this.serviceDescription = serviceDescription;
@@ -56,30 +53,24 @@ public class UsageRecordBusinessInfoService {
         public String getServiceName() {
             return serviceName;
         }
-
         public String getServiceType() {
             return serviceType;
         }
-
         public String getServiceDescription() {
             return serviceDescription;
         }
-
         public String getPricingRule() {
             return pricingRule;
         }
-
         public String getRelatedEntityName() {
             return relatedEntityName;
         }
     }
 
-    /**
-     * 批量获取商品业务信息映射，避免循环查询
-     *
+    /** 批量获取商品业务信息映射，避免循环查询
+     * 
      * @param productIds 商品ID集合
-     * @return productId -> BusinessInfo 的映射
-     */
+     * @return productId -> BusinessInfo 的映射 */
     public Map<String, BusinessInfo> getBatchBusinessInfo(Set<String> productIds) {
         if (productIds == null || productIds.isEmpty()) {
             return new HashMap<>();
@@ -124,33 +115,29 @@ public class UsageRecordBusinessInfoService {
         return businessInfoMap;
     }
 
-    /**
-     * 根据商品和关联实体生成业务信息
-     */
+    /** 根据商品和关联实体生成业务信息 */
     private BusinessInfo generateBusinessInfo(ProductEntity product, Map<String, ModelEntity> modelMap,
-                                              Map<String, AgentEntity> agentMap) {
+            Map<String, AgentEntity> agentMap) {
         BillingType billingType = product.getType();
         String serviceId = product.getServiceId();
 
         switch (billingType) {
-            case MODEL_USAGE:
+            case MODEL_USAGE :
                 return generateModelUsageInfo(product, modelMap.get(serviceId));
-            case AGENT_CREATION:
+            case AGENT_CREATION :
                 return generateAgentCreationInfo(product);
-            case AGENT_USAGE:
+            case AGENT_USAGE :
                 return generateAgentUsageInfo(product, agentMap.get(serviceId));
-            case API_CALL:
+            case API_CALL :
                 return generateApiCallInfo(product);
-            case STORAGE_USAGE:
+            case STORAGE_USAGE :
                 return generateStorageUsageInfo(product);
-            default:
+            default :
                 return generateDefaultInfo(product);
         }
     }
 
-    /**
-     * 生成模型调用业务信息
-     */
+    /** 生成模型调用业务信息 */
     private BusinessInfo generateModelUsageInfo(ProductEntity product, ModelEntity model) {
         String modelName = model != null ? model.getName() : "未知模型";
         String serviceName = modelName + " 模型调用";
@@ -162,9 +149,7 @@ public class UsageRecordBusinessInfoService {
         return new BusinessInfo(serviceName, serviceType, serviceDescription, pricingRule, relatedEntityName);
     }
 
-    /**
-     * 生成Agent创建业务信息
-     */
+    /** 生成Agent创建业务信息 */
     private BusinessInfo generateAgentCreationInfo(ProductEntity product) {
         String serviceName = "Agent 创建服务";
         String serviceType = "Agent服务";
@@ -175,9 +160,7 @@ public class UsageRecordBusinessInfoService {
         return new BusinessInfo(serviceName, serviceType, serviceDescription, pricingRule, relatedEntityName);
     }
 
-    /**
-     * 生成Agent使用业务信息
-     */
+    /** 生成Agent使用业务信息 */
     private BusinessInfo generateAgentUsageInfo(ProductEntity product, AgentEntity agent) {
         String agentName = agent != null ? agent.getName() : "未知Agent";
         String serviceName = agentName + " (Agent使用)";
@@ -189,9 +172,7 @@ public class UsageRecordBusinessInfoService {
         return new BusinessInfo(serviceName, serviceType, serviceDescription, pricingRule, relatedEntityName);
     }
 
-    /**
-     * 生成API调用业务信息
-     */
+    /** 生成API调用业务信息 */
     private BusinessInfo generateApiCallInfo(ProductEntity product) {
         String serviceName = "API 调用服务";
         String serviceType = "API服务";
@@ -202,9 +183,7 @@ public class UsageRecordBusinessInfoService {
         return new BusinessInfo(serviceName, serviceType, serviceDescription, pricingRule, relatedEntityName);
     }
 
-    /**
-     * 生成存储使用业务信息
-     */
+    /** 生成存储使用业务信息 */
     private BusinessInfo generateStorageUsageInfo(ProductEntity product) {
         String serviceName = "存储服务";
         String serviceType = "存储服务";
@@ -215,9 +194,7 @@ public class UsageRecordBusinessInfoService {
         return new BusinessInfo(serviceName, serviceType, serviceDescription, pricingRule, relatedEntityName);
     }
 
-    /**
-     * 生成默认业务信息
-     */
+    /** 生成默认业务信息 */
     private BusinessInfo generateDefaultInfo(ProductEntity product) {
         String serviceName = "其他服务";
         String serviceType = "其他";
@@ -228,9 +205,7 @@ public class UsageRecordBusinessInfoService {
         return new BusinessInfo(serviceName, serviceType, serviceDescription, pricingRule, relatedEntityName);
     }
 
-    /**
-     * 格式化模型Token计费规则 - 重要：说明每百万token计费
-     */
+    /** 格式化模型Token计费规则 - 重要：说明每百万token计费 */
     private String formatModelPricingRule(Map<String, Object> pricingConfig) {
         if (pricingConfig == null) {
             return "定价信息暂无";
@@ -254,9 +229,7 @@ public class UsageRecordBusinessInfoService {
         return "Token计费，详情请联系客服";
     }
 
-    /**
-     * 格式化按次计费规则
-     */
+    /** 格式化按次计费规则 */
     private String formatPerUnitPricingRule(Map<String, Object> pricingConfig, String unit) {
         if (pricingConfig == null) {
             return "定价信息暂无";

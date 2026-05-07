@@ -11,9 +11,7 @@ import com.example.agentx.application.order.service.OrderAppService;
 import com.example.agentx.infrastructure.auth.UserContext;
 import com.example.agentx.interfaces.api.common.Result;
 
-/**
- * 订单控制器
- */
+/** 订单控制器 */
 @RestController
 @RequestMapping("/orders")
 @Validated
@@ -27,12 +25,10 @@ public class OrderController {
         this.orderAppService = orderAppService;
     }
 
-    /**
-     * 获取当前用户的已支付订单列表
-     *
+    /** 获取当前用户的已支付订单列表
+     * 
      * @param queryRequest 查询参数
-     * @return 订单分页列表
-     */
+     * @return 订单分页列表 */
     @GetMapping
     public Result<Page<OrderDTO>> getUserOrders(QueryUserOrderRequest queryRequest) {
         String userId = UserContext.getCurrentUserId();
@@ -51,12 +47,10 @@ public class OrderController {
         }
     }
 
-    /**
-     * 获取订单详情
-     *
+    /** 获取订单详情
+     * 
      * @param orderId 订单ID
-     * @return 订单详情
-     */
+     * @return 订单详情 */
     @GetMapping("/{orderId}")
     public Result<OrderDTO> getOrderDetail(@PathVariable String orderId) {
         String userId = UserContext.getCurrentUserId();

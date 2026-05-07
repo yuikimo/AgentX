@@ -21,117 +21,79 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * 订单实体
- */
+/** 订单实体 */
 @TableName(value = "orders", autoResultMap = true)
 public class OrderEntity extends BaseEntity {
 
-    /**
-     * 订单唯一ID
-     */
+    /** 订单唯一ID */
     @TableId(value = "id", type = IdType.ASSIGN_UUID)
     private String id;
 
-    /**
-     * 用户ID
-     */
+    /** 用户ID */
     @TableField("user_id")
     private String userId;
 
-    /**
-     * 订单号（唯一）
-     */
+    /** 订单号（唯一） */
     @TableField("order_no")
     private String orderNo;
 
-    /**
-     * 订单类型
-     */
+    /** 订单类型 */
     @TableField(value = "order_type", typeHandler = OrderTypeConverter.class)
     private OrderType orderType;
 
-    /**
-     * 订单标题
-     */
+    /** 订单标题 */
     @TableField("title")
     private String title;
 
-    /**
-     * 订单描述
-     */
+    /** 订单描述 */
     @TableField("description")
     private String description;
 
-    /**
-     * 订单金额
-     */
+    /** 订单金额 */
     @TableField("amount")
     private BigDecimal amount;
 
-    /**
-     * 货币代码
-     */
+    /** 货币代码 */
     @TableField("currency")
     private String currency;
 
-    /**
-     * 订单状态
-     */
+    /** 订单状态 */
     @TableField(value = "status", typeHandler = OrderStatusConverter.class)
     private OrderStatus status;
 
-    /**
-     * 订单过期时间
-     */
+    /** 订单过期时间 */
     @TableField("expired_at")
     private LocalDateTime expiredAt;
 
-    /**
-     * 支付完成时间
-     */
+    /** 支付完成时间 */
     @TableField("paid_at")
     private LocalDateTime paidAt;
 
-    /**
-     * 取消时间
-     */
+    /** 取消时间 */
     @TableField("cancelled_at")
     private LocalDateTime cancelledAt;
 
-    /**
-     * 退款时间
-     */
+    /** 退款时间 */
     @TableField("refunded_at")
     private LocalDateTime refundedAt;
 
-    /**
-     * 退款金额
-     */
+    /** 退款金额 */
     @TableField("refund_amount")
     private BigDecimal refundAmount;
 
-    /**
-     * 支付平台
-     */
+    /** 支付平台 */
     @TableField(value = "payment_platform", typeHandler = PaymentPlatformConverter.class)
     private PaymentPlatform paymentPlatform;
 
-    /**
-     * 支付类型
-     */
+    /** 支付类型 */
     @TableField(value = "payment_type", typeHandler = PaymentTypeConverter.class)
     private PaymentType paymentType;
 
-    /**
-     * 第三方支付平台的订单ID
-     */
+    /** 第三方支付平台的订单ID */
     @TableField("provider_order_id")
     private String providerOrderId;
 
-    /**
-     * 订单扩展信息
-     */
+    /** 订单扩展信息 */
     @TableField(value = "metadata", typeHandler = JsonConverter.class)
     private Map<String, Object> metadata;
 
@@ -285,9 +247,7 @@ public class OrderEntity extends BaseEntity {
         this.providerOrderId = providerOrderId;
     }
 
-    /**
-     * 生成订单号
-     */
+    /** 生成订单号 */
     public void generateOrderNo() {
         if (this.orderNo == null) {
             this.orderNo = "ORD" + System.currentTimeMillis()
@@ -295,25 +255,19 @@ public class OrderEntity extends BaseEntity {
         }
     }
 
-    /**
-     * 设置订单过期时间（默认30分钟后过期）
-     */
+    /** 设置订单过期时间（默认30分钟后过期） */
     public void setDefaultExpiration() {
         if (this.expiredAt == null) {
             this.expiredAt = LocalDateTime.now().plusMinutes(30);
         }
     }
 
-    /**
-     * 检查订单是否过期
-     */
+    /** 检查订单是否过期 */
     public boolean isExpired() {
         return expiredAt != null && LocalDateTime.now().isAfter(expiredAt);
     }
 
-    /**
-     * 标记订单为已支付
-     */
+    /** 标记订单为已支付 */
     public void markAsPaid() {
         if (!status.canPay()) {
             throw new BusinessException("订单状态不允许支付操作");
@@ -322,9 +276,7 @@ public class OrderEntity extends BaseEntity {
         this.paidAt = LocalDateTime.now();
     }
 
-    /**
-     * 取消订单
-     */
+    /** 取消订单 */
     public void cancel() {
         if (!status.canCancel()) {
             throw new BusinessException("订单状态不允许取消操作");
@@ -333,9 +285,7 @@ public class OrderEntity extends BaseEntity {
         this.cancelledAt = LocalDateTime.now();
     }
 
-    /**
-     * 退款订单
-     */
+    /** 退款订单 */
     public void refund(BigDecimal refundAmount) {
         if (!status.canRefund()) {
             throw new BusinessException("订单状态不允许退款操作");
@@ -352,9 +302,7 @@ public class OrderEntity extends BaseEntity {
         this.refundedAt = LocalDateTime.now();
     }
 
-    /**
-     * 标记订单为已过期
-     */
+    /** 标记订单为已过期 */
     public void markAsExpired() {
         if (status.isFinished()) {
             return; // 已完成的订单不能标记为过期
@@ -362,9 +310,7 @@ public class OrderEntity extends BaseEntity {
         this.status = OrderStatus.EXPIRED;
     }
 
-    /**
-     * 验证订单数据
-     */
+    /** 验证订单数据 */
     public void validate() {
         if (userId == null || userId.trim().isEmpty()) {
             throw new BusinessException("用户ID不能为空");
@@ -389,11 +335,9 @@ public class OrderEntity extends BaseEntity {
         }
     }
 
-    /**
-     * 创建新订单
-     */
+    /** 创建新订单 */
     public static OrderEntity createNew(String userId, OrderType orderType, String title, String description,
-                                        BigDecimal amount) {
+            BigDecimal amount) {
         OrderEntity order = new OrderEntity();
         order.setUserId(userId);
         order.setOrderType(orderType);
@@ -406,51 +350,40 @@ public class OrderEntity extends BaseEntity {
         return order;
     }
 
-    /**
-     * 创建新订单（包含支付信息）
-     */
+    /** 创建新订单（包含支付信息） */
     public static OrderEntity createNew(String userId, OrderType orderType, String title, String description,
-                                        BigDecimal amount, PaymentPlatform paymentPlatform, PaymentType paymentType) {
+            BigDecimal amount, PaymentPlatform paymentPlatform, PaymentType paymentType) {
         OrderEntity order = createNew(userId, orderType, title, description, amount);
         order.setPaymentPlatform(paymentPlatform);
         order.setPaymentType(paymentType);
         return order;
     }
 
-    /**
-     * 创建充值订单
-     */
+    /** 创建充值订单 */
     public static OrderEntity createRechargeOrder(String userId, BigDecimal amount, String remark) {
         String title = "账户充值";
         String description = remark != null && !remark.trim().isEmpty() ? remark : "充值 ¥" + amount + " 到账户余额";
         return createNew(userId, OrderType.RECHARGE, title, description, amount);
     }
 
-    /**
-     * 创建充值订单（包含支付信息）
-     */
+    /** 创建充值订单（包含支付信息） */
     public static OrderEntity createRechargeOrder(String userId, BigDecimal amount, String remark,
-                                                  PaymentPlatform paymentPlatform, PaymentType paymentType) {
+            PaymentPlatform paymentPlatform, PaymentType paymentType) {
         String title = "账户充值";
         String description = remark != null && !remark.trim().isEmpty() ? remark : "充值 ¥" + amount + " 到账户余额";
         return createNew(userId, OrderType.RECHARGE, title, description, amount, paymentPlatform, paymentType);
     }
 
-    /**
-     * 创建购买订单
-     */
+    /** 创建购买订单 */
     public static OrderEntity createPurchaseOrder(String userId, String productName, BigDecimal amount,
-                                                  String description) {
+            String description) {
         String title = "购买 " + productName;
         return createNew(userId, OrderType.PURCHASE, title, description, amount);
     }
 
-    /**
-     * 创建购买订单（包含支付信息）
-     */
+    /** 创建购买订单（包含支付信息） */
     public static OrderEntity createPurchaseOrder(String userId, String productName, BigDecimal amount,
-                                                  String description, PaymentPlatform paymentPlatform,
-                                                  PaymentType paymentType) {
+            String description, PaymentPlatform paymentPlatform, PaymentType paymentType) {
         String title = "购买 " + productName;
         return createNew(userId, OrderType.PURCHASE, title, description, amount, paymentPlatform, paymentType);
     }

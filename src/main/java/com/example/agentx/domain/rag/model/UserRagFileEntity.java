@@ -3,14 +3,13 @@ package com.example.agentx.domain.rag.model;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-
 import java.io.Serial;
 import java.io.Serializable;
-
 import com.example.agentx.infrastructure.entity.BaseEntity;
 
-/**
- * 用户RAG文件快照实体
+/** 用户RAG文件快照实体
+ * @author xhy
+ * @date 2025-07-22 <br/>
  */
 @TableName("user_rag_files")
 public class UserRagFileEntity extends BaseEntity implements Serializable {
@@ -18,55 +17,35 @@ public class UserRagFileEntity extends BaseEntity implements Serializable {
     @Serial
     private static final long serialVersionUID = -1L;
 
-    /**
-     * 文件快照ID
-     */
+    /** 文件快照ID */
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
-    /**
-     * 关联的用户RAG ID
-     */
+    /** 关联的用户RAG ID */
     private String userRagId;
 
-    /**
-     * 原始文件ID（仅标识）
-     */
+    /** 原始文件ID（仅标识） */
     private String originalFileId;
 
-    /**
-     * 文件名
-     */
+    /** 文件名 */
     private String fileName;
 
-    /**
-     * 文件大小（字节）
-     */
+    /** 文件大小（字节） */
     private Long fileSize;
 
-    /**
-     * 文件页数
-     */
+    /** 文件页数 */
     private Integer filePageSize;
 
-    /**
-     * 文件类型
-     */
+    /** 文件类型 */
     private String fileType;
 
-    /**
-     * 文件存储路径
-     */
+    /** 文件存储路径 */
     private String filePath;
 
-    /**
-     * 处理状态
-     */
+    /** 处理状态 */
     private Integer processStatus;
 
-    /**
-     * 向量化状态
-     */
+    /** 向量化状态 */
     private Integer embeddingStatus;
 
     public String getId() {

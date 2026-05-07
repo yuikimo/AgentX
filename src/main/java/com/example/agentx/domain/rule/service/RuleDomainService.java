@@ -12,9 +12,7 @@ import com.example.agentx.infrastructure.exception.BusinessException;
 
 import java.util.List;
 
-/**
- * 规则领域服务 处理计费规则相关的核心业务逻辑
- */
+/** 规则领域服务 处理计费规则相关的核心业务逻辑 */
 @Service
 public class RuleDomainService {
 
@@ -24,12 +22,9 @@ public class RuleDomainService {
         this.ruleRepository = ruleRepository;
     }
 
-    /**
-     * 根据ID获取规则
-     *
+    /** 根据ID获取规则
      * @param ruleId 规则ID
-     * @return 规则实体，如果不存在则返回null
-     */
+     * @return 规则实体，如果不存在则返回null */
     public RuleEntity getRuleById(String ruleId) {
         if (ruleId == null || ruleId.trim().isEmpty()) {
             return null;
@@ -37,12 +32,9 @@ public class RuleDomainService {
         return ruleRepository.selectById(ruleId);
     }
 
-    /**
-     * 根据处理器标识获取规则
-     *
+    /** 根据处理器标识获取规则
      * @param handlerKey 处理器标识
-     * @return 规则实体，如果不存在则返回null
-     */
+     * @return 规则实体，如果不存在则返回null */
     public RuleEntity getRuleByHandlerKey(String handlerKey) {
         if (handlerKey == null || handlerKey.trim().isEmpty()) {
             return null;
@@ -61,12 +53,9 @@ public class RuleDomainService {
         return ruleRepository.selectOne(wrapper);
     }
 
-    /**
-     * 创建规则
-     *
+    /** 创建规则
      * @param rule 规则实体
-     * @return 创建后的规则实体
-     */
+     * @return 创建后的规则实体 */
     public RuleEntity createRule(RuleEntity rule) {
         // 验证规则信息
         rule.validate();
@@ -81,12 +70,9 @@ public class RuleDomainService {
         return rule;
     }
 
-    /**
-     * 更新规则
-     *
+    /** 更新规则
      * @param rule 规则实体
-     * @return 更新后的规则实体
-     */
+     * @return 更新后的规则实体 */
     public RuleEntity updateRule(RuleEntity rule) {
         if (rule.getId() == null || rule.getId().trim().isEmpty()) {
             throw new BusinessException("规则ID不能为空");
@@ -111,11 +97,8 @@ public class RuleDomainService {
         return rule;
     }
 
-    /**
-     * 删除规则（软删除）
-     *
-     * @param ruleId 规则ID
-     */
+    /** 删除规则（软删除）
+     * @param ruleId 规则ID */
     public void deleteRule(String ruleId) {
         RuleEntity rule = getRuleById(ruleId);
         if (rule == null) {
@@ -125,11 +108,8 @@ public class RuleDomainService {
         ruleRepository.deleteById(ruleId);
     }
 
-    /**
-     * 获取所有规则
-     *
-     * @return 规则列表
-     */
+    /** 获取所有规则
+     * @return 规则列表 */
     public List<RuleEntity> getAllRules() {
         LambdaQueryWrapper<RuleEntity> wrapper = Wrappers.<RuleEntity>lambdaQuery()
                 .orderByDesc(RuleEntity::getCreatedAt);
@@ -137,22 +117,16 @@ public class RuleDomainService {
         return ruleRepository.selectList(wrapper);
     }
 
-    /**
-     * 检查规则是否存在
-     *
+    /** 检查规则是否存在
      * @param ruleId 规则ID
-     * @return 是否存在
-     */
+     * @return 是否存在 */
     public boolean existsRule(String ruleId) {
         return getRuleById(ruleId) != null;
     }
 
-    /**
-     * 检查处理器标识是否存在
-     *
+    /** 检查处理器标识是否存在
      * @param handlerKey 处理器标识
-     * @return 是否存在
-     */
+     * @return 是否存在 */
     public boolean existsByHandlerKey(String handlerKey) {
         return getRuleByHandlerKey(handlerKey) != null;
     }

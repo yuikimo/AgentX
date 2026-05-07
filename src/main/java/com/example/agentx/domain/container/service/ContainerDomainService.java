@@ -16,9 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 
-/**
- * 容器领域服务
- */
+/** 容器领域服务 */
 @Service
 public class ContainerDomainService {
 
@@ -29,18 +27,16 @@ public class ContainerDomainService {
         this.containerRepository = containerRepository;
     }
 
-    /**
-     * 创建用户容器
-     *
-     * @param userId        用户ID
+    /** 创建用户容器
+     * 
+     * @param userId 用户ID
      * @param containerName 容器名称
-     * @param image         镜像名称
-     * @param internalPort  内部端口
-     * @param volumePath    数据卷路径
-     * @return 容器实体
-     */
+     * @param image 镜像名称
+     * @param internalPort 内部端口
+     * @param volumePath 数据卷路径
+     * @return 容器实体 */
     public ContainerEntity createUserContainer(String userId, String containerName, String image, Integer internalPort,
-                                               String volumePath) {
+            String volumePath) {
         // 检查用户是否已有容器
         ContainerEntity existingContainer = containerRepository.findByUserIdAndType(userId, ContainerType.USER);
         if (existingContainer != null && existingContainer.isOperatable()) {
@@ -66,17 +62,15 @@ public class ContainerDomainService {
         return container;
     }
 
-    /**
-     * 创建审核容器
-     *
+    /** 创建审核容器
+     * 
      * @param containerName 容器名称
-     * @param image         镜像名称
-     * @param internalPort  内部端口
-     * @param volumePath    数据卷路径
-     * @return 容器实体
-     */
+     * @param image 镜像名称
+     * @param internalPort 内部端口
+     * @param volumePath 数据卷路径
+     * @return 容器实体 */
     public ContainerEntity createReviewContainer(String containerName, String image, Integer internalPort,
-                                                 String volumePath) {
+            String volumePath) {
         // 检查是否已有审核容器
         ContainerEntity existingContainer = findReviewContainer();
         if (existingContainer != null && existingContainer.isOperatable()) {
@@ -102,37 +96,30 @@ public class ContainerDomainService {
         return container;
     }
 
-    /**
-     * 获取用户容器
-     *
+    /** 获取用户容器
+     * 
      * @param userId 用户ID
-     * @return 用户容器，可能为null
-     */
+     * @return 用户容器，可能为null */
     public ContainerEntity findUserContainer(String userId) {
         return containerRepository.findByUserIdAndType(userId, ContainerType.USER);
     }
 
-    /**
-     * 获取审核容器
-     *
-     * @return 审核容器，可能为null
-     */
+    /** 获取审核容器
+     * 
+     * @return 审核容器，可能为null */
     public ContainerEntity findReviewContainer() {
         LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
                 .eq(ContainerEntity::getType, ContainerType.REVIEW)
-                .ne(ContainerEntity::getStatus, ContainerStatus.DELETED)
-                .orderByDesc(ContainerEntity::getCreatedAt);
+                .ne(ContainerEntity::getStatus, ContainerStatus.DELETED).orderByDesc(ContainerEntity::getCreatedAt);
 
         List<ContainerEntity> containers = containerRepository.selectList(wrapper);
         return containers.isEmpty() ? null : containers.get(0);
     }
 
-    /**
-     * 根据ID获取容器
-     *
+    /** 根据ID获取容器
+     * 
      * @param containerId 容器ID
-     * @return 容器实体
-     */
+     * @return 容器实体 */
     public ContainerEntity getContainerById(String containerId) {
         ContainerEntity container = containerRepository.selectById(containerId);
         if (container == null) {
@@ -141,27 +128,23 @@ public class ContainerDomainService {
         return container;
     }
 
-    /**
-     * 检查用户是否有正在运行的容器
-     *
+    /** 检查用户是否有正在运行的容器
+     * 
      * @param userId 用户ID
-     * @return 是否有运行中的容器
-     */
+     * @return 是否有运行中的容器 */
     public boolean hasRunningContainer(String userId) {
         ContainerEntity container = findUserContainer(userId);
         return container != null && container.isRunning();
     }
 
-    /**
-     * 更新容器状态
-     *
-     * @param containerId       容器ID
-     * @param status            新状态
-     * @param operator          操作者
-     * @param dockerContainerId Docker容器ID（可选）
-     */
+    /** 更新容器状态
+     * 
+     * @param containerId 容器ID
+     * @param status 新状态
+     * @param operator 操作者
+     * @param dockerContainerId Docker容器ID（可选） */
     public void updateContainerStatus(String containerId, ContainerStatus status, Operator operator,
-                                      String dockerContainerId) {
+            String dockerContainerId) {
         ContainerEntity container = containerRepository.selectById(containerId);
         if (container == null) {
             throw new BusinessException("容器不存在");
@@ -175,13 +158,11 @@ public class ContainerDomainService {
         containerRepository.updateById(container);
     }
 
-    /**
-     * 更新容器IP地址
+    /** 更新容器IP地址
      *
      * @param containerId 容器ID
-     * @param ipAddress   IP地址
-     * @param operator    操作者
-     */
+     * @param ipAddress IP地址
+     * @param operator 操作者 */
     public void updateContainerIpAddress(String containerId, String ipAddress, Operator operator) {
         ContainerEntity container = containerRepository.selectById(containerId);
         if (container == null) {
@@ -192,13 +173,11 @@ public class ContainerDomainService {
         containerRepository.updateById(container);
     }
 
-    /**
-     * 更新容器外部端口
+    /** 更新容器外部端口
      *
-     * @param containerId  容器ID
+     * @param containerId 容器ID
      * @param externalPort 外部端口
-     * @param operator     操作者
-     */
+     * @param operator 操作者 */
     public void updateContainerExternalPort(String containerId, Integer externalPort, Operator operator) {
         ContainerEntity container = containerRepository.selectById(containerId);
         if (container == null) {
@@ -209,12 +188,10 @@ public class ContainerDomainService {
         containerRepository.updateById(container);
     }
 
-    /**
-     * 更新容器最后访问时间
-     *
-     * @param containerId    容器ID
-     * @param lastAccessedAt 最后访问时间
-     */
+    /** 更新容器最后访问时间
+     * 
+     * @param containerId 容器ID
+     * @param lastAccessedAt 最后访问时间 */
     public void updateLastAccessTime(String containerId, LocalDateTime lastAccessedAt) {
         ContainerEntity container = containerRepository.selectById(containerId);
         if (container == null) {
@@ -225,13 +202,11 @@ public class ContainerDomainService {
         containerRepository.updateById(container);
     }
 
-    /**
-     * 更新容器资源使用率
-     *
+    /** 更新容器资源使用率
+     * 
      * @param containerId 容器ID
-     * @param cpuUsage    CPU使用率
-     * @param memoryUsage 内存使用率
-     */
+     * @param cpuUsage CPU使用率
+     * @param memoryUsage 内存使用率 */
     public void updateResourceUsage(String containerId, Double cpuUsage, Double memoryUsage) {
         ContainerEntity container = containerRepository.selectById(containerId);
         if (container == null) {
@@ -242,13 +217,11 @@ public class ContainerDomainService {
         containerRepository.updateById(container);
     }
 
-    /**
-     * 标记容器为错误状态
-     *
-     * @param containerId  容器ID
+    /** 标记容器为错误状态
+     * 
+     * @param containerId 容器ID
      * @param errorMessage 错误信息
-     * @param operator     操作者
-     */
+     * @param operator 操作者 */
     public void markContainerError(String containerId, String errorMessage, Operator operator) {
         ContainerEntity container = containerRepository.selectById(containerId);
         if (container == null) {
@@ -259,12 +232,10 @@ public class ContainerDomainService {
         containerRepository.updateById(container);
     }
 
-    /**
-     * 删除容器
-     *
+    /** 删除容器
+     * 
      * @param containerId 容器ID
-     * @param operator    操作者
-     */
+     * @param operator 操作者 */
     public void deleteContainer(String containerId, Operator operator) {
         ContainerEntity container = containerRepository.selectById(containerId);
         if (container == null) {
@@ -276,65 +247,52 @@ public class ContainerDomainService {
         containerRepository.updateById(container);
     }
 
-    /**
-     * 物理删除容器记录
-     *
-     * @param containerId 容器ID
-     */
+    /** 物理删除容器记录
+     * 
+     * @param containerId 容器ID */
     public void physicalDeleteContainer(String containerId) {
         containerRepository.deleteById(containerId);
     }
 
-    /**
-     * 更新容器最后访问时间
-     *
-     * @param containerId 容器ID
-     */
+    /** 更新容器最后访问时间
+     * 
+     * @param containerId 容器ID */
     public void updateContainerLastAccessed(String containerId) {
         LambdaUpdateWrapper<ContainerEntity> updateWrapper = Wrappers.<ContainerEntity>lambdaUpdate()
-                .eq(ContainerEntity::getId, containerId)
-                .set(ContainerEntity::getLastAccessedAt, LocalDateTime.now());
+                .eq(ContainerEntity::getId, containerId).set(ContainerEntity::getLastAccessedAt, LocalDateTime.now());
 
         containerRepository.update(null, updateWrapper);
     }
 
-    /**
-     * 分页查询容器
-     *
-     * @param page    分页参数
+    /** 分页查询容器
+     * 
+     * @param page 分页参数
      * @param keyword 搜索关键词
-     * @param status  容器状态
-     * @param type    容器类型
-     * @return 分页结果
-     */
+     * @param status 容器状态
+     * @param type 容器类型
+     * @return 分页结果 */
     public Page<ContainerEntity> getContainersPage(Page<ContainerEntity> page, String keyword, ContainerStatus status,
-                                                   ContainerType type) {
+            ContainerType type) {
         return containerRepository.selectPageWithConditions(page, keyword, status, type);
     }
 
-    /**
-     * 获取所有需要监控的容器
-     *
-     * @return 运行中的容器列表
-     */
+    /** 获取所有需要监控的容器
+     * 
+     * @return 运行中的容器列表 */
     public List<ContainerEntity> getMonitoringContainers() {
         return containerRepository.findByStatus(ContainerStatus.RUNNING);
     }
 
-    /**
-     * 查找运行中的容器（用于启动时状态同步）
-     *
-     * @return 运行中容器列表
-     */
+    /** 查找运行中的容器（用于启动时状态同步）
+     * 
+     * @return 运行中容器列表 */
     public List<ContainerEntity> findRunningContainers() {
         return containerRepository.findByStatus(ContainerStatus.RUNNING);
     }
 
-    /**
-     * 查找所有活跃容器（运行中、创建中、已暂停）
-     *
-     * @return 活跃容器列表
-     */
+    /** 查找所有活跃容器（运行中、创建中、已暂停）
+     * 
+     * @return 活跃容器列表 */
     public List<ContainerEntity> findActiveContainers() {
         LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
                 .in(ContainerEntity::getStatus, ContainerStatus.RUNNING, ContainerStatus.CREATING,
@@ -344,98 +302,77 @@ public class ContainerDomainService {
         return containerRepository.selectList(wrapper);
     }
 
-    /**
-     * 查找所有容器
-     *
-     * @return 所有容器列表
-     */
+    /** 查找所有容器
+     * 
+     * @return 所有容器列表 */
     public List<ContainerEntity> findAllContainers() {
         LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
-                .ne(ContainerEntity::getStatus, ContainerStatus.DELETED)
-                .orderByDesc(ContainerEntity::getUpdatedAt);
+                .ne(ContainerEntity::getStatus, ContainerStatus.DELETED).orderByDesc(ContainerEntity::getUpdatedAt);
 
         return containerRepository.selectList(wrapper);
     }
 
-    /**
-     * 查找错误状态的容器
-     *
-     * @return 错误容器列表
-     */
+    /** 查找错误状态的容器
+     * 
+     * @return 错误容器列表 */
     public List<ContainerEntity> findErrorContainers() {
         LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
-                .eq(ContainerEntity::getStatus, ContainerStatus.ERROR)
-                .orderByDesc(ContainerEntity::getUpdatedAt);
+                .eq(ContainerEntity::getStatus, ContainerStatus.ERROR).orderByDesc(ContainerEntity::getUpdatedAt);
 
         return containerRepository.selectList(wrapper);
     }
 
-    /**
-     * 查找已停止的容器
-     *
-     * @return 已停止容器列表
-     */
+    /** 查找已停止的容器
+     * 
+     * @return 已停止容器列表 */
     public List<ContainerEntity> findStoppedContainers() {
         LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
-                .eq(ContainerEntity::getStatus, ContainerStatus.STOPPED)
-                .orderByDesc(ContainerEntity::getUpdatedAt);
+                .eq(ContainerEntity::getStatus, ContainerStatus.STOPPED).orderByDesc(ContainerEntity::getUpdatedAt);
 
         return containerRepository.selectList(wrapper);
     }
 
-    /**
-     * 根据状态获取容器列表
-     *
+    /** 根据状态获取容器列表
+     * 
      * @param status 容器状态
-     * @return 容器列表
-     */
+     * @return 容器列表 */
     public List<ContainerEntity> getContainersByStatus(ContainerStatus status) {
         return containerRepository.findByStatus(status);
     }
 
-    /**
-     * 获取所有活跃容器（非已删除状态）
-     *
-     * @return 活跃容器列表
-     */
+    /** 获取所有活跃容器（非已删除状态）
+     * 
+     * @return 活跃容器列表 */
     public List<ContainerEntity> getAllActiveContainers() {
         LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
-                .ne(ContainerEntity::getStatus, ContainerStatus.DELETED)
-                .orderByAsc(ContainerEntity::getLastAccessedAt);
+                .ne(ContainerEntity::getStatus, ContainerStatus.DELETED).orderByAsc(ContainerEntity::getLastAccessedAt);
         return containerRepository.selectList(wrapper);
     }
 
-    /**
-     * 获取需要暂停的容器（运行中且1天未访问）
-     *
-     * @return 需要暂停的容器列表
-     */
+    /** 获取需要暂停的容器（运行中且1天未访问）
+     * 
+     * @return 需要暂停的容器列表 */
     public List<ContainerEntity> getContainersNeedingSuspension() {
         LocalDateTime oneDayAgo = LocalDateTime.now().minusDays(1);
         LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
-                .lt(ContainerEntity::getLastAccessedAt, oneDayAgo)
-                .orderByAsc(ContainerEntity::getLastAccessedAt);
+                .eq(ContainerEntity::getStatus, ContainerStatus.RUNNING)
+                .lt(ContainerEntity::getLastAccessedAt, oneDayAgo).orderByAsc(ContainerEntity::getLastAccessedAt);
         return containerRepository.selectList(wrapper);
     }
 
-    /**
-     * 获取需要删除的容器（5天未访问）
-     *
-     * @return 需要删除的容器列表
-     */
+    /** 获取需要删除的容器（5天未访问）
+     * 
+     * @return 需要删除的容器列表 */
     public List<ContainerEntity> getContainersNeedingDeletion() {
         LocalDateTime fiveDaysAgo = LocalDateTime.now().minusDays(5);
         LambdaQueryWrapper<ContainerEntity> wrapper = Wrappers.<ContainerEntity>lambdaQuery()
-                .lt(ContainerEntity::getLastAccessedAt, fiveDaysAgo)
-                .orderByAsc(ContainerEntity::getLastAccessedAt);
+                .lt(ContainerEntity::getLastAccessedAt, fiveDaysAgo).orderByAsc(ContainerEntity::getLastAccessedAt);
         return containerRepository.selectList(wrapper);
     }
 
-    /**
-     * 分配外部端口
-     *
-     * @return 可用的外部端口
-     */
+    /** 分配外部端口
+     * 
+     * @return 可用的外部端口 */
     private Integer allocateExternalPort() {
         int maxAttempts = 100;
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
@@ -448,11 +385,9 @@ public class ContainerDomainService {
         throw new BusinessException("无法分配可用端口，请稍后重试");
     }
 
-    /**
-     * 获取容器统计信息
-     *
-     * @return 统计信息
-     */
+    /** 获取容器统计信息
+     * 
+     * @return 统计信息 */
     public ContainerStatistics getStatistics() {
         long totalContainers = containerRepository.selectCount(null);
         long runningContainers = containerRepository.countRunningContainers();
@@ -460,9 +395,7 @@ public class ContainerDomainService {
         return new ContainerStatistics(totalContainers, runningContainers);
     }
 
-    /**
-     * 容器统计信息内部类
-     */
+    /** 容器统计信息内部类 */
     public static class ContainerStatistics {
         private final long totalContainers;
         private final long runningContainers;

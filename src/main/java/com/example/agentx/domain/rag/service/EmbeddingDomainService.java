@@ -2,324 +2,382 @@ package com.example.agentx.domain.rag.service;
 
 import static dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metadataKey;
 
-import dev.langchain4j.store.embedding.EmbeddingMatch;
-
-import java.util.Collections;
-import java.util.List;
-
-import com.example.agentx.domain.rag.constant.SearchType;
-import com.example.agentx.domain.rag.model.VectorStoreResult;
-
-import org.dromara.streamquery.stream.core.stream.Steam;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.example.agentx.infrastructure.mq.core.MessageEnvelope;
-import com.example.agentx.infrastructure.mq.core.MessagePublisher;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import com.example.agentx.domain.rag.message.RagDocSyncStorageMessage;
-import com.example.agentx.domain.rag.constant.FileProcessingStatusEnum;
-import com.example.agentx.domain.rag.constant.MetadataConstant;
-import com.example.agentx.domain.rag.model.DocumentUnitEntity;
-import com.example.agentx.domain.rag.model.FileDetailEntity;
-import com.example.agentx.domain.rag.repository.DocumentUnitRepository;
-import com.example.agentx.domain.rag.repository.FileDetailRepository;
-import com.example.agentx.infrastructure.exception.BusinessException;
-import com.example.agentx.infrastructure.mq.enums.EventType;
-import com.example.agentx.infrastructure.mq.events.RagDocSyncStorageEvent;
-
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-
 import cn.hutool.core.convert.Convert;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
-import com.example.agentx.infrastructure.rag.factory.EmbeddingModelFactory;
+import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingSearchResult;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.filter.comparison.IsEqualTo;
 import dev.langchain4j.store.embedding.filter.comparison.IsIn;
+import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import com.example.agentx.domain.rag.constant.ConfidenceTier;
+import com.example.agentx.domain.rag.constant.EmbeddingDistanceMetric;
+import com.example.agentx.domain.rag.constant.FileProcessingStatusEnum;
+import com.example.agentx.domain.rag.constant.MetadataConstant;
+import com.example.agentx.domain.rag.constant.SearchType;
+import com.example.agentx.domain.rag.config.RagProperties;
+import com.example.agentx.domain.rag.message.RagDocSyncStorageMessage;
+import com.example.agentx.domain.rag.model.FileDetailEntity;
+import com.example.agentx.domain.rag.model.VectorStoreResult;
+import com.example.agentx.domain.rag.repository.DocumentUnitRepository;
+import com.example.agentx.domain.rag.repository.FileDetailRepository;
+import com.example.agentx.infrastructure.exception.BusinessException;
+import com.example.agentx.infrastructure.rag.factory.EmbeddingModelFactory;
+import com.example.agentx.infrastructure.rag.service.EmbeddingStoreRouter;
 
-/**
- * 向量话存储
- */
+/** 向量存储领域服务（支持按Embedding Profile动态路由） */
 @Component
 public class EmbeddingDomainService implements MetadataConstant {
 
     private static final Logger log = LoggerFactory.getLogger(EmbeddingDomainService.class);
+    private static final String EMBEDDING_PROFILE_ID = "EMBEDDING_PROFILE_ID";
 
     private final EmbeddingModelFactory embeddingModelFactory;
-
-    private final MessagePublisher messagePublisher;
-
-    private final EmbeddingStore<TextSegment> embeddingStore;
-
+    private final EmbeddingStoreRouter embeddingStoreRouter;
+    private final EmbeddingProfileDomainService embeddingProfileDomainService;
     private final FileDetailRepository fileDetailRepository;
-
     private final DocumentUnitRepository documentUnitRepository;
+    private final RagProperties ragProperties;
 
-    public EmbeddingDomainService(EmbeddingModelFactory embeddingModelFactory,
-                                  @Qualifier("initEmbeddingStore") EmbeddingStore<TextSegment> embeddingStore,
-                                  FileDetailRepository fileDetailRepository, MessagePublisher messagePublisher,
-                                  DocumentUnitRepository documentUnitRepository) {
+    public EmbeddingDomainService(EmbeddingModelFactory embeddingModelFactory, EmbeddingStoreRouter embeddingStoreRouter,
+            EmbeddingProfileDomainService embeddingProfileDomainService, FileDetailRepository fileDetailRepository,
+            DocumentUnitRepository documentUnitRepository, RagProperties ragProperties) {
         this.embeddingModelFactory = embeddingModelFactory;
-        this.embeddingStore = embeddingStore;
+        this.embeddingStoreRouter = embeddingStoreRouter;
+        this.embeddingProfileDomainService = embeddingProfileDomainService;
         this.fileDetailRepository = fileDetailRepository;
-        this.messagePublisher = messagePublisher;
         this.documentUnitRepository = documentUnitRepository;
+        this.ragProperties = ragProperties;
     }
 
-    /**
-     * 纯向量检索方法 专门负责向量检索算法，返回统一的VectorStoreResult格式
-     *
-     * @param dataSetIds          数据集ID列表
-     * @param question            查询问题
-     * @param maxResults          最大返回结果数量
-     * @param minScore            最小相似度阈值
-     * @param enableRerank        是否启用重排序
-     * @param candidateMultiplier 候选结果倍数
-     * @param embeddingConfig     嵌入模型配置
-     * @return 向量检索结果列表，失败时返回空集合
-     */
+    /** 纯向量检索（默认表，兼容旧逻辑） */
     public List<VectorStoreResult> vectorSearch(List<String> dataSetIds, String question, Integer maxResults,
-                                                Double minScore, Boolean enableRerank, Integer candidateMultiplier,
-                                                EmbeddingModelFactory.EmbeddingConfig embeddingConfig) {
-        // 参数验证
+            Double minScore, Boolean enableRerank, Integer candidateMultiplier,
+            EmbeddingModelFactory.EmbeddingConfig embeddingConfig) {
+        return vectorSearch(dataSetIds, question, maxResults, minScore, null, enableRerank, candidateMultiplier,
+                embeddingConfig, embeddingStoreRouter.getDefaultTableName(), embeddingStoreRouter.getDefaultDimension());
+    }
+
+    /** 纯向量检索（指定向量表） */
+    public List<VectorStoreResult> vectorSearch(List<String> dataSetIds, String question, Integer maxResults,
+            Double minScore, Double fallbackMinScore, Boolean enableRerank, Integer candidateMultiplier,
+            EmbeddingModelFactory.EmbeddingConfig embeddingConfig, String vectorTableName, Integer vectorDimension) {
         if (dataSetIds == null || dataSetIds.isEmpty()) {
             log.warn("数据集ID列表为空，无法进行向量搜索");
             return Collections.emptyList();
         }
-
         if (!StringUtils.hasText(question)) {
             log.warn("查询问题为空，无法进行向量搜索");
             return Collections.emptyList();
         }
-
         if (embeddingConfig == null) {
             log.warn("嵌入模型配置为空，无法进行向量搜索");
             return Collections.emptyList();
         }
 
-        // 设置默认值和合理上限
         int finalMaxResults = maxResults != null ? Math.min(maxResults, 100) : 15;
         double finalMinScore = minScore != null ? Math.max(0.0, Math.min(minScore, 1.0)) : 0.7;
+        Double finalFallbackMinScore = normalizeFallbackMinScore(fallbackMinScore, finalMinScore);
         boolean finalEnableRerank = enableRerank != null ? enableRerank : true;
         int finalCandidateMultiplier = candidateMultiplier != null ? Math.max(1, Math.min(candidateMultiplier, 5)) : 2;
+        String finalTableName = StringUtils.hasText(vectorTableName) ? vectorTableName
+                : embeddingStoreRouter.getDefaultTableName();
+        Integer finalDimension = vectorDimension != null ? vectorDimension : embeddingStoreRouter.getDefaultDimension();
+        int searchLimit = finalEnableRerank
+                ? Math.max(finalMaxResults * finalCandidateMultiplier, 30)
+                : finalMaxResults;
+        double queryMinScore = finalFallbackMinScore != null ? finalFallbackMinScore : finalMinScore;
 
         long startTime = System.currentTimeMillis();
-
         try {
-            // 创建嵌入模型实例
             OpenAiEmbeddingModel embeddingModel = embeddingModelFactory.createEmbeddingModel(embeddingConfig);
-
-            // 计算搜索数量
-            int searchLimit = finalEnableRerank
-                    ? Math.max(finalMaxResults * finalCandidateMultiplier, 30)
-                    : finalMaxResults;
-
-            log.debug("开始向量搜索 参数: datasets={}, question='{}', maxResults={}, minScore={}, searchLimit={}",
-                    dataSetIds, question, finalMaxResults, finalMinScore, searchLimit);
-
-            // 执行向量查询
-            final EmbeddingSearchResult<TextSegment> searchResult = embeddingStore.search(EmbeddingSearchRequest
-                    .builder()
-                    .filter(new IsIn(DATA_SET_ID, dataSetIds))
-                    .maxResults(searchLimit)
-                    .minScore(finalMinScore)
-                    .queryEmbedding(Embedding.from(embeddingModel.embed(question).content().vector()))
-                    .build()
-            );
-
-            List<EmbeddingMatch<TextSegment>> embeddingMatches = searchResult.matches();
-
-            // 回退搜索（降低阈值）
-            if (embeddingMatches.isEmpty() && finalMinScore > 0.3) {
-                log.info("在最小分数{}下没有找到向量结果，尝试使用较低阈值重试", finalMinScore);
-                final EmbeddingSearchResult<TextSegment> fallbackResult = embeddingStore.search(EmbeddingSearchRequest
-                        .builder()
-                        .filter(new IsIn(DATA_SET_ID, dataSetIds))
-                        .maxResults(searchLimit).minScore(0.3)
-                        .queryEmbedding(Embedding.from(embeddingModel.embed(question).content().vector()))
-                        .build());
-                embeddingMatches = fallbackResult.matches();
-                log.debug("回退向量搜索找到{}个匹配结果", embeddingMatches.size());
-            }
-
-            // 转换为VectorStoreResult格式
-            List<VectorStoreResult> results = embeddingMatches.stream()
-                    .limit(finalMaxResults)
-                    .map(match -> {
-                        VectorStoreResult result = new VectorStoreResult();
-                        result.setEmbeddingId(match.embeddingId());
-                        result.setText(match.embedded().text());
-                        result.setMetadata(match.embedded().metadata().toMap());
-                        result.setScore(match.score());
-                        result.setSearchType(SearchType.VECTOR);
-                        return result;
-                    })
-                    .toList();
-
-            long totalTime = System.currentTimeMillis() - startTime;
-            log.info("向量搜索完成，查询：'{}'，返回{}个文档，耗时{}ms", question, results.size(), totalTime);
-
-            return results;
-
+            Embedding queryEmbedding = Embedding.from(embeddingModel.embed(question).content().vector());
+            return vectorSearchByEmbedding(dataSetIds, question, queryEmbedding, finalMaxResults, finalMinScore,
+                    finalFallbackMinScore, finalEnableRerank, finalCandidateMultiplier, finalTableName, finalDimension,
+                    startTime);
         } catch (Exception e) {
-            long totalTime = System.currentTimeMillis() - startTime;
-            log.error("向量搜索过程中出现错误，问题：'{}'，耗时：{}ms", question, totalTime, e);
-            // 向量检索失败时返回空集合，不影响关键词检索结果
+            log.error("向量搜索异常，table={}, query='{}'", finalTableName, question, e);
             return Collections.emptyList();
         }
     }
 
-    /**
-     * 批量删除向量数据
-     *
-     * @param fileIds 文件id集合
-     */
+    /** HyDE 向量融合搜索：原始问题与假设文档分别向量化后加权平均 */
+    public List<VectorStoreResult> vectorSearchWithHydeFusion(List<String> dataSetIds, String originalQuestion,
+            String hypotheticalDocument, Integer maxResults, Double minScore, Double fallbackMinScore,
+            Boolean enableRerank, Integer candidateMultiplier, EmbeddingModelFactory.EmbeddingConfig embeddingConfig,
+            String vectorTableName, Integer vectorDimension) {
+        if (!StringUtils.hasText(hypotheticalDocument)) {
+            return vectorSearch(dataSetIds, originalQuestion, maxResults, minScore, fallbackMinScore, enableRerank,
+                    candidateMultiplier, embeddingConfig, vectorTableName, vectorDimension);
+        }
+        if (dataSetIds == null || dataSetIds.isEmpty() || !StringUtils.hasText(originalQuestion)
+                || embeddingConfig == null) {
+            return vectorSearch(dataSetIds, originalQuestion, maxResults, minScore, fallbackMinScore, enableRerank,
+                    candidateMultiplier, embeddingConfig, vectorTableName, vectorDimension);
+        }
+
+        int finalMaxResults = maxResults != null ? Math.min(maxResults, 100) : 15;
+        double finalMinScore = minScore != null ? Math.max(0.0, Math.min(minScore, 1.0)) : 0.7;
+        Double finalFallbackMinScore = normalizeFallbackMinScore(fallbackMinScore, finalMinScore);
+        boolean finalEnableRerank = enableRerank != null ? enableRerank : true;
+        int finalCandidateMultiplier = candidateMultiplier != null ? Math.max(1, Math.min(candidateMultiplier, 5)) : 2;
+        String finalTableName = StringUtils.hasText(vectorTableName) ? vectorTableName
+                : embeddingStoreRouter.getDefaultTableName();
+        Integer finalDimension = vectorDimension != null ? vectorDimension : embeddingStoreRouter.getDefaultDimension();
+        long startTime = System.currentTimeMillis();
+        try {
+            OpenAiEmbeddingModel embeddingModel = embeddingModelFactory.createEmbeddingModel(embeddingConfig);
+            Embedding queryEmbedding = fuseHydeEmbeddings(embeddingModel, originalQuestion, hypotheticalDocument);
+            return vectorSearchByEmbedding(dataSetIds, originalQuestion, queryEmbedding, finalMaxResults, finalMinScore,
+                    finalFallbackMinScore, finalEnableRerank, finalCandidateMultiplier, finalTableName, finalDimension,
+                    startTime);
+        } catch (Exception e) {
+            log.warn("HyDE向量融合失败，回退原始向量检索，table={}, query='{}', err={}", finalTableName, originalQuestion,
+                    e.getMessage());
+            return vectorSearch(dataSetIds, originalQuestion, maxResults, minScore, fallbackMinScore, enableRerank,
+                    candidateMultiplier, embeddingConfig, vectorTableName, vectorDimension);
+        }
+    }
+
+    private List<VectorStoreResult> vectorSearchByEmbedding(List<String> dataSetIds, String question,
+            Embedding queryEmbedding, int finalMaxResults, double finalMinScore, Double finalFallbackMinScore,
+            boolean finalEnableRerank, int finalCandidateMultiplier, String finalTableName, Integer finalDimension,
+            long startTime) {
+        try {
+            EmbeddingStore<TextSegment> embeddingStore = embeddingStoreRouter.getOrCreateStore(
+                    "table:" + finalTableName, finalTableName, finalDimension, EmbeddingDistanceMetric.COSINE);
+            int searchLimit = finalEnableRerank
+                    ? Math.max(finalMaxResults * finalCandidateMultiplier, finalMaxResults)
+                    : finalMaxResults;
+            double queryMinScore = finalFallbackMinScore != null ? finalFallbackMinScore : finalMinScore;
+
+            EmbeddingSearchResult<TextSegment> searchResult = embeddingStore.search(EmbeddingSearchRequest.builder()
+                    .filter(new IsIn(DATA_SET_ID, dataSetIds))
+                    .maxResults(searchLimit)
+                    .minScore(queryMinScore)
+                    .queryEmbedding(queryEmbedding)
+                    .build());
+
+            List<EmbeddingMatch<TextSegment>> embeddingMatches = searchResult.matches();
+            boolean fallbackUsed = false;
+            if (finalFallbackMinScore != null && !embeddingMatches.isEmpty()) {
+                List<EmbeddingMatch<TextSegment>> primaryMatches = embeddingMatches.stream()
+                        .filter(match -> match.score() >= finalMinScore).limit(finalMaxResults).toList();
+                if (!primaryMatches.isEmpty()) {
+                    embeddingMatches = primaryMatches;
+                } else {
+                    embeddingMatches = embeddingMatches.stream().limit(finalMaxResults).toList();
+                    fallbackUsed = true;
+                    log.info("向量搜索触发fallback: table={}, query='{}', primaryMinScore={}, fallbackMinScore={}, hits={}",
+                            finalTableName, question, finalMinScore, finalFallbackMinScore, embeddingMatches.size());
+                }
+            } else {
+                embeddingMatches = embeddingMatches.stream().limit(finalMaxResults).toList();
+            }
+            final boolean finalFallbackUsed = fallbackUsed;
+
+            List<VectorStoreResult> results = embeddingMatches.stream().map(match -> {
+                VectorStoreResult result = new VectorStoreResult();
+                result.setEmbeddingId(match.embeddingId());
+                result.setText(match.embedded().text());
+                result.setMetadata(match.embedded().metadata().toMap());
+                result.setScore(match.score());
+                result.setSearchType(SearchType.VECTOR);
+                result.setMatchedMinScore(finalFallbackUsed ? finalFallbackMinScore : finalMinScore);
+                result.setConfidenceTier(resolveConfidenceTier(match.score(), finalMinScore, finalFallbackUsed));
+                return result;
+            }).toList();
+
+            log.info("向量搜索完成，table={}, query='{}'，返回{}条，耗时{}ms", finalTableName, question, results.size(),
+                    System.currentTimeMillis() - startTime);
+            return results;
+        } catch (Exception e) {
+            log.error("向量搜索异常，table={}, query='{}'", finalTableName, question, e);
+            return Collections.emptyList();
+        }
+    }
+
+    private Embedding fuseHydeEmbeddings(OpenAiEmbeddingModel embeddingModel, String originalQuestion,
+            String hypotheticalDocument) {
+        List<TextSegment> segments = new ArrayList<>(2);
+        segments.add(new TextSegment(originalQuestion, new Metadata()));
+        segments.add(new TextSegment(hypotheticalDocument, new Metadata()));
+        List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
+        if (embeddings == null || embeddings.size() < 2 || embeddings.get(0) == null || embeddings.get(1) == null) {
+            throw new BusinessException("HyDE向量融合失败：向量化结果为空");
+        }
+        float[] original = embeddings.get(0).vector();
+        float[] hypothetical = embeddings.get(1).vector();
+        if (original == null || hypothetical == null || original.length != hypothetical.length) {
+            throw new BusinessException("HyDE向量融合失败：向量维度不一致");
+        }
+        double originalWeight = Math.max(0.0, ragProperties.getHyde().getVectorFusion().getOriginalWeight());
+        double hypotheticalWeight = Math.max(0.0, ragProperties.getHyde().getVectorFusion().getHypotheticalWeight());
+        double totalWeight = originalWeight + hypotheticalWeight;
+        if (totalWeight <= 0) {
+            originalWeight = 1.0;
+            hypotheticalWeight = 0.0;
+            totalWeight = 1.0;
+        }
+        float[] fused = new float[original.length];
+        for (int i = 0; i < original.length; i++) {
+            fused[i] = (float) ((original[i] * originalWeight + hypothetical[i] * hypotheticalWeight) / totalWeight);
+        }
+        return Embedding.from(fused);
+    }
+
+    private Double normalizeFallbackMinScore(Double fallbackMinScore, double primaryMinScore) {
+        if (fallbackMinScore == null) {
+            return null;
+        }
+        double normalized = Math.max(0.0, Math.min(fallbackMinScore, 1.0));
+        if (normalized >= primaryMinScore) {
+            return null;
+        }
+        return normalized;
+    }
+
+    private ConfidenceTier resolveConfidenceTier(double score, double primaryMinScore, boolean fallbackUsed) {
+        if (fallbackUsed) {
+            return ConfidenceTier.FALLBACK;
+        }
+        double highConfidenceThreshold = Math.min(1.0, primaryMinScore + 0.1);
+        if (score >= highConfidenceThreshold) {
+            return ConfidenceTier.HIGH;
+        }
+        return ConfidenceTier.LOW;
+    }
+
+    /** 批量删除向量数据（跨Profile表） */
     public void deleteEmbedding(List<String> fileIds) {
-        embeddingStore.removeAll(metadataKey(MetadataConstant.FILE_ID).isIn(fileIds));
+        if (fileIds == null || fileIds.isEmpty()) {
+            return;
+        }
+        try {
+            EmbeddingStore<TextSegment> defaultStore = embeddingStoreRouter.getOrCreateStore("default",
+                    embeddingStoreRouter.getDefaultTableName(), embeddingStoreRouter.getDefaultDimension(),
+                    EmbeddingDistanceMetric.COSINE);
+            defaultStore.removeAll(metadataKey(MetadataConstant.FILE_ID).isIn(fileIds));
+        } catch (Exception e) {
+            log.warn("删除默认向量表数据失败: {}", e.getMessage());
+        }
+
+        for (var profile : embeddingProfileDomainService.listAllProfiles()) {
+            try {
+                EmbeddingStore<TextSegment> store = embeddingStoreRouter.getOrCreateStore(profile.getId(),
+                        profile.getTableName(), profile.getDimension(),
+                        EmbeddingDistanceMetric.valueOf(profile.getDistanceMetric()));
+                store.removeAll(metadataKey(MetadataConstant.FILE_ID).isIn(fileIds));
+            } catch (Exception e) {
+                log.warn("删除Profile向量表数据失败: profileId={}, error={}", profile.getId(), e.getMessage());
+            }
+        }
     }
 
-    /**
-     * 获取与文件关联的向量ID列表
-     *
-     * @param fileId 文件ID
-     */
-    private void removeEmbeddingByFileId(String fileId) {
-        embeddingStore.removeAll(new IsEqualTo(FILE_ID, fileId));
-    }
-
-    /**
-     * 批量向量化入库
-     */
-    private void indexEmbedding(List<DocumentUnitEntity> documentUnitEntityList) {
-        Steam.of(documentUnitEntityList).forEach(documentUnit -> {
-            MessageEnvelope<DocumentUnitEntity> env = MessageEnvelope.builder(documentUnit)
-                    .addEventType(EventType.DOC_SYNC_RAG)
-                    .description("批量向量化入库任务")
-                    .build();
-            messagePublisher.publish(RagDocSyncStorageEvent.route(), env);
-        });
-
-    }
-
-    /**
-     * 文本向量化
-     */
+    /** 文本向量化入库 */
     public void syncStorage(RagDocSyncStorageMessage ragDocSyncStorageMessage) {
-        final String vectorId = ragDocSyncStorageMessage.getId();
-        final FileDetailEntity fileDetailEntity = fileDetailRepository.selectById(ragDocSyncStorageMessage.getFileId());
+        String vectorId = ragDocSyncStorageMessage.getId();
+        FileDetailEntity fileDetailEntity = fileDetailRepository.selectById(ragDocSyncStorageMessage.getFileId());
+        if (fileDetailEntity == null) {
+            throw new BusinessException("文件不存在，无法向量化");
+        }
 
-        // 使用消息中的翻译后内容，而不是从数据库读取原文
-        final String content = ragDocSyncStorageMessage.getContent();
-
-        if (content == null || content.trim().isEmpty()) {
+        String content = ragDocSyncStorageMessage.getContent();
+        if (!StringUtils.hasText(content)) {
             log.warn("存储消息{}中内容为空，跳过向量化", vectorId);
             return;
         }
 
-        final Metadata documentMetadata = buildMetadata(ragDocSyncStorageMessage);
+        Metadata metadata = buildMetadata(ragDocSyncStorageMessage);
+        TextSegment textSegment = new TextSegment(content, metadata);
 
-        final TextSegment textSegment = new TextSegment(content, documentMetadata);
-
-        // 使用消息中配置的嵌入模型生成向量
         OpenAiEmbeddingModel embeddingModel = createEmbeddingModelFromMessage(ragDocSyncStorageMessage);
         Embedding embeddings = embeddingModel.embed(textSegment).content();
 
-        embeddingStore.add(embeddings, textSegment);
+        EmbeddingStore<TextSegment> store = resolveStoreFromMessage(ragDocSyncStorageMessage);
+        store.add(embeddings, textSegment);
 
-        // 提取原始DocumentUnit ID（移除segment后缀）
         String originalDocId = extractOriginalDocId(vectorId);
-
-        // 更新原始DocumentUnit的向量化状态
         if (originalDocId != null) {
-            documentUnitRepository.update(Wrappers.lambdaUpdate(DocumentUnitEntity.class)
-                    .eq(DocumentUnitEntity::getId, originalDocId)
-                    .set(DocumentUnitEntity::getIsVector, true));
+            documentUnitRepository.update(Wrappers.lambdaUpdate(com.example.agentx.domain.rag.model.DocumentUnitEntity.class)
+                    .eq(com.example.agentx.domain.rag.model.DocumentUnitEntity::getId, originalDocId)
+                    .set(com.example.agentx.domain.rag.model.DocumentUnitEntity::getIsVector, true));
         }
 
-        // 修改文件状态
-        final Integer pageSize = fileDetailEntity.getFilePageSize();
+        Integer pageSize = fileDetailEntity.getFilePageSize();
+        Long isVector = documentUnitRepository.selectCount(Wrappers.lambdaQuery(com.example.agentx.domain.rag.model.DocumentUnitEntity.class)
+                .eq(com.example.agentx.domain.rag.model.DocumentUnitEntity::getFileId, ragDocSyncStorageMessage.getFileId())
+                .eq(com.example.agentx.domain.rag.model.DocumentUnitEntity::getIsVector, true));
+        Integer vectorizedCount = Convert.toInt(isVector);
 
-        final Long isVector = documentUnitRepository.selectCount(Wrappers.lambdaQuery(DocumentUnitEntity.class)
-                .eq(DocumentUnitEntity::getFileId, ragDocSyncStorageMessage.getFileId())
-                .eq(DocumentUnitEntity::getIsVector, true));
-
-        final Integer anInt = Convert.toInt(isVector);
-
-        if (anInt >= pageSize) {
-            // 使用状态机设置完成状态
+        if (pageSize != null && vectorizedCount >= pageSize) {
             fileDetailRepository.update(Wrappers.lambdaUpdate(FileDetailEntity.class)
                     .eq(FileDetailEntity::getId, fileDetailEntity.getId())
-                    .set(FileDetailEntity::getProcessingStatus, FileProcessingStatusEnum.COMPLETED.getCode())
-            );
+                    .set(FileDetailEntity::getProcessingStatus, FileProcessingStatusEnum.COMPLETED.getCode()));
         }
-
     }
 
-    /**
-     * 从向量ID中提取原始DocumentUnit ID
-     */
+    private EmbeddingStore<TextSegment> resolveStoreFromMessage(RagDocSyncStorageMessage message) {
+        String profileId = message.getEmbeddingProfileId();
+        if (StringUtils.hasText(profileId)) {
+            var profile = embeddingProfileDomainService.getProfileById(profileId);
+            if (profile != null) {
+                return embeddingStoreRouter.getOrCreateStore(profile.getId(), profile.getTableName(),
+                        profile.getDimension(), EmbeddingDistanceMetric.valueOf(profile.getDistanceMetric()));
+            }
+            log.warn("消息中的embeddingProfileId不存在，回退默认向量表: {}", profileId);
+        }
+        return embeddingStoreRouter.getOrCreateStore("default", embeddingStoreRouter.getDefaultTableName(),
+                embeddingStoreRouter.getDefaultDimension(), EmbeddingDistanceMetric.COSINE);
+    }
+
     private String extractOriginalDocId(String vectorId) {
         if (vectorId == null) {
             return null;
         }
-
-        // 如果ID包含segment后缀，则提取原始ID
         if (vectorId.contains("_segment_")) {
             return vectorId.substring(0, vectorId.indexOf("_segment_"));
         }
-
-        // 否则直接返回（兼容旧格式）
         return vectorId;
     }
 
-    private Metadata buildMetadata(RagDocSyncStorageMessage ragDocSyncStorageMessage) {
-        final Metadata metadata = new Metadata();
-        metadata.put(FILE_ID, ragDocSyncStorageMessage.getFileId());
-        metadata.put(FILE_NAME, ragDocSyncStorageMessage.getFileName());
-        metadata.put(DOCUMENT_ID, extractOriginalDocId(ragDocSyncStorageMessage.getId()));
-        metadata.put(DATA_SET_ID, ragDocSyncStorageMessage.getDatasetId());
+    private Metadata buildMetadata(RagDocSyncStorageMessage message) {
+        Metadata metadata = new Metadata();
+        metadata.put(FILE_ID, message.getFileId());
+        metadata.put(FILE_NAME, message.getFileName());
+        metadata.put(DOCUMENT_ID, extractOriginalDocId(message.getId()));
+        metadata.put(DATA_SET_ID, message.getDatasetId());
+        if (StringUtils.hasText(message.getEmbeddingProfileId())) {
+            metadata.put(EMBEDDING_PROFILE_ID, message.getEmbeddingProfileId());
+        }
         return metadata;
     }
 
-    /**
-     * 从消息中创建嵌入模型
-     *
-     * @param ragDocSyncStorageMessage 存储消息
-     * @return OpenAiEmbeddingModel实例
-     * @throws RuntimeException 如果没有配置嵌入模型或创建失败
-     */
-    private OpenAiEmbeddingModel createEmbeddingModelFromMessage(RagDocSyncStorageMessage ragDocSyncStorageMessage) {
-        // 检查消息和模型配置是否存在
-        if (ragDocSyncStorageMessage == null || ragDocSyncStorageMessage.getEmbeddingModelConfig() == null) {
+    private OpenAiEmbeddingModel createEmbeddingModelFromMessage(RagDocSyncStorageMessage message) {
+        if (message == null || message.getEmbeddingModelConfig() == null) {
             String errorMsg = String.format("用户 %s 未配置嵌入模型，无法进行向量化处理",
-                    ragDocSyncStorageMessage != null ? ragDocSyncStorageMessage.getUserId() : "unknown");
-            log.error(errorMsg);
+                    message != null ? message.getUserId() : "unknown");
             throw new BusinessException(errorMsg);
         }
-
         try {
-            var modelConfig = ragDocSyncStorageMessage.getEmbeddingModelConfig();
-
-            // 使用工厂类创建嵌入模型
+            var modelConfig = message.getEmbeddingModelConfig();
             EmbeddingModelFactory.EmbeddingConfig config = new EmbeddingModelFactory.EmbeddingConfig(
                     modelConfig.getApiKey(), modelConfig.getBaseUrl(), modelConfig.getModelEndpoint());
-            OpenAiEmbeddingModel embeddingModel = embeddingModelFactory.createEmbeddingModel(config);
-
-            log.info("成功为用户{}创建嵌入模型: {}", ragDocSyncStorageMessage.getUserId(), modelConfig.getModelEndpoint());
-            return embeddingModel;
-
-        } catch (RuntimeException e) {
-            // 重新抛出已知的业务异常
-            throw e;
+            return embeddingModelFactory.createEmbeddingModel(config);
         } catch (Exception e) {
-            String errorMsg = String.format("用户 %s 创建嵌入模型失败: %s", ragDocSyncStorageMessage.getUserId(), e.getMessage());
-            log.error(errorMsg, e);
+            String errorMsg = String.format("用户 %s 创建嵌入模型失败: %s", message.getUserId(), e.getMessage());
             throw new BusinessException(errorMsg, e);
         }
     }

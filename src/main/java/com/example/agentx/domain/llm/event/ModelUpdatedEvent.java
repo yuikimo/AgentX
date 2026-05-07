@@ -2,14 +2,13 @@ package com.example.agentx.domain.llm.event;
 
 import com.example.agentx.domain.llm.model.ModelEntity;
 
-/**
- * 模型更新事件
- */
+/** 模型更新事件
+ * 
+ * @author xhy
+ * @since 1.0.0 */
 public class ModelUpdatedEvent extends ModelDomainEvent {
 
-    /**
-     * 更新后的模型实体
-     */
+    /** 更新后的模型实体 */
     private final ModelEntity model;
 
     public ModelUpdatedEvent(String modelId, String userId, ModelEntity model) {

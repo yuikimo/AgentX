@@ -14,13 +14,7 @@ import com.example.agentx.interfaces.dto.scheduledtask.request.UpdateScheduledTa
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * 定时任务应用服务 职责：
- * 1. 接收和验证来自接口层的请求
- * 2. 将请求转换为领域对象或参数
- * 3. 调用领域服务执行业务逻辑
- * 4. 转换和返回结果给接口层
- */
+/** 定时任务应用服务 职责： 1. 接收和验证来自接口层的请求 2. 将请求转换为领域对象或参数 3. 调用领域服务执行业务逻辑 4. 转换和返回结果给接口层 */
 @Service
 public class ScheduledTaskAppService {
 
@@ -29,20 +23,16 @@ public class ScheduledTaskAppService {
     private final ScheduledTaskExecutionService executionService;
 
     public ScheduledTaskAppService(ScheduledTaskDomainService scheduledTaskDomainService,
-                                   TaskScheduleService taskScheduleService,
-                                   ScheduledTaskExecutionService executionService) {
+            TaskScheduleService taskScheduleService, ScheduledTaskExecutionService executionService) {
         this.scheduledTaskDomainService = scheduledTaskDomainService;
         this.taskScheduleService = taskScheduleService;
         this.executionService = executionService;
     }
 
-    /**
-     * 创建定时任务
-     *
+    /** 创建定时任务
      * @param request 创建请求
-     * @param userId  用户ID
-     * @return 创建的任务DTO
-     */
+     * @param userId 用户ID
+     * @return 创建的任务DTO */
     @Transactional
     public ScheduledTaskDTO createScheduledTask(CreateScheduledTaskRequest request, String userId) {
         // 使用组装器创建领域实体
@@ -61,13 +51,10 @@ public class ScheduledTaskAppService {
         return ScheduledTaskAssembler.toDTO(savedEntity);
     }
 
-    /**
-     * 更新定时任务
-     *
+    /** 更新定时任务
      * @param request 更新请求
-     * @param userId  用户ID
-     * @return 更新后的任务DTO
-     */
+     * @param userId 用户ID
+     * @return 更新后的任务DTO */
     @Transactional
     public ScheduledTaskDTO updateScheduledTask(UpdateScheduledTaskRequest request, String userId) {
         // 使用组装器创建更新实体
@@ -95,48 +82,36 @@ public class ScheduledTaskAppService {
         return ScheduledTaskAssembler.toDTO(updateEntity);
     }
 
-    /**
-     * 删除定时任务
-     *
+    /** 删除定时任务
      * @param taskId 任务ID
-     * @param userId 用户ID
-     */
+     * @param userId 用户ID */
     @Transactional
     public void deleteTask(String taskId, String userId) {
         // 通过执行服务删除（会自动取消调度）
         executionService.deleteTask(taskId, userId);
     }
 
-    /**
-     * 获取单个定时任务
-     *
+    /** 获取单个定时任务
      * @param taskId 任务ID
      * @param userId 用户ID
-     * @return 任务DTO
-     */
+     * @return 任务DTO */
     public ScheduledTaskDTO getTask(String taskId, String userId) {
         ScheduledTaskEntity entity = scheduledTaskDomainService.getTask(taskId, userId);
         return ScheduledTaskAssembler.toDTO(entity);
     }
 
-    /**
-     * 获取用户的定时任务列表
-     *
+    /** 获取用户的定时任务列表
      * @param userId 用户ID
-     * @return 任务列表
-     */
+     * @return 任务列表 */
     public List<ScheduledTaskDTO> getUserTasks(String userId) {
         List<ScheduledTaskEntity> entities = scheduledTaskDomainService.getTasksByUserId(userId);
         return entities.stream().map(ScheduledTaskAssembler::toDTO).collect(java.util.stream.Collectors.toList());
     }
 
-    /**
-     * 根据会话ID获取定时任务列表
-     *
+    /** 根据会话ID获取定时任务列表
      * @param sessionId 会话ID
-     * @param userId    用户ID
-     * @return 任务列表
-     */
+     * @param userId 用户ID
+     * @return 任务列表 */
     public List<ScheduledTaskDTO> getTasksBySessionId(String sessionId, String userId) {
         List<ScheduledTaskEntity> entities = scheduledTaskDomainService.getTasksBySessionId(sessionId);
         // 过滤出属于当前用户的任务
@@ -144,13 +119,10 @@ public class ScheduledTaskAppService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
-    /**
-     * 根据Agent ID获取定时任务列表
-     *
+    /** 根据Agent ID获取定时任务列表
      * @param agentId Agent ID
-     * @param userId  用户ID
-     * @return 任务列表
-     */
+     * @param userId 用户ID
+     * @return 任务列表 */
     public List<ScheduledTaskDTO> getTasksByAgentId(String agentId, String userId) {
         List<ScheduledTaskEntity> entities = scheduledTaskDomainService.getTasksByAgentId(agentId);
         // 过滤出属于当前用户的任务
@@ -158,13 +130,10 @@ public class ScheduledTaskAppService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
-    /**
-     * 暂停定时任务
-     *
+    /** 暂停定时任务
      * @param taskId 任务ID
      * @param userId 用户ID
-     * @return 更新后的任务DTO
-     */
+     * @return 更新后的任务DTO */
     @Transactional
     public ScheduledTaskDTO pauseTask(String taskId, String userId) {
         executionService.pauseTask(taskId, userId);
@@ -172,13 +141,10 @@ public class ScheduledTaskAppService {
         return ScheduledTaskAssembler.toDTO(entity);
     }
 
-    /**
-     * 恢复定时任务
-     *
+    /** 恢复定时任务
      * @param taskId 任务ID
      * @param userId 用户ID
-     * @return 更新后的任务DTO
-     */
+     * @return 更新后的任务DTO */
     @Transactional
     public ScheduledTaskDTO resumeTask(String taskId, String userId) {
         executionService.resumeTask(taskId, userId);

@@ -2,34 +2,22 @@ package com.example.agentx.interfaces.dto;
 
 import java.util.List;
 
-/**
- * 分页结果包装类
- */
+/** 分页结果包装类 */
 public class PageResult<T> {
 
-    /**
-     * 数据记录
-     */
+    /** 数据记录 */
     private List<T> records;
 
-    /**
-     * 总记录数
-     */
+    /** 总记录数 */
     private Long total;
 
-    /**
-     * 每页大小
-     */
+    /** 每页大小 */
     private Long size;
 
-    /**
-     * 当前页码
-     */
+    /** 当前页码 */
     private Long current;
 
-    /**
-     * 总页数
-     */
+    /** 总页数 */
     private Long pages;
 
     public PageResult() {

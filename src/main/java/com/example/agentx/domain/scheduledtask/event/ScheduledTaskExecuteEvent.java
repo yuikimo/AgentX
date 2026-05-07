@@ -2,9 +2,7 @@ package com.example.agentx.domain.scheduledtask.event;
 
 import org.springframework.context.ApplicationEvent;
 
-/**
- * 定时任务执行事件 当定时任务需要执行时，Domain层发布此事件
- */
+/** 定时任务执行事件 当定时任务需要执行时，Domain层发布此事件 */
 public class ScheduledTaskExecuteEvent extends ApplicationEvent {
 
     private final String taskId;

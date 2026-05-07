@@ -3,14 +3,13 @@ package com.example.agentx.domain.rag.model;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-
 import java.io.Serial;
 import java.io.Serializable;
-
 import com.example.agentx.infrastructure.entity.BaseEntity;
 
-/**
- * 用户RAG文档快照实体
+/** 用户RAG文档快照实体
+ * @author xhy
+ * @date 2025-07-22 <br/>
  */
 @TableName("user_rag_documents")
 public class UserRagDocumentEntity extends BaseEntity implements Serializable {
@@ -18,40 +17,26 @@ public class UserRagDocumentEntity extends BaseEntity implements Serializable {
     @Serial
     private static final long serialVersionUID = -1L;
 
-    /**
-     * 文档快照ID
-     */
+    /** 文档快照ID */
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
-    /**
-     * 关联的用户RAG ID
-     */
+    /** 关联的用户RAG ID */
     private String userRagId;
 
-    /**
-     * 关联的用户RAG文件ID
-     */
+    /** 关联的用户RAG文件ID */
     private String userRagFileId;
 
-    /**
-     * 原始文档单元ID（仅标识）
-     */
+    /** 原始文档单元ID（仅标识） */
     private String originalDocumentId;
 
-    /**
-     * 文档内容
-     */
+    /** 文档内容 */
     private String content;
 
-    /**
-     * 页码
-     */
+    /** 页码 */
     private Integer page;
 
-    /**
-     * 向量ID（在向量数据库中的ID）
-     */
+    /** 向量ID（在向量数据库中的ID） */
     private String vectorId;
 
     public String getId() {

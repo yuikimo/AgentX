@@ -14,115 +14,79 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Agent小组件配置实体类，用于管理Agent的网站嵌入配置
- */
+/** Agent小组件配置实体类，用于管理Agent的网站嵌入配置 */
 @TableName(value = "agent_widgets", autoResultMap = true)
 public class AgentWidgetEntity extends BaseEntity {
 
-    /**
-     * 主键ID
-     */
+    /** 主键ID */
     @TableId(value = "id", type = IdType.ASSIGN_UUID)
     private String id;
 
-    /**
-     * Agent ID
-     */
+    /** Agent ID */
     @TableField("agent_id")
     private String agentId;
 
-    /**
-     * 创建者用户ID
-     */
+    /** 创建者用户ID */
     @TableField("user_id")
     private String userId;
 
-    /**
-     * Widget访问的唯一ID
-     */
+    /** Widget访问的唯一ID */
     @TableField("public_id")
     private String publicId;
 
-    /**
-     * Widget名称
-     */
+    /** Widget名称 */
     @TableField("name")
     private String name;
 
-    /**
-     * Widget描述
-     */
+    /** Widget描述 */
     @TableField("description")
     private String description;
 
-    /**
-     * 指定使用的模型ID
-     */
+    /** 指定使用的模型ID */
     @TableField("model_id")
     private String modelId;
 
-    /**
-     * 可选：指定服务商ID
-     */
+    /** 可选：指定服务商ID */
     @TableField("provider_id")
     private String providerId;
 
-    /**
-     * 允许的域名列表
-     */
+    /** 允许的域名列表 */
     @TableField(value = "allowed_domains", typeHandler = ListStringConverter.class)
     private List<String> allowedDomains;
 
-    /**
-     * 每日调用限制（-1为无限制）
-     */
+    /** 每日调用限制（-1为无限制） */
     @TableField("daily_limit")
     private Integer dailyLimit;
 
-    /**
-     * 是否启用
-     */
+    /** 是否启用 */
     @TableField("enabled")
     private Boolean enabled;
 
-    /**
-     * Widget类型：AGENT/RAG
-     */
+    /** Widget类型：AGENT/RAG */
     @TableField(value = "widget_type", typeHandler = WidgetTypeConverter.class)
     private WidgetType widgetType = WidgetType.AGENT;
 
-    /**
-     * 知识库ID列表（RAG类型专用）
-     */
+    /** 知识库ID列表（RAG类型专用） */
     @TableField(value = "knowledge_base_ids", typeHandler = ListStringConverter.class)
     private List<String> knowledgeBaseIds;
 
-    /**
-     * 无参构造函数
-     */
+    /** 无参构造函数 */
     public AgentWidgetEntity() {
         this.enabled = true;
         this.dailyLimit = -1;
     }
 
-    /**
-     * 创建新的小组件配置
-     */
+    /** 创建新的小组件配置 */
     public static AgentWidgetEntity createNew(String agentId, String userId, String name, String description,
-                                              String modelId, String providerId, List<String> allowedDomains,
-                                              Integer dailyLimit) {
+            String modelId, String providerId, List<String> allowedDomains, Integer dailyLimit) {
         return createNew(agentId, userId, name, description, modelId, providerId, allowedDomains, dailyLimit,
                 WidgetType.AGENT, null);
     }
 
-    /**
-     * 创建新的小组件配置（支持Widget类型）
-     */
+    /** 创建新的小组件配置（支持Widget类型） */
     public static AgentWidgetEntity createNew(String agentId, String userId, String name, String description,
-                                              String modelId, String providerId, List<String> allowedDomains,
-                                              Integer dailyLimit, WidgetType widgetType,
-                                              List<String> knowledgeBaseIds) {
+            String modelId, String providerId, List<String> allowedDomains, Integer dailyLimit, WidgetType widgetType,
+            List<String> knowledgeBaseIds) {
         AgentWidgetEntity widget = new AgentWidgetEntity();
         widget.setAgentId(agentId);
         widget.setUserId(userId);
@@ -141,25 +105,19 @@ public class AgentWidgetEntity extends BaseEntity {
         return widget;
     }
 
-    /**
-     * 生成唯一的公开访问ID
-     */
+    /** 生成唯一的公开访问ID */
     private static String generateUniquePublicId() {
         return "widget_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
     }
 
-    /**
-     * 检查是否启用
-     */
+    /** 检查是否启用 */
     public void checkEnabled() {
         if (!this.enabled) {
             throw new BusinessException("小组件配置已禁用");
         }
     }
 
-    /**
-     * 检查域名是否允许访问
-     */
+    /** 检查域名是否允许访问 */
     public boolean isDomainAllowed(String domain) {
         if (allowedDomains == null || allowedDomains.isEmpty()) {
             return true; // 空白名单表示允许所有域名
@@ -175,51 +133,38 @@ public class AgentWidgetEntity extends BaseEntity {
         return false;
     }
 
-    /**
-     * 检查是否为RAG类型Widget
-     */
+    /** 检查是否为RAG类型Widget */
     public boolean isRagWidget() {
         return this.widgetType != null && this.widgetType.isRag();
     }
 
-    /**
-     * 检查是否为Agent类型Widget
-     */
+    /** 检查是否为Agent类型Widget */
     public boolean isAgentWidget() {
         return this.widgetType == null || this.widgetType.isAgent();
     }
 
-    /**
-     * 启用小组件配置
-     */
+    /** 启用小组件配置 */
     public void enable() {
         this.enabled = true;
         this.updatedAt = LocalDateTime.now();
     }
 
-    /**
-     * 禁用小组件配置
-     */
+    /** 禁用小组件配置 */
     public void disable() {
         this.enabled = false;
         this.updatedAt = LocalDateTime.now();
     }
 
-    /**
-     * 更新小组件配置
-     */
+    /** 更新小组件配置 */
     public void updateConfig(String name, String description, String modelId, String providerId,
-                             List<String> allowedDomains, Integer dailyLimit) {
+            List<String> allowedDomains, Integer dailyLimit) {
         updateConfig(name, description, modelId, providerId, allowedDomains, dailyLimit, this.widgetType,
                 this.knowledgeBaseIds);
     }
 
-    /**
-     * 更新小组件配置（支持Widget类型）
-     */
+    /** 更新小组件配置（支持Widget类型） */
     public void updateConfig(String name, String description, String modelId, String providerId,
-                             List<String> allowedDomains, Integer dailyLimit, WidgetType widgetType,
-                             List<String> knowledgeBaseIds) {
+            List<String> allowedDomains, Integer dailyLimit, WidgetType widgetType, List<String> knowledgeBaseIds) {
         this.name = name;
         this.description = description;
         this.modelId = modelId;
@@ -231,9 +176,7 @@ public class AgentWidgetEntity extends BaseEntity {
         this.updatedAt = LocalDateTime.now();
     }
 
-    /**
-     * 软删除
-     */
+    /** 软删除 */
     public void delete() {
         this.deletedAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();

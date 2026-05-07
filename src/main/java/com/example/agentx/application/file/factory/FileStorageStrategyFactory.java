@@ -6,11 +6,12 @@ import org.springframework.stereotype.Component;
 import com.example.agentx.application.file.strategy.FileStorageStrategy;
 import com.example.agentx.domain.file.constant.FileTypeEnum;
 
-/**
- * 文件存储策略工厂
- * <p>
+/** 文件存储策略工厂
+ * 
  * 根据文件类型返回对应的处理策略
- */
+ * 
+ * @author shilong.zang
+ * @date 2024-12-09 */
 @Component
 public class FileStorageStrategyFactory {
 
@@ -20,12 +21,10 @@ public class FileStorageStrategyFactory {
         this.strategyMap = strategyMap;
     }
 
-    /**
-     * 根据文件类型获取对应的处理策略
-     *
+    /** 根据文件类型获取对应的处理策略
+     * 
      * @param fileType 文件类型
-     * @return 文件存储策略
-     */
+     * @return 文件存储策略 */
     public FileStorageStrategy getStrategy(FileTypeEnum fileType) {
         FileStorageStrategy strategy = strategyMap.get(fileType);
 
@@ -41,11 +40,9 @@ public class FileStorageStrategyFactory {
         return strategy;
     }
 
-    /**
-     * 获取默认策略（通用文件策略）
-     *
-     * @return 默认文件存储策略
-     */
+    /** 获取默认策略（通用文件策略）
+     * 
+     * @return 默认文件存储策略 */
     public FileStorageStrategy getDefaultStrategy() {
         return getStrategy(FileTypeEnum.GENERAL);
     }

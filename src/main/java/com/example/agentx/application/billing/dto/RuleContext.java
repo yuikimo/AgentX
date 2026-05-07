@@ -2,34 +2,22 @@ package com.example.agentx.application.billing.dto;
 
 import java.util.Map;
 
-/**
- * 规则上下文 封装计费所需的所有信息
- */
+/** 规则上下文 封装计费所需的所有信息 */
 public class RuleContext {
 
-    /**
-     * 规则类型 (如：MODEL_USAGE, AGENT_CREATION)
-     */
+    /** 规则类型 (如：MODEL_USAGE, AGENT_CREATION) */
     private String type;
 
-    /**
-     * 服务ID (业务标识，如模型ID、固定标识等)
-     */
+    /** 服务ID (业务标识，如模型ID、固定标识等) */
     private String serviceId;
 
-    /**
-     * 用量数据 (如：{"input": 1000, "output": 500})
-     */
+    /** 用量数据 (如：{"input": 1000, "output": 500}) */
     private Map<String, Object> usageData;
 
-    /**
-     * 请求ID，用于幂等性控制
-     */
+    /** 请求ID，用于幂等性控制 */
     private String requestId;
 
-    /**
-     * 用户ID
-     */
+    /** 用户ID */
     private String userId;
 
     public RuleContext() {
@@ -83,9 +71,7 @@ public class RuleContext {
         this.userId = userId;
     }
 
-    /**
-     * 构建器模式
-     */
+    /** 构建器模式 */
     public static Builder builder() {
         return new Builder();
     }
@@ -127,9 +113,7 @@ public class RuleContext {
         }
     }
 
-    /**
-     * 验证上下文数据是否有效
-     */
+    /** 验证上下文数据是否有效 */
     public boolean isValid() {
         return type != null && !type.trim().isEmpty() && serviceId != null && !serviceId.trim().isEmpty()
                 && usageData != null && !usageData.isEmpty() && userId != null && !userId.trim().isEmpty();

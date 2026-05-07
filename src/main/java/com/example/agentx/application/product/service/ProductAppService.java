@@ -24,9 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * 商品应用服务 处理商品相关的业务流程编排
- */
+/** 商品应用服务 处理商品相关的业务流程编排 */
 @Service
 public class ProductAppService {
 
@@ -35,18 +33,15 @@ public class ProductAppService {
     private final LLMDomainService llmDomainService;
 
     public ProductAppService(ProductDomainService productDomainService, RuleDomainService ruleDomainService,
-                             LLMDomainService llmDomainService) {
+            LLMDomainService llmDomainService) {
         this.productDomainService = productDomainService;
         this.ruleDomainService = ruleDomainService;
         this.llmDomainService = llmDomainService;
     }
 
-    /**
-     * 创建商品
-     *
+    /** 创建商品
      * @param request 创建商品请求
-     * @return 商品DTO
-     */
+     * @return 商品DTO */
     @Transactional
     public ProductDTO createProduct(CreateProductRequest request) {
         // 验证规则是否存在
@@ -61,12 +56,9 @@ public class ProductAppService {
         return ProductAssembler.toDTO(createdEntity);
     }
 
-    /**
-     * 更新商品
-     *
+    /** 更新商品
      * @param request 更新商品请求
-     * @return 商品DTO
-     */
+     * @return 商品DTO */
     @Transactional
     public ProductDTO updateProduct(UpdateProductRequest request, String productId) {
         // 验证规则是否存在（如果有更新规则ID）
@@ -82,12 +74,9 @@ public class ProductAppService {
         return ProductAssembler.toDTO(updatedEntity);
     }
 
-    /**
-     * 根据ID获取商品
-     *
+    /** 根据ID获取商品
      * @param productId 商品ID
-     * @return 商品DTO
-     */
+     * @return 商品DTO */
     public ProductDTO getProductById(String productId) {
         ProductEntity entity = productDomainService.getProductById(productId);
         if (entity == null) {
@@ -96,24 +85,18 @@ public class ProductAppService {
         return ProductAssembler.toDTO(entity);
     }
 
-    /**
-     * 根据业务主键获取商品
-     *
-     * @param type      计费类型
+    /** 根据业务主键获取商品
+     * @param type 计费类型
      * @param serviceId 业务ID
-     * @return 商品DTO，如果不存在则返回null
-     */
+     * @return 商品DTO，如果不存在则返回null */
     public ProductDTO getProductByBusinessKey(String type, String serviceId) {
         ProductEntity entity = productDomainService.findProductByBusinessKey(type, serviceId);
         return ProductAssembler.toDTO(entity);
     }
 
-    /**
-     * 分页查询商品
-     *
+    /** 分页查询商品
      * @param request 查询请求
-     * @return 商品分页结果
-     */
+     * @return 商品分页结果 */
     public Page<ProductDTO> getProducts(QueryProductRequest request) {
         // 构建查询条件
         LambdaQueryWrapper<ProductEntity> wrapper = Wrappers.<ProductEntity>lambdaQuery()
@@ -135,12 +118,9 @@ public class ProductAppService {
         return resultPage;
     }
 
-    /**
-     * 获取激活的商品列表
-     *
+    /** 获取激活的商品列表
      * @param type 商品类型（可选）
-     * @return 商品DTO列表
-     */
+     * @return 商品DTO列表 */
     public List<ProductDTO> getActiveProducts(String type) {
         List<ProductEntity> entities = productDomainService.getActiveProducts(type);
         List<ProductDTO> productDTOs = ProductAssembler.toDTOs(entities);
@@ -151,11 +131,8 @@ public class ProductAppService {
         return productDTOs;
     }
 
-    /**
-     * 为模型类型商品填充模型信息
-     *
-     * @param productDTOs 商品DTO列表
-     */
+    /** 为模型类型商品填充模型信息
+     * @param productDTOs 商品DTO列表 */
     private void enrichModelInfo(List<ProductDTO> productDTOs) {
         // 筛选出模型类型的商品
         List<ProductDTO> modelProducts = productDTOs.stream().filter(product -> "MODEL_USAGE".equals(product.getType()))
@@ -207,33 +184,24 @@ public class ProductAppService {
         }
     }
 
-    /**
-     * 更新商品状态
-     *
+    /** 更新商品状态
      * @param productId 商品ID
-     * @param status    新状态
-     */
+     * @param status 新状态 */
     @Transactional
     public void updateProductStatus(String productId, Integer status) {
         productDomainService.updateProductStatus(productId, status);
     }
 
-    /**
-     * 删除商品
-     *
-     * @param productId 商品ID
-     */
+    /** 删除商品
+     * @param productId 商品ID */
     @Transactional
     public void deleteProduct(String productId) {
         productDomainService.deleteProduct(productId);
     }
 
-    /**
-     * 启用商品
-     *
+    /** 启用商品
      * @param productId 商品ID
-     * @return 商品DTO
-     */
+     * @return 商品DTO */
     @Transactional
     public ProductDTO enableProduct(String productId) {
         ProductEntity entity = productDomainService.getProductById(productId);
@@ -247,12 +215,9 @@ public class ProductAppService {
         return ProductAssembler.toDTO(updatedEntity);
     }
 
-    /**
-     * 禁用商品
-     *
+    /** 禁用商品
      * @param productId 商品ID
-     * @return 商品DTO
-     */
+     * @return 商品DTO */
     @Transactional
     public ProductDTO disableProduct(String productId) {
         ProductEntity entity = productDomainService.getProductById(productId);
@@ -266,44 +231,32 @@ public class ProductAppService {
         return ProductAssembler.toDTO(updatedEntity);
     }
 
-    /**
-     * 获取所有商品列表
-     *
-     * @return 商品DTO列表
-     */
+    /** 获取所有商品列表
+     * @return 商品DTO列表 */
     public List<ProductDTO> getAllProducts() {
         List<ProductEntity> entities = productDomainService.getAllProducts();
         return ProductAssembler.toDTOs(entities);
     }
 
-    /**
-     * 检查商品是否存在
-     *
+    /** 检查商品是否存在
      * @param productId 商品ID
-     * @return 是否存在
-     */
+     * @return 是否存在 */
     public boolean existsProduct(String productId) {
         return productDomainService.existsProduct(productId);
     }
 
-    /**
-     * 检查业务标识是否存在
-     *
-     * @param type      计费类型
+    /** 检查业务标识是否存在
+     * @param type 计费类型
      * @param serviceId 业务ID
-     * @return 是否存在
-     */
+     * @return 是否存在 */
     public boolean existsByBusinessKey(String type, String serviceId) {
         return productDomainService.existsByBusinessKey(type, serviceId);
     }
 
-    /**
-     * 检查商品是否存在且激活
-     *
-     * @param type      计费类型
+    /** 检查商品是否存在且激活
+     * @param type 计费类型
      * @param serviceId 业务ID
-     * @return 是否存在且激活
-     */
+     * @return 是否存在且激活 */
     public boolean isProductActive(String type, String serviceId) {
         ProductEntity product = productDomainService.findProductByBusinessKey(type, serviceId);
         return product != null && product.isActive();

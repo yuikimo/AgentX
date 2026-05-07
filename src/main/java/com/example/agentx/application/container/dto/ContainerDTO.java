@@ -5,9 +5,7 @@ import com.example.agentx.domain.container.constant.ContainerType;
 
 import java.time.LocalDateTime;
 
-/**
- * 容器DTO
- */
+/** 容器DTO */
 public class ContainerDTO {
     private String id;
     private String name;

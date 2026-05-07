@@ -5,24 +5,16 @@ import java.time.ZoneId;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 延迟队列任务项 用于延迟队列中的定时任务执行
- */
+/** 延迟队列任务项 用于延迟队列中的定时任务执行 */
 public class DelayedTaskItem implements Delayed {
 
-    /**
-     * 任务ID
-     */
+    /** 任务ID */
     private final String taskId;
 
-    /**
-     * 执行时间（毫秒时间戳）
-     */
+    /** 执行时间（毫秒时间戳） */
     private final long executeTime;
 
-    /**
-     * 任务实体
-     */
+    /** 任务实体 */
     private final ScheduledTaskEntity task;
 
     public DelayedTaskItem(ScheduledTaskEntity task, LocalDateTime executeTime) {

@@ -13,9 +13,7 @@ import com.example.agentx.infrastructure.entity.Operator;
 
 import java.util.List;
 
-/**
- * 容器关闭监听器 在应用关闭时自动停止所有运行中的容器以节省资源
- */
+/** 容器关闭监听器 在应用关闭时自动停止所有运行中的容器以节省资源 */
 @Component
 public class ContainerShutdownListener implements ApplicationListener<ContextClosedEvent> {
 
@@ -66,11 +64,9 @@ public class ContainerShutdownListener implements ApplicationListener<ContextClo
         }
     }
 
-    /**
-     * 停止单个容器
-     *
-     * @param container 容器实体
-     */
+    /** 停止单个容器
+     * 
+     * @param container 容器实体 */
     private void stopContainer(ContainerEntity container) {
         String dockerContainerId = container.getDockerContainerId();
 
@@ -81,7 +77,10 @@ public class ContainerShutdownListener implements ApplicationListener<ContextClo
 
         try {
             // 停止Docker容器
-            dockerService.stopContainer(dockerContainerId);
+            boolean stopped = dockerService.stopContainer(dockerContainerId);
+            if (!stopped) {
+                throw new IllegalStateException("Docker容器停止失败");
+            }
 
             // 更新数据库状态
             containerDomainService.updateContainerStatus(container.getId(), ContainerStatus.STOPPED, Operator.ADMIN,

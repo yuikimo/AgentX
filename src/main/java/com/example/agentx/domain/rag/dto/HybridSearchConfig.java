@@ -5,55 +5,55 @@ import com.example.agentx.domain.rag.model.ModelConfig;
 
 import java.util.List;
 
-/**
- * 混合检索配置对象 封装混合检索的所有参数，提高方法可读性和扩展性
- */
+/** 混合检索配置对象 封装混合检索的所有参数，提高方法可读性和扩展性
+ * 
+ * @author claude */
 public class HybridSearchConfig {
 
-    /**
-     * 数据集ID列表
-     */
+    public static final int DEFAULT_MAX_RESULTS = 15;
+    public static final int ABSOLUTE_MAX_RESULTS = 100;
+
+    /** 数据集ID列表 */
     private List<String> dataSetIds;
 
-    /**
-     * 查询问题
-     */
+    /** 查询问题 */
     private String question;
 
-    /**
-     * 最大返回结果数量
-     */
+    /** 最大返回结果数量 */
     private Integer maxResults;
 
-    /**
-     * 最小相似度阈值
-     */
+    /** 最小相似度阈值 */
     private Double minScore;
 
-    /**
-     * 是否启用重排序
-     */
+    /** 低置信度回退阈值，null表示关闭回退 */
+    private Double fallbackMinScore;
+
+    /** 是否启用重排序 */
     private Boolean enableRerank;
 
-    /**
-     * 候选结果倍数
-     */
+    /** 候选结果倍数 */
     private Integer candidateMultiplier;
 
-    /**
-     * 嵌入模型配置
-     */
+    /** 嵌入模型配置 */
     private EmbeddingModelFactory.EmbeddingConfig embeddingConfig;
 
-    /**
-     * 是否启用查询扩展
-     */
+    /** 向量表名（按Embedding Profile路由） */
+    private String vectorTableName;
+
+    /** 向量维度 */
+    private Integer vectorDimension;
+
+    /** 是否启用查询扩展 */
     private Boolean enableQueryExpansion;
 
-    /**
-     * 聊天模型配置（用于HyDE）
-     */
+    /** 混合检索总超时时间（秒） */
+    private Integer timeoutSeconds;
+
+    /** 聊天模型配置（用于HyDE） */
     private ModelConfig chatModelConfig;
+
+    /** 预先生成的HyDE查询计划（跨group复用） */
+    private com.example.agentx.domain.rag.service.HyDEDomainService.HyDEQueryPlan hydeQueryPlan;
 
     public HybridSearchConfig() {
     }
@@ -62,16 +62,16 @@ public class HybridSearchConfig {
         this.dataSetIds = dataSetIds;
         this.question = question;
         // 设置默认值
-        this.maxResults = 15;
+        this.maxResults = DEFAULT_MAX_RESULTS;
         this.minScore = 0.7;
+        this.fallbackMinScore = 0.3;
         this.enableRerank = true;
         this.candidateMultiplier = 2;
         this.enableQueryExpansion = false;
+        this.timeoutSeconds = 30;
     }
 
-    /**
-     * 构造器模式创建配置
-     */
+    /** 构造器模式创建配置 */
     public static class Builder {
         private HybridSearchConfig config;
 
@@ -86,6 +86,11 @@ public class HybridSearchConfig {
 
         public Builder minScore(Double minScore) {
             config.setMinScore(minScore);
+            return this;
+        }
+
+        public Builder fallbackMinScore(Double fallbackMinScore) {
+            config.setFallbackMinScore(fallbackMinScore);
             return this;
         }
 
@@ -104,8 +109,23 @@ public class HybridSearchConfig {
             return this;
         }
 
+        public Builder vectorTableName(String vectorTableName) {
+            config.setVectorTableName(vectorTableName);
+            return this;
+        }
+
+        public Builder vectorDimension(Integer vectorDimension) {
+            config.setVectorDimension(vectorDimension);
+            return this;
+        }
+
         public Builder enableQueryExpansion(Boolean enableQueryExpansion) {
             config.setEnableQueryExpansion(enableQueryExpansion);
+            return this;
+        }
+
+        public Builder timeoutSeconds(Integer timeoutSeconds) {
+            config.setTimeoutSeconds(timeoutSeconds);
             return this;
         }
 
@@ -114,33 +134,30 @@ public class HybridSearchConfig {
             return this;
         }
 
+        public Builder hydeQueryPlan(com.example.agentx.domain.rag.service.HyDEDomainService.HyDEQueryPlan hydeQueryPlan) {
+            config.setHydeQueryPlan(hydeQueryPlan);
+            return this;
+        }
+
         public HybridSearchConfig build() {
             return config;
         }
     }
 
-    /**
-     * 静态工厂方法创建构造器
-     */
+    /** 静态工厂方法创建构造器 */
     public static Builder builder(List<String> dataSetIds, String question) {
         return new Builder(dataSetIds, question);
     }
 
-    /**
-     * 参数验证
-     *
-     * @return 验证是否通过
-     */
+    /** 参数验证
+     * @return 验证是否通过 */
     public boolean isValid() {
         return dataSetIds != null && !dataSetIds.isEmpty() && question != null && !question.trim().isEmpty()
                 && embeddingConfig != null;
     }
 
-    /**
-     * 获取验证错误信息
-     *
-     * @return 错误信息，无错误返回null
-     */
+    /** 获取验证错误信息
+     * @return 错误信息，无错误返回null */
     public String getValidationError() {
         if (dataSetIds == null || dataSetIds.isEmpty()) {
             return "数据集ID列表不能为空";
@@ -187,6 +204,14 @@ public class HybridSearchConfig {
         this.minScore = minScore;
     }
 
+    public Double getFallbackMinScore() {
+        return fallbackMinScore;
+    }
+
+    public void setFallbackMinScore(Double fallbackMinScore) {
+        this.fallbackMinScore = fallbackMinScore;
+    }
+
     public Boolean getEnableRerank() {
         return enableRerank;
     }
@@ -211,12 +236,36 @@ public class HybridSearchConfig {
         this.embeddingConfig = embeddingConfig;
     }
 
+    public String getVectorTableName() {
+        return vectorTableName;
+    }
+
+    public void setVectorTableName(String vectorTableName) {
+        this.vectorTableName = vectorTableName;
+    }
+
+    public Integer getVectorDimension() {
+        return vectorDimension;
+    }
+
+    public void setVectorDimension(Integer vectorDimension) {
+        this.vectorDimension = vectorDimension;
+    }
+
     public Boolean getEnableQueryExpansion() {
         return enableQueryExpansion;
     }
 
     public void setEnableQueryExpansion(Boolean enableQueryExpansion) {
         this.enableQueryExpansion = enableQueryExpansion;
+    }
+
+    public Integer getTimeoutSeconds() {
+        return timeoutSeconds;
+    }
+
+    public void setTimeoutSeconds(Integer timeoutSeconds) {
+        this.timeoutSeconds = timeoutSeconds;
     }
 
     public ModelConfig getChatModelConfig() {
@@ -227,20 +276,27 @@ public class HybridSearchConfig {
         this.chatModelConfig = chatModelConfig;
     }
 
-    /**
-     * 检查是否有有效的聊天模型配置用于HyDE
-     *
-     * @return 是否可以使用HyDE功能
-     */
+    /** 检查是否有有效的聊天模型配置用于HyDE
+     * @return 是否可以使用HyDE功能 */
     public boolean hasValidChatModelConfig() {
         return chatModelConfig != null;
+    }
+
+    public com.example.agentx.domain.rag.service.HyDEDomainService.HyDEQueryPlan getHydeQueryPlan() {
+        return hydeQueryPlan;
+    }
+
+    public void setHydeQueryPlan(com.example.agentx.domain.rag.service.HyDEDomainService.HyDEQueryPlan hydeQueryPlan) {
+        this.hydeQueryPlan = hydeQueryPlan;
     }
 
     @Override
     public String toString() {
         return "HybridSearchConfig{" + "dataSetIds=" + dataSetIds + ", question='" + question + '\'' + ", maxResults="
-                + maxResults + ", minScore=" + minScore + ", enableRerank=" + enableRerank + ", candidateMultiplier="
-                + candidateMultiplier + ", enableQueryExpansion=" + enableQueryExpansion + ", hasChatModelConfig="
+                + maxResults + ", minScore=" + minScore + ", fallbackMinScore=" + fallbackMinScore
+                + ", enableRerank=" + enableRerank + ", candidateMultiplier="
+                + candidateMultiplier + ", enableQueryExpansion=" + enableQueryExpansion + ", timeoutSeconds="
+                + timeoutSeconds + ", hasChatModelConfig="
                 + hasValidChatModelConfig() + '}';
     }
 }

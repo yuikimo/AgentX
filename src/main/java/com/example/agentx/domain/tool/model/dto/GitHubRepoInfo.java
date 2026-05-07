@@ -1,8 +1,6 @@
 package com.example.agentx.domain.tool.model.dto;
 
-/**
- * 封装从 GitHub URL 解析出来的信息
- */
+/** 封装从 GitHub URL 解析出来的信息 */
 public class GitHubRepoInfo {
     private String owner;
     private String repoName;
@@ -32,9 +30,7 @@ public class GitHubRepoInfo {
         return pathInRepo;
     }
 
-    /**
-     * 获取仓库的完整名称，格式为 "owner/repoName"
-     */
+    /** 获取仓库的完整名称，格式为 "owner/repoName" */
     public String getFullName() {
         return owner + "/" + repoName;
     }

@@ -11,17 +11,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * 商品装配器 处理Entity、DTO、Request之间的转换
- */
+/** 商品装配器 处理Entity、DTO、Request之间的转换 */
 public class ProductAssembler {
 
-    /**
-     * 将Entity转换为DTO
-     *
+    /** 将Entity转换为DTO
      * @param entity 商品实体
-     * @return 商品DTO
-     */
+     * @return 商品DTO */
     public static ProductDTO toDTO(ProductEntity entity) {
         if (entity == null) {
             return null;
@@ -38,12 +33,9 @@ public class ProductAssembler {
         return dto;
     }
 
-    /**
-     * 将Entity列表转换为DTO列表
-     *
+    /** 将Entity列表转换为DTO列表
      * @param entities 商品实体列表
-     * @return 商品DTO列表
-     */
+     * @return 商品DTO列表 */
     public static List<ProductDTO> toDTOs(List<ProductEntity> entities) {
         if (entities == null || entities.isEmpty()) {
             return Collections.emptyList();
@@ -51,12 +43,9 @@ public class ProductAssembler {
         return entities.stream().map(ProductAssembler::toDTO).collect(Collectors.toList());
     }
 
-    /**
-     * 将创建请求转换为Entity
-     *
+    /** 将创建请求转换为Entity
      * @param request 创建商品请求
-     * @return 商品实体
-     */
+     * @return 商品实体 */
     public static ProductEntity toEntity(CreateProductRequest request) {
         if (request == null) {
             return null;
@@ -73,12 +62,9 @@ public class ProductAssembler {
         return entity;
     }
 
-    /**
-     * 将更新请求转换为Entity
-     *
+    /** 将更新请求转换为Entity
      * @param request 更新商品请求
-     * @return 商品实体
-     */
+     * @return 商品实体 */
     public static ProductEntity toEntity(UpdateProductRequest request) {
         if (request == null) {
             return null;
@@ -89,12 +75,9 @@ public class ProductAssembler {
         return entity;
     }
 
-    /**
-     * 更新Entity的字段（从更新请求）
-     *
-     * @param entity  目标实体
-     * @param request 更新请求
-     */
+    /** 更新Entity的字段（从更新请求）
+     * @param entity 目标实体
+     * @param request 更新请求 */
     public static void updateEntity(ProductEntity entity, UpdateProductRequest request) {
         if (entity == null || request == null) {
             return;

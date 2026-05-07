@@ -1,63 +1,41 @@
 package com.example.agentx.domain.trace.model;
 
-/**
- * 模型调用信息值对象 封装单次模型调用的详细信息
- */
+import java.math.BigDecimal;
+
+/** 模型调用信息值对象 封装单次模型调用的详细信息 */
 public class ModelCallInfo {
 
-    /**
-     * 模型部署名称
-     */
+    /** 模型部署名称 */
     private final String modelEndpoint;
 
-    /**
-     * 提供商名称
-     */
+    /** 提供商名称 */
     private final String providerName;
 
-    /**
-     * 输入Token数
-     */
+    /** 输入Token数 */
     private final Integer inputTokens;
 
-    /**
-     * 输出Token数
-     */
+    /** 输出Token数 */
     private final Integer outputTokens;
 
-    /**
-     * 调用耗时(毫秒)
-     */
+    /** 调用耗时(毫秒) */
     private final Integer callTime;
 
-    /**
-     * 是否成功
-     */
+    /** 是否成功 */
     private final Boolean success;
 
-    /**
-     * 错误信息
-     */
+    /** 错误信息 */
     private final String errorMessage;
 
-    /**
-     * 是否使用了降级
-     */
+    /** 是否使用了降级 */
     private final Boolean fallbackUsed;
 
-    /**
-     * 降级原因
-     */
+    /** 降级原因 */
     private final String fallbackReason;
 
-    /**
-     * 原始模型部署名称
-     */
+    /** 原始模型部署名称 */
     private final String originalEndpoint;
 
-    /**
-     * 原始服务商名称
-     */
+    /** 原始服务商名称 */
     private final String originalProviderName;
 
     private ModelCallInfo(Builder builder) {
@@ -196,9 +174,7 @@ public class ModelCallInfo {
         return originalProviderName;
     }
 
-    /**
-     * 获取总Token数
-     */
+    /** 获取总Token数 */
     public Integer getTotalTokens() {
         if (inputTokens == null || outputTokens == null) {
             return null;

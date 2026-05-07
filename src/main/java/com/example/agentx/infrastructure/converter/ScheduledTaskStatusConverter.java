@@ -1,19 +1,17 @@
 package com.example.agentx.infrastructure.converter;
 
-import com.example.agentx.domain.scheduledtask.constant.ScheduleTaskStatus;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
+import com.example.agentx.domain.scheduledtask.constant.ScheduleTaskStatus;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * 定时任务状态转换器
- */
+/** 定时任务状态转换器 */
 @MappedTypes(ScheduleTaskStatus.class)
 @MappedJdbcTypes(JdbcType.VARCHAR)
 public class ScheduledTaskStatusConverter extends BaseTypeHandler<ScheduleTaskStatus> {

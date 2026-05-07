@@ -12,11 +12,9 @@ import com.example.agentx.infrastructure.utils.JsonUtils;
 
 import java.util.Map;
 
-/**
- * 应用层工具部署处理器
- * <p>
- * 职责： 1. 调用MCPGatewayService进行工具部署 2. 处理部署结果 3. 转换到下一状态（获取工具列表）
- */
+/** 应用层工具部署处理器
+ * 
+ * 职责： 1. 调用MCPGatewayService进行工具部署 2. 处理部署结果 3. 转换到下一状态（获取工具列表） */
 public class AppDeployingProcessor implements AppToolStateProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(AppDeployingProcessor.class);
@@ -24,11 +22,9 @@ public class AppDeployingProcessor implements AppToolStateProcessor {
     private final MCPGatewayService mcpGatewayService;
     private final ReviewContainerService reviewContainerService;
 
-    /**
-     * 构造函数，注入MCPGatewayService
-     *
-     * @param mcpGatewayService MCP网关服务
-     */
+    /** 构造函数，注入MCPGatewayService
+     * 
+     * @param mcpGatewayService MCP网关服务 */
     public AppDeployingProcessor(MCPGatewayService mcpGatewayService, ReviewContainerService reviewContainerService) {
         this.mcpGatewayService = mcpGatewayService;
         this.reviewContainerService = reviewContainerService;

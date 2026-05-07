@@ -12,12 +12,11 @@ import com.example.agentx.domain.trace.repository.AgentExecutionDetailRepository
 import com.example.agentx.domain.trace.repository.AgentExecutionSummaryRepository;
 import com.example.agentx.infrastructure.exception.BusinessException;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Agent执行链路追踪领域服务 负责处理追踪数据的核心业务逻辑
- */
+/** Agent执行链路追踪领域服务 负责处理追踪数据的核心业务逻辑 */
 @Service
 public class AgentExecutionTraceDomainService {
 
@@ -27,19 +26,17 @@ public class AgentExecutionTraceDomainService {
     private final AgentExecutionDetailRepository detailRepository;
 
     public AgentExecutionTraceDomainService(AgentExecutionSummaryRepository summaryRepository,
-                                            AgentExecutionDetailRepository detailRepository) {
+            AgentExecutionDetailRepository detailRepository) {
         this.summaryRepository = summaryRepository;
         this.detailRepository = detailRepository;
     }
 
-    /**
-     * 创建或获取会话追踪上下文
-     *
-     * @param userId    用户ID
+    /** 创建或获取会话追踪上下文
+     * 
+     * @param userId 用户ID
      * @param sessionId 会话ID
-     * @param agentId   Agent ID
-     * @return 追踪上下文
-     */
+     * @param agentId Agent ID
+     * @return 追踪上下文 */
     public TraceContext getOrCreateTrace(String userId, String sessionId, String agentId) {
         // 检查会话是否已有追踪记录
         LambdaQueryWrapper<AgentExecutionSummaryEntity> wrapper = Wrappers.<AgentExecutionSummaryEntity>lambdaQuery()
@@ -57,17 +54,15 @@ public class AgentExecutionTraceDomainService {
         return TraceContext.create(userId, sessionId, agentId);
     }
 
-    /**
-     * 记录用户消息（带时间戳）
-     *
+    /** 记录用户消息（带时间戳）
+     * 
      * @param traceContext 追踪上下文
-     * @param userMessage  用户消息内容
-     * @param messageType  消息类型
-     * @param eventTime    事件发生时间
-     * @return 插入记录的ID
-     */
+     * @param userMessage 用户消息内容
+     * @param messageType 消息类型
+     * @param eventTime 事件发生时间
+     * @return 插入记录的ID */
     public Long recordUserMessage(TraceContext traceContext, String userMessage, String messageType,
-                                  LocalDateTime eventTime) {
+            LocalDateTime eventTime) {
         if (!traceContext.isTraceEnabled()) {
             return null;
         }
@@ -79,17 +74,15 @@ public class AgentExecutionTraceDomainService {
         return detail.getId();
     }
 
-    /**
-     * 记录带Token信息的用户消息（带时间戳）
-     *
-     * @param traceContext  追踪上下文
-     * @param userMessage   用户消息内容
-     * @param messageType   消息类型
+    /** 记录带Token信息的用户消息（带时间戳）
+     * 
+     * @param traceContext 追踪上下文
+     * @param userMessage 用户消息内容
+     * @param messageType 消息类型
      * @param messageTokens 消息Token数
-     * @param eventTime     事件发生时间
-     */
+     * @param eventTime 事件发生时间 */
     public void recordUserMessageWithTokens(TraceContext traceContext, String userMessage, String messageType,
-                                            Integer messageTokens, LocalDateTime eventTime) {
+            Integer messageTokens, LocalDateTime eventTime) {
         if (!traceContext.isTraceEnabled()) {
             return;
         }
@@ -101,16 +94,14 @@ public class AgentExecutionTraceDomainService {
         detailRepository.insert(detail);
     }
 
-    /**
-     * 记录AI响应（带时间戳）
-     *
-     * @param traceContext  追踪上下文
-     * @param aiResponse    AI响应内容
+    /** 记录AI响应（带时间戳）
+     * 
+     * @param traceContext 追踪上下文
+     * @param aiResponse AI响应内容
      * @param modelCallInfo 模型调用信息
-     * @param eventTime     事件发生时间（AI开始响应的时间）
-     */
+     * @param eventTime 事件发生时间（AI开始响应的时间） */
     public void recordAiResponse(TraceContext traceContext, String aiResponse, ModelCallInfo modelCallInfo,
-                                 LocalDateTime eventTime) {
+            LocalDateTime eventTime) {
         if (!traceContext.isTraceEnabled()) {
             return;
         }
@@ -139,13 +130,11 @@ public class AgentExecutionTraceDomainService {
                 modelCallInfo.getOutputTokens());
     }
 
-    /**
-     * 记录工具调用（带时间戳）
-     *
+    /** 记录工具调用（带时间戳）
+     * 
      * @param traceContext 追踪上下文
      * @param toolCallInfo 工具调用信息
-     * @param eventTime    事件发生时间（工具开始执行的时间）
-     */
+     * @param eventTime 事件发生时间（工具开始执行的时间） */
     public void recordToolCall(TraceContext traceContext, ToolCallInfo toolCallInfo, LocalDateTime eventTime) {
         if (!traceContext.isTraceEnabled()) {
             return;
@@ -166,16 +155,14 @@ public class AgentExecutionTraceDomainService {
         updateSummaryToolExecution(traceContext.getSessionId(), toolCallInfo.getExecutionTime());
     }
 
-    /**
-     * 完成追踪记录
-     *
+    /** 完成追踪记录
+     * 
      * @param traceContext 追踪上下文
-     * @param success      是否成功
-     * @param errorPhase   错误阶段
-     * @param errorMessage 错误信息
-     */
+     * @param success 是否成功
+     * @param errorPhase 错误阶段
+     * @param errorMessage 错误信息 */
     public void completeTrace(TraceContext traceContext, boolean success, ExecutionPhase errorPhase,
-                              String errorMessage) {
+            String errorMessage) {
         if (!traceContext.isTraceEnabled()) {
             return;
         }
@@ -193,13 +180,11 @@ public class AgentExecutionTraceDomainService {
         summaryRepository.updateById(summary);
     }
 
-    /**
-     * 根据会话ID获取完整的执行信息
-     *
+    /** 根据会话ID获取完整的执行信息
+     * 
      * @param sessionId 会话ID
-     * @param userId    用户ID
-     * @return 执行汇总
-     */
+     * @param userId 用户ID
+     * @return 执行汇总 */
     public AgentExecutionSummaryEntity getExecutionSummary(String sessionId, String userId) {
         LambdaQueryWrapper<AgentExecutionSummaryEntity> wrapper = Wrappers.<AgentExecutionSummaryEntity>lambdaQuery()
                 .eq(AgentExecutionSummaryEntity::getSessionId, sessionId);
@@ -217,13 +202,11 @@ public class AgentExecutionTraceDomainService {
         return summary;
     }
 
-    /**
-     * 获取执行详情列表
-     *
+    /** 获取执行详情列表
+     * 
      * @param sessionId 会话ID
-     * @param userId    用户ID
-     * @return 执行详情列表
-     */
+     * @param userId 用户ID
+     * @return 执行详情列表 */
     public List<AgentExecutionDetailEntity> getExecutionDetails(String sessionId, String userId) {
         // 先检查权限
         getExecutionSummary(sessionId, userId);
@@ -234,14 +217,12 @@ public class AgentExecutionTraceDomainService {
         return detailRepository.selectList(wrapper);
     }
 
-    /**
-     * 分页查询用户的执行历史
-     *
-     * @param userId   用户ID
-     * @param page     页码
+    /** 分页查询用户的执行历史
+     * 
+     * @param userId 用户ID
+     * @param page 页码
      * @param pageSize 页大小
-     * @return 执行历史分页数据
-     */
+     * @return 执行历史分页数据 */
     public Page<AgentExecutionSummaryEntity> getUserExecutionHistory(String userId, int page, int pageSize) {
         Page<AgentExecutionSummaryEntity> pageObject = new Page<>(page, pageSize);
         LambdaQueryWrapper<AgentExecutionSummaryEntity> wrapper = Wrappers.<AgentExecutionSummaryEntity>lambdaQuery()
@@ -250,13 +231,11 @@ public class AgentExecutionTraceDomainService {
         return summaryRepository.selectPage(pageObject, wrapper);
     }
 
-    /**
-     * 查询会话的执行历史
-     *
+    /** 查询会话的执行历史
+     * 
      * @param sessionId 会话ID
-     * @param userId    用户ID
-     * @return 执行历史列表
-     */
+     * @param userId 用户ID
+     * @return 执行历史列表 */
     public List<AgentExecutionSummaryEntity> getSessionExecutionHistory(String sessionId, String userId) {
         LambdaQueryWrapper<AgentExecutionSummaryEntity> wrapper = Wrappers.<AgentExecutionSummaryEntity>lambdaQuery()
                 .eq(AgentExecutionSummaryEntity::getSessionId, sessionId)
@@ -265,16 +244,14 @@ public class AgentExecutionTraceDomainService {
         return summaryRepository.selectList(wrapper);
     }
 
-    /**
-     * 查询用户在指定时间范围内的执行记录
-     *
-     * @param userId    用户ID
+    /** 查询用户在指定时间范围内的执行记录
+     * 
+     * @param userId 用户ID
      * @param startTime 开始时间
-     * @param endTime   结束时间
-     * @return 执行记录列表
-     */
+     * @param endTime 结束时间
+     * @return 执行记录列表 */
     public List<AgentExecutionSummaryEntity> getUserExecutionsByTimeRange(String userId, LocalDateTime startTime,
-                                                                          LocalDateTime endTime) {
+            LocalDateTime endTime) {
         LambdaQueryWrapper<AgentExecutionSummaryEntity> wrapper = Wrappers.<AgentExecutionSummaryEntity>lambdaQuery()
                 .eq(AgentExecutionSummaryEntity::getUserId, userId)
                 .ge(startTime != null, AgentExecutionSummaryEntity::getExecutionStartTime, startTime)
@@ -283,12 +260,10 @@ public class AgentExecutionTraceDomainService {
         return summaryRepository.selectList(wrapper);
     }
 
-    /**
-     * 查询用户的失败执行记录
-     *
+    /** 查询用户的失败执行记录
+     * 
      * @param userId 用户ID
-     * @return 失败的执行记录列表
-     */
+     * @return 失败的执行记录列表 */
     public List<AgentExecutionSummaryEntity> getUserFailedExecutions(String userId) {
         LambdaQueryWrapper<AgentExecutionSummaryEntity> wrapper = Wrappers.<AgentExecutionSummaryEntity>lambdaQuery()
                 .eq(AgentExecutionSummaryEntity::getUserId, userId)
@@ -297,13 +272,11 @@ public class AgentExecutionTraceDomainService {
         return summaryRepository.selectList(wrapper);
     }
 
-    /**
-     * 根据会话ID和消息类型查询执行详情
-     *
-     * @param sessionId   会话ID
+    /** 根据会话ID和消息类型查询执行详情
+     * 
+     * @param sessionId 会话ID
      * @param messageType 消息类型
-     * @return 执行详情列表
-     */
+     * @return 执行详情列表 */
     public List<AgentExecutionDetailEntity> getExecutionDetailsByMessageType(String sessionId, String messageType) {
         LambdaQueryWrapper<AgentExecutionDetailEntity> wrapper = Wrappers.<AgentExecutionDetailEntity>lambdaQuery()
                 .eq(AgentExecutionDetailEntity::getSessionId, sessionId)
@@ -312,32 +285,26 @@ public class AgentExecutionTraceDomainService {
         return detailRepository.selectList(wrapper);
     }
 
-    /**
-     * 查询会话中的工具调用记录
-     *
+    /** 查询会话中的工具调用记录
+     * 
      * @param sessionId 会话ID
-     * @return 工具调用记录列表
-     */
+     * @return 工具调用记录列表 */
     public List<AgentExecutionDetailEntity> getToolCallsBySessionId(String sessionId) {
         return getExecutionDetailsByMessageType(sessionId, "TOOL_CALL");
     }
 
-    /**
-     * 查询会话中的模型调用记录
-     *
+    /** 查询会话中的模型调用记录
+     * 
      * @param sessionId 会话ID
-     * @return 模型调用记录列表
-     */
+     * @return 模型调用记录列表 */
     public List<AgentExecutionDetailEntity> getModelCallsBySessionId(String sessionId) {
         return getExecutionDetailsByMessageType(sessionId, "AI_RESPONSE");
     }
 
-    /**
-     * 查询会话中使用降级的记录
-     *
+    /** 查询会话中使用降级的记录
+     * 
      * @param sessionId 会话ID
-     * @return 使用降级的记录列表
-     */
+     * @return 使用降级的记录列表 */
     public List<AgentExecutionDetailEntity> getFallbackCallsBySessionId(String sessionId) {
         LambdaQueryWrapper<AgentExecutionDetailEntity> wrapper = Wrappers.<AgentExecutionDetailEntity>lambdaQuery()
                 .eq(AgentExecutionDetailEntity::getSessionId, sessionId)
@@ -346,12 +313,10 @@ public class AgentExecutionTraceDomainService {
         return detailRepository.selectList(wrapper);
     }
 
-    /**
-     * 获取用户的执行统计信息
-     *
+    /** 获取用户的执行统计信息
+     * 
      * @param userId 用户ID
-     * @return 执行统计信息
-     */
+     * @return 执行统计信息 */
     public ExecutionStatistics getUserExecutionStatistics(String userId) {
         // 统计总执行次数
         LambdaQueryWrapper<AgentExecutionSummaryEntity> totalWrapper = Wrappers
@@ -372,12 +337,10 @@ public class AgentExecutionTraceDomainService {
         return new ExecutionStatistics(totalExecutions, successfulExecutions, totalTokens);
     }
 
-    /**
-     * 获取用户按Agent分组的执行统计数据
-     *
+    /** 获取用户按Agent分组的执行统计数据
+     * 
      * @param userId 用户ID
-     * @return Agent统计数据列表
-     */
+     * @return Agent统计数据列表 */
     public List<AgentStatistics> getUserAgentStatistics(String userId) {
         LambdaQueryWrapper<AgentExecutionSummaryEntity> wrapper = Wrappers.<AgentExecutionSummaryEntity>lambdaQuery()
                 .eq(AgentExecutionSummaryEntity::getUserId, userId)
@@ -431,13 +394,11 @@ public class AgentExecutionTraceDomainService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
-    /**
-     * 获取指定Agent下按Session分组的执行统计数据
-     *
+    /** 获取指定Agent下按Session分组的执行统计数据
+     * 
      * @param agentId Agent ID
-     * @param userId  用户ID
-     * @return Session统计数据列表
-     */
+     * @param userId 用户ID
+     * @return Session统计数据列表 */
     public List<SessionStatistics> getAgentSessionStatistics(String agentId, String userId) {
         LambdaQueryWrapper<AgentExecutionSummaryEntity> wrapper = Wrappers.<AgentExecutionSummaryEntity>lambdaQuery()
                 .eq(AgentExecutionSummaryEntity::getAgentId, agentId).eq(AgentExecutionSummaryEntity::getUserId, userId)
@@ -491,9 +452,7 @@ public class AgentExecutionTraceDomainService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
-    /**
-     * 更新汇总的Token统计
-     */
+    /** 更新汇总的Token统计 */
     private void updateSummaryTokens(String sessionId, Integer inputTokens, Integer outputTokens) {
         LambdaQueryWrapper<AgentExecutionSummaryEntity> wrapper = Wrappers.<AgentExecutionSummaryEntity>lambdaQuery()
                 .eq(AgentExecutionSummaryEntity::getSessionId, sessionId);
@@ -505,9 +464,7 @@ public class AgentExecutionTraceDomainService {
         }
     }
 
-    /**
-     * 更新汇总的工具执行统计
-     */
+    /** 更新汇总的工具执行统计 */
     private void updateSummaryToolExecution(String sessionId, Integer executionTime) {
         LambdaQueryWrapper<AgentExecutionSummaryEntity> wrapper = Wrappers.<AgentExecutionSummaryEntity>lambdaQuery()
                 .eq(AgentExecutionSummaryEntity::getSessionId, sessionId);
@@ -519,12 +476,10 @@ public class AgentExecutionTraceDomainService {
         }
     }
 
-    /**
-     * 更新用户消息的Token数量
-     *
-     * @param recordId      记录ID
-     * @param messageTokens 消息Token数
-     */
+    /** 更新用户消息的Token数量
+     * 
+     * @param recordId 记录ID
+     * @param messageTokens 消息Token数 */
     public void updateUserMessageTokens(Long recordId, Integer messageTokens) {
         if (recordId == null || messageTokens == null) {
             return;
@@ -537,9 +492,7 @@ public class AgentExecutionTraceDomainService {
         }
     }
 
-    /**
-     * 执行统计信息
-     */
+    /** 执行统计信息 */
     public static class ExecutionStatistics {
         private final int totalExecutions;
         private final int successfulExecutions;
@@ -572,9 +525,7 @@ public class AgentExecutionTraceDomainService {
         }
     }
 
-    /**
-     * Agent执行统计信息
-     */
+    /** Agent执行统计信息 */
     public static class AgentStatistics {
         private final String agentId;
         private final int totalExecutions;
@@ -590,9 +541,8 @@ public class AgentExecutionTraceDomainService {
         private final Boolean lastExecutionSuccess;
 
         public AgentStatistics(String agentId, int totalExecutions, int successfulExecutions, int failedExecutions,
-                               double successRate, int totalTokens, int totalInputTokens, int totalOutputTokens,
-                               int totalToolCalls,
-                               int totalSessions, LocalDateTime lastExecutionTime, Boolean lastExecutionSuccess) {
+                double successRate, int totalTokens, int totalInputTokens, int totalOutputTokens, int totalToolCalls,
+                int totalSessions, LocalDateTime lastExecutionTime, Boolean lastExecutionSuccess) {
             this.agentId = agentId;
             this.totalExecutions = totalExecutions;
             this.successfulExecutions = successfulExecutions;
@@ -611,59 +561,46 @@ public class AgentExecutionTraceDomainService {
         public String getAgentId() {
             return agentId;
         }
-
         public int getTotalExecutions() {
             return totalExecutions;
         }
-
         public int getSuccessfulExecutions() {
             return successfulExecutions;
         }
-
         public int getFailedExecutions() {
             return failedExecutions;
         }
-
         public double getSuccessRate() {
             return successRate;
         }
-
         public int getTotalTokens() {
             return totalTokens;
         }
-
         public int getTotalInputTokens() {
             return totalInputTokens;
         }
-
         public int getTotalOutputTokens() {
             return totalOutputTokens;
         }
-
         public int getTotalToolCalls() {
             return totalToolCalls;
         }
-
         public int getTotalSessions() {
             return totalSessions;
         }
-
         public LocalDateTime getLastExecutionTime() {
             return lastExecutionTime;
         }
-
         public Boolean getLastExecutionSuccess() {
             return lastExecutionSuccess;
         }
     }
 
-    /**
-     * 记录异常消息到详细记录表
-     *
+    /** 记录异常消息到详细记录表
+     * 
      * @param traceContext 追踪上下文
      * @param errorMessage 错误信息
-     * @param eventTime    事件发生时间
-     */
+     * @param eventTime 事件发生时间 */
     public void recordErrorMessage(TraceContext traceContext, String errorMessage, LocalDateTime eventTime) {
         if (!traceContext.isTraceEnabled()) {
             return;
@@ -682,9 +619,7 @@ public class AgentExecutionTraceDomainService {
         }
     }
 
-    /**
-     * 会话执行统计信息
-     */
+    /** 会话执行统计信息 */
     public static class SessionStatistics {
         private final String sessionId;
         private final String agentId;
@@ -701,10 +636,9 @@ public class AgentExecutionTraceDomainService {
         private final Boolean lastExecutionSuccess;
 
         public SessionStatistics(String sessionId, String agentId, int totalExecutions, int successfulExecutions,
-                                 int failedExecutions, double successRate, int totalTokens, int totalInputTokens,
-                                 int totalOutputTokens,
-                                 int totalToolCalls, int totalExecutionTime, LocalDateTime lastExecutionTime,
-                                 Boolean lastExecutionSuccess) {
+                int failedExecutions, double successRate, int totalTokens, int totalInputTokens, int totalOutputTokens,
+                int totalToolCalls, int totalExecutionTime, LocalDateTime lastExecutionTime,
+                Boolean lastExecutionSuccess) {
             this.sessionId = sessionId;
             this.agentId = agentId;
             this.totalExecutions = totalExecutions;
@@ -724,51 +658,39 @@ public class AgentExecutionTraceDomainService {
         public String getSessionId() {
             return sessionId;
         }
-
         public String getAgentId() {
             return agentId;
         }
-
         public int getTotalExecutions() {
             return totalExecutions;
         }
-
         public int getSuccessfulExecutions() {
             return successfulExecutions;
         }
-
         public int getFailedExecutions() {
             return failedExecutions;
         }
-
         public double getSuccessRate() {
             return successRate;
         }
-
         public int getTotalTokens() {
             return totalTokens;
         }
-
         public int getTotalInputTokens() {
             return totalInputTokens;
         }
-
         public int getTotalOutputTokens() {
             return totalOutputTokens;
         }
-
         public int getTotalToolCalls() {
             return totalToolCalls;
         }
-
         public int getTotalExecutionTime() {
             return totalExecutionTime;
         }
-
         public LocalDateTime getLastExecutionTime() {
             return lastExecutionTime;
         }
-
         public Boolean getLastExecutionSuccess() {
             return lastExecutionSuccess;
         }

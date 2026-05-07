@@ -1,8 +1,6 @@
 package com.example.agentx.interfaces.dto.agent.request;
 
-/**
- * 搜索Agent的请求对象
- */
+/** 搜索Agent的请求对象 */
 public class SearchAgentsRequest {
 
     private String name;

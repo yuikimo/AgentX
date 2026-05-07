@@ -2,9 +2,7 @@ package com.example.agentx.application.auth.dto;
 
 import java.util.Map;
 
-/**
- * 认证配置响应DTO
- */
+/** 认证配置响应DTO */
 public class AuthConfigDTO {
 
     private Map<String, LoginMethodDTO> loginMethods;

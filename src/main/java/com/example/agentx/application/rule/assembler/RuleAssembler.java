@@ -11,17 +11,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * 规则装配器 处理Entity、DTO、Request之间的转换
- */
+/** 规则装配器 处理Entity、DTO、Request之间的转换 */
 public class RuleAssembler {
 
-    /**
-     * 将Entity转换为DTO
-     *
+    /** 将Entity转换为DTO
      * @param entity 规则实体
-     * @return 规则DTO
-     */
+     * @return 规则DTO */
     public static RuleDTO toDTO(RuleEntity entity) {
         if (entity == null) {
             return null;
@@ -38,12 +33,9 @@ public class RuleAssembler {
         return dto;
     }
 
-    /**
-     * 将Entity列表转换为DTO列表
-     *
+    /** 将Entity列表转换为DTO列表
      * @param entities 规则实体列表
-     * @return 规则DTO列表
-     */
+     * @return 规则DTO列表 */
     public static List<RuleDTO> toDTOs(List<RuleEntity> entities) {
         if (entities == null || entities.isEmpty()) {
             return Collections.emptyList();
@@ -51,12 +43,9 @@ public class RuleAssembler {
         return entities.stream().map(RuleAssembler::toDTO).collect(Collectors.toList());
     }
 
-    /**
-     * 将创建请求转换为Entity
-     *
+    /** 将创建请求转换为Entity
      * @param request 创建规则请求
-     * @return 规则实体
-     */
+     * @return 规则实体 */
     public static RuleEntity toEntity(CreateRuleRequest request) {
         if (request == null) {
             return null;
@@ -73,12 +62,9 @@ public class RuleAssembler {
         return entity;
     }
 
-    /**
-     * 将更新请求转换为Entity
-     *
+    /** 将更新请求转换为Entity
      * @param request 更新规则请求
-     * @return 规则实体
-     */
+     * @return 规则实体 */
     public static RuleEntity toEntity(UpdateRuleRequest request) {
         if (request == null) {
             return null;
@@ -89,12 +75,9 @@ public class RuleAssembler {
         return entity;
     }
 
-    /**
-     * 更新Entity的字段（从更新请求）
-     *
-     * @param entity  目标实体
-     * @param request 更新请求
-     */
+    /** 更新Entity的字段（从更新请求）
+     * @param entity 目标实体
+     * @param request 更新请求 */
     public static void updateEntity(RuleEntity entity, UpdateRuleRequest request) {
         if (entity == null || request == null) {
             return;

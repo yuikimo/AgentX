@@ -22,28 +22,22 @@ public class UserAppService {
         this.userDomainService = userDomainService;
     }
 
-    /**
-     * 获取用户信息
-     */
+    /** 获取用户信息 */
     public UserDTO getUserInfo(String id) {
         UserEntity userEntity = userDomainService.getUserInfo(id);
         return UserAssembler.toDTO(userEntity);
     }
 
-    /**
-     * 修改用户信息
-     */
+    /** 修改用户信息 */
     public void updateUserInfo(UserUpdateRequest userUpdateRequest, String userId) {
         UserEntity user = UserAssembler.toEntity(userUpdateRequest, userId);
         userDomainService.updateUserInfo(user);
     }
 
-    /**
-     * 修改用户密码
-     *
+    /** 修改用户密码
+     * 
      * @param request 修改密码请求
-     * @param userId  用户ID
-     */
+     * @param userId 用户ID */
     public void changePassword(ChangePasswordRequest request, String userId) {
         // 验证确认密码
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
@@ -54,12 +48,10 @@ public class UserAppService {
         userDomainService.changePassword(userId, request.getCurrentPassword(), request.getNewPassword());
     }
 
-    /**
-     * 分页获取用户列表
-     *
+    /** 分页获取用户列表
+     * 
      * @param queryUserRequest 查询条件
-     * @return 用户分页数据
-     */
+     * @return 用户分页数据 */
     public Page<UserDTO> getUsers(QueryUserRequest queryUserRequest) {
         Page<UserEntity> userPage = userDomainService.getUsers(queryUserRequest);
 

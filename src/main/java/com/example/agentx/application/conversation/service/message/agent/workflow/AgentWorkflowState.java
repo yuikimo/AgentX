@@ -1,8 +1,6 @@
 package com.example.agentx.application.conversation.service.message.agent.workflow;
 
-/**
- * Agent工作流状态 定义任务执行过程中的各个状态
- */
+/** Agent工作流状态 定义任务执行过程中的各个状态 */
 public enum AgentWorkflowState {
     ANALYSER_MESSAGE, // 分析用户消息
     INITIALIZED, // 初始化

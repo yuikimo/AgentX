@@ -4,6 +4,9 @@ import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 
+/** @author shilong.zang
+ * @date 19:00 <br/>
+ */
 public class MarkdownConverter {
 
     private static final Parser PARSER;

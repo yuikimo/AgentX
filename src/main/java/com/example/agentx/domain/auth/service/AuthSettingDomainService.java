@@ -12,9 +12,7 @@ import com.example.agentx.infrastructure.exception.BusinessException;
 
 import java.util.List;
 
-/**
- * 认证配置领域服务
- */
+/** 认证配置领域服务 */
 @Service
 public class AuthSettingDomainService {
 
@@ -24,27 +22,22 @@ public class AuthSettingDomainService {
         this.authSettingRepository = authSettingRepository;
     }
 
-    /**
-     * 获取指定类型的启用功能列表
-     *
+    /** 获取指定类型的启用功能列表
+     * 
      * @param featureType 功能类型
-     * @return 启用功能列表
-     */
+     * @return 启用功能列表 */
     public List<AuthSettingEntity> getEnabledFeatures(FeatureType featureType) {
         LambdaQueryWrapper<AuthSettingEntity> wrapper = Wrappers.<AuthSettingEntity>lambdaQuery()
-                .eq(AuthSettingEntity::getFeatureType, featureType.getCode())
-                .eq(AuthSettingEntity::getEnabled, true)
+                .eq(AuthSettingEntity::getFeatureType, featureType.getCode()).eq(AuthSettingEntity::getEnabled, true)
                 .orderByAsc(AuthSettingEntity::getDisplayOrder);
 
         return authSettingRepository.selectList(wrapper);
     }
 
-    /**
-     * 获取指定类型的所有功能列表
-     *
+    /** 获取指定类型的所有功能列表
+     * 
      * @param featureType 功能类型
-     * @return 功能列表
-     */
+     * @return 功能列表 */
     public List<AuthSettingEntity> getAllFeatures(FeatureType featureType) {
         LambdaQueryWrapper<AuthSettingEntity> wrapper = Wrappers.<AuthSettingEntity>lambdaQuery()
                 .eq(AuthSettingEntity::getFeatureType, featureType.getCode())
@@ -53,11 +46,9 @@ public class AuthSettingDomainService {
         return authSettingRepository.selectList(wrapper);
     }
 
-    /**
-     * 获取所有认证配置
-     *
-     * @return 所有认证配置列表
-     */
+    /** 获取所有认证配置
+     * 
+     * @return 所有认证配置列表 */
     public List<AuthSettingEntity> getAllAuthSettings() {
         LambdaQueryWrapper<AuthSettingEntity> wrapper = Wrappers.<AuthSettingEntity>lambdaQuery()
                 .orderByAsc(AuthSettingEntity::getFeatureType, AuthSettingEntity::getDisplayOrder);
@@ -65,26 +56,21 @@ public class AuthSettingDomainService {
         return authSettingRepository.selectList(wrapper);
     }
 
-    /**
-     * 检查指定功能是否启用
-     *
+    /** 检查指定功能是否启用
+     * 
      * @param featureKey 功能键
-     * @return 是否启用
-     */
+     * @return 是否启用 */
     public boolean isFeatureEnabled(AuthFeatureKey featureKey) {
         LambdaQueryWrapper<AuthSettingEntity> wrapper = Wrappers.<AuthSettingEntity>lambdaQuery()
-                .eq(AuthSettingEntity::getFeatureKey, featureKey.getCode())
-                .eq(AuthSettingEntity::getEnabled, true);
+                .eq(AuthSettingEntity::getFeatureKey, featureKey.getCode()).eq(AuthSettingEntity::getEnabled, true);
 
         return authSettingRepository.selectCount(wrapper) > 0;
     }
 
-    /**
-     * 根据功能键获取认证配置
-     *
+    /** 根据功能键获取认证配置
+     * 
      * @param featureKey 功能键
-     * @return 认证配置实体
-     */
+     * @return 认证配置实体 */
     public AuthSettingEntity getByFeatureKey(AuthFeatureKey featureKey) {
         LambdaQueryWrapper<AuthSettingEntity> wrapper = Wrappers.<AuthSettingEntity>lambdaQuery()
                 .eq(AuthSettingEntity::getFeatureKey, featureKey.getCode());
@@ -92,12 +78,10 @@ public class AuthSettingDomainService {
         return authSettingRepository.selectOne(wrapper);
     }
 
-    /**
-     * 根据ID获取认证配置
-     *
+    /** 根据ID获取认证配置
+     * 
      * @param id 配置ID
-     * @return 认证配置实体
-     */
+     * @return 认证配置实体 */
     public AuthSettingEntity getById(String id) {
         AuthSettingEntity entity = authSettingRepository.selectById(id);
         if (entity == null) {
@@ -106,18 +90,15 @@ public class AuthSettingDomainService {
         return entity;
     }
 
-    /**
-     * 切换功能启用状态
-     *
+    /** 切换功能启用状态
+     * 
      * @param id 配置ID
-     * @return 更新后的配置
-     */
+     * @return 更新后的配置 */
     public AuthSettingEntity toggleEnabled(String id) {
         AuthSettingEntity entity = getById(id);
 
         LambdaUpdateWrapper<AuthSettingEntity> updateWrapper = Wrappers.<AuthSettingEntity>lambdaUpdate()
-                .eq(AuthSettingEntity::getId, id)
-                .set(AuthSettingEntity::getEnabled, !entity.getEnabled());
+                .eq(AuthSettingEntity::getId, id).set(AuthSettingEntity::getEnabled, !entity.getEnabled());
 
         authSettingRepository.checkedUpdate(null, updateWrapper);
 
@@ -126,12 +107,10 @@ public class AuthSettingDomainService {
         return entity;
     }
 
-    /**
-     * 更新认证配置
-     *
+    /** 更新认证配置
+     * 
      * @param entity 认证配置实体
-     * @return 更新后的配置
-     */
+     * @return 更新后的配置 */
     public AuthSettingEntity updateAuthSetting(AuthSettingEntity entity) {
         AuthSettingEntity existingEntity = getById(entity.getId());
 
@@ -143,12 +122,10 @@ public class AuthSettingDomainService {
         return entity;
     }
 
-    /**
-     * 创建认证配置
-     *
+    /** 创建认证配置
+     * 
      * @param entity 认证配置实体
-     * @return 创建的配置
-     */
+     * @return 创建的配置 */
     public AuthSettingEntity createAuthSetting(AuthSettingEntity entity) {
         // 检查功能键是否已存在
         LambdaQueryWrapper<AuthSettingEntity> wrapper = Wrappers.<AuthSettingEntity>lambdaQuery()
@@ -162,11 +139,9 @@ public class AuthSettingDomainService {
         return entity;
     }
 
-    /**
-     * 删除认证配置
-     *
-     * @param id 配置ID
-     */
+    /** 删除认证配置
+     * 
+     * @param id 配置ID */
     public void deleteAuthSetting(String id) {
         AuthSettingEntity entity = getById(id);
         authSettingRepository.deleteById(id);

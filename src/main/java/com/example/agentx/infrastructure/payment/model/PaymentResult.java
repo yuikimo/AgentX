@@ -2,64 +2,40 @@ package com.example.agentx.infrastructure.payment.model;
 
 import java.util.Map;
 
-/**
- * 支付结果封装类
- */
+/** 支付结果封装类 */
 public class PaymentResult {
 
-    /**
-     * 是否成功
-     */
+    /** 是否成功 */
     private boolean success;
 
-    /**
-     * 支付URL（需要跳转支付时使用）
-     */
+    /** 支付URL（需要跳转支付时使用） */
     private String paymentUrl;
 
-    /**
-     * 第三方订单ID
-     */
+    /** 第三方订单ID */
     private String providerOrderId;
 
-    /**
-     * 第三方支付ID
-     */
+    /** 第三方支付ID */
     private String providerPaymentId;
 
-    /**
-     * 支付方式
-     */
+    /** 支付方式 */
     private String paymentMethod;
 
-    /**
-     * 支付类型
-     */
+    /** 支付类型 */
     private String paymentType;
 
-    /**
-     * 支付状态
-     */
+    /** 支付状态 */
     private String status;
 
-    /**
-     * 错误信息
-     */
+    /** 错误信息 */
     private String errorMessage;
 
-    /**
-     * 错误代码
-     */
+    /** 错误代码 */
     private String errorCode;
 
-    /**
-     * 扩展数据
-     */
+    /** 扩展数据 */
     private Map<String, Object> extraData;
 
-    /**
-     * 原始响应数据
-     */
+    /** 原始响应数据 */
     private Map<String, Object> rawResponse;
 
     public PaymentResult() {
@@ -157,34 +133,26 @@ public class PaymentResult {
         this.rawResponse = rawResponse;
     }
 
-    /**
-     * 创建成功结果
-     */
+    /** 创建成功结果 */
     public static PaymentResult success() {
         return new PaymentResult(true);
     }
 
-    /**
-     * 创建成功结果（带支付URL）
-     */
+    /** 创建成功结果（带支付URL） */
     public static PaymentResult success(String paymentUrl) {
         PaymentResult result = success();
         result.setPaymentUrl(paymentUrl);
         return result;
     }
 
-    /**
-     * 创建成功结果（带第三方订单ID）
-     */
+    /** 创建成功结果（带第三方订单ID） */
     public static PaymentResult success(String providerOrderId, String paymentUrl) {
         PaymentResult result = success(paymentUrl);
         result.setProviderOrderId(providerOrderId);
         return result;
     }
 
-    /**
-     * 创建成功结果（带支付方式和类型）
-     */
+    /** 创建成功结果（带支付方式和类型） */
     public static PaymentResult success(String paymentUrl, String paymentMethod, String paymentType) {
         PaymentResult result = success(paymentUrl);
         result.setPaymentMethod(paymentMethod);
@@ -192,45 +160,35 @@ public class PaymentResult {
         return result;
     }
 
-    /**
-     * 创建成功结果（完整参数）
-     */
+    /** 创建成功结果（完整参数） */
     public static PaymentResult success(String providerOrderId, String paymentUrl, String paymentMethod,
-                                        String paymentType) {
+            String paymentType) {
         PaymentResult result = success(providerOrderId, paymentUrl);
         result.setPaymentMethod(paymentMethod);
         result.setPaymentType(paymentType);
         return result;
     }
 
-    /**
-     * 创建失败结果
-     */
+    /** 创建失败结果 */
     public static PaymentResult failure(String errorMessage) {
         PaymentResult result = new PaymentResult(false);
         result.setErrorMessage(errorMessage);
         return result;
     }
 
-    /**
-     * 创建失败结果（带错误代码）
-     */
+    /** 创建失败结果（带错误代码） */
     public static PaymentResult failure(String errorCode, String errorMessage) {
         PaymentResult result = failure(errorMessage);
         result.setErrorCode(errorCode);
         return result;
     }
 
-    /**
-     * 检查是否需要跳转支付
-     */
+    /** 检查是否需要跳转支付 */
     public boolean needRedirect() {
         return success && paymentUrl != null && !paymentUrl.trim().isEmpty();
     }
 
-    /**
-     * 检查是否为失败结果
-     */
+    /** 检查是否为失败结果 */
     public boolean isFailure() {
         return !success;
     }

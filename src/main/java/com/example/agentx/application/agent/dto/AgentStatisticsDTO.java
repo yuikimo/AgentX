@@ -1,28 +1,18 @@
 package com.example.agentx.application.agent.dto;
 
-/**
- * Agent统计信息DTO
- */
+/** Agent统计信息DTO */
 public class AgentStatisticsDTO {
 
-    /**
-     * 总Agent数量
-     */
+    /** 总Agent数量 */
     private long totalAgents;
 
-    /**
-     * 启用的Agent数量
-     */
+    /** 启用的Agent数量 */
     private long enabledAgents;
 
-    /**
-     * 禁用的Agent数量
-     */
+    /** 禁用的Agent数量 */
     private long disabledAgents;
 
-    /**
-     * 待审核版本数量
-     */
+    /** 待审核版本数量 */
     private long pendingVersions;
 
     public long getTotalAgents() {

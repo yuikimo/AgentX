@@ -2,9 +2,7 @@ package com.example.agentx.domain.tool.constant;
 
 import com.example.agentx.infrastructure.exception.BusinessException;
 
-/**
- * 工具类型枚举
- */
+/** 工具类型枚举 */
 public enum ToolType {
 
     MCP;

@@ -7,9 +7,10 @@ import com.example.agentx.domain.rag.constant.FileProcessingStatusEnum;
 import com.example.agentx.domain.rag.model.FileDetailEntity;
 import com.example.agentx.domain.rag.service.state.FileProcessingStateProcessor;
 
-/**
- * 处理完成状态处理器
- */
+/** 处理完成状态处理器
+ * 
+ * @author zang
+ * @date 2025-07-17 */
 @Component
 public class CompletedStateProcessor implements FileProcessingStateProcessor {
 

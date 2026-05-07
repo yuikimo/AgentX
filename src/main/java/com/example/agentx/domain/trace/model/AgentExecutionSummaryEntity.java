@@ -3,101 +3,70 @@ package com.example.agentx.domain.trace.model;
 import com.baomidou.mybatisplus.annotation.*;
 import com.example.agentx.infrastructure.entity.BaseEntity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Agent执行链路汇总实体 记录每次Agent执行的整体信息和汇总数据
- */
+/** Agent执行链路汇总实体 记录每次Agent执行的整体信息和汇总数据 */
 @TableName("agent_execution_summary")
 public class AgentExecutionSummaryEntity extends BaseEntity {
 
-    /**
-     * 主键ID
-     */
+    /** 主键ID */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    /**
-     * 用户ID
-     */
+    /** 用户ID */
     @TableField("user_id")
     private String userId;
 
-    /**
-     * 会话ID
-     */
+    /** 会话ID */
     @TableField("session_id")
     private String sessionId;
 
-    /**
-     * Agent ID
-     */
+    /** Agent ID */
     @TableField("agent_id")
     private String agentId;
 
-    /**
-     * 执行开始时间
-     */
+    /** 执行开始时间 */
     @TableField("execution_start_time")
     private LocalDateTime executionStartTime;
 
-    /**
-     * 执行结束时间
-     */
+    /** 执行结束时间 */
     @TableField("execution_end_time")
     private LocalDateTime executionEndTime;
 
-    /**
-     * 总执行时间(毫秒)
-     */
+    /** 总执行时间(毫秒) */
     @TableField("total_execution_time")
     private Integer totalExecutionTime;
 
-    /**
-     * 总输入Token数
-     */
+    /** 总输入Token数 */
     @TableField("total_input_tokens")
     private Integer totalInputTokens;
 
-    /**
-     * 总输出Token数
-     */
+    /** 总输出Token数 */
     @TableField("total_output_tokens")
     private Integer totalOutputTokens;
 
-    /**
-     * 总Token数
-     */
+    /** 总Token数 */
     @TableField("total_tokens")
     private Integer totalTokens;
 
-    /**
-     * 工具调用总次数
-     */
+    /** 工具调用总次数 */
     @TableField("tool_call_count")
     private Integer toolCallCount;
 
-    /**
-     * 工具执行总耗时(毫秒)
-     */
+    /** 工具执行总耗时(毫秒) */
     @TableField("total_tool_execution_time")
     private Integer totalToolExecutionTime;
 
-    /**
-     * 执行是否成功
-     */
+    /** 执行是否成功 */
     @TableField("execution_success")
     private Boolean executionSuccess;
 
-    /**
-     * 错误发生阶段
-     */
+    /** 错误发生阶段 */
     @TableField("error_phase")
     private String errorPhase;
 
-    /**
-     * 错误信息
-     */
+    /** 错误信息 */
     @TableField("error_message")
     private String errorMessage;
 
@@ -109,9 +78,7 @@ public class AgentExecutionSummaryEntity extends BaseEntity {
         this.totalToolExecutionTime = 0;
     }
 
-    /**
-     * 创建新的执行追踪汇总
-     */
+    /** 创建新的执行追踪汇总 */
     public static AgentExecutionSummaryEntity create(String userId, String sessionId, String agentId) {
         AgentExecutionSummaryEntity entity = new AgentExecutionSummaryEntity();
         entity.setUserId(userId);
@@ -122,9 +89,7 @@ public class AgentExecutionSummaryEntity extends BaseEntity {
         return entity;
     }
 
-    /**
-     * 标记执行完成
-     */
+    /** 标记执行完成 */
     public void markCompleted(boolean success, String errorPhase, String errorMessage) {
         this.executionEndTime = LocalDateTime.now();
         this.executionSuccess = success;
@@ -138,9 +103,7 @@ public class AgentExecutionSummaryEntity extends BaseEntity {
         }
     }
 
-    /**
-     * 添加Token统计
-     */
+    /** 添加Token统计 */
     public void addTokens(Integer inputTokens, Integer outputTokens) {
         if (inputTokens != null) {
             this.totalInputTokens += inputTokens;
@@ -151,9 +114,7 @@ public class AgentExecutionSummaryEntity extends BaseEntity {
         this.totalTokens = this.totalInputTokens + this.totalOutputTokens;
     }
 
-    /**
-     * 添加工具调用信息
-     */
+    /** 添加工具调用信息 */
     public void addToolExecution(Integer executionTime) {
         this.toolCallCount++;
         if (executionTime != null) {
@@ -161,9 +122,7 @@ public class AgentExecutionSummaryEntity extends BaseEntity {
         }
     }
 
-    /**
-     * 检查是否需要检查用户ID权限
-     */
+    /** 检查是否需要检查用户ID权限 */
     public boolean needCheckUserId() {
         return true; // Agent执行追踪需要用户权限检查
     }

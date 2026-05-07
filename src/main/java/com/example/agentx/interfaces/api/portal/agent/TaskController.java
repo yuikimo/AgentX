@@ -2,14 +2,15 @@ package com.example.agentx.interfaces.api.portal.agent;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import com.example.agentx.application.task.dto.TaskDTO;
 import com.example.agentx.application.task.service.TaskAppService;
 import com.example.agentx.domain.task.model.TaskAggregate;
 import com.example.agentx.infrastructure.auth.UserContext;
 import com.example.agentx.interfaces.api.common.Result;
 
-/**
- * agent任务管理
- */
+import java.util.List;
+
+/** agent任务管理 */
 @RestController
 @RequestMapping("/tasks")
 public class TaskController {
@@ -21,11 +22,8 @@ public class TaskController {
         this.taskAppService = taskAppService;
     }
 
-    /**
-     * 获取当前会话的任务
-     *
-     * @param sessionId 会话id
-     */
+    /** 获取当前会话的任务
+     * @param sessionId 会话id */
     @GetMapping("/session/{sessionId}/latest")
     public Result<TaskAggregate> getSessionTasks(@PathVariable String sessionId) {
         String userId = UserContext.getCurrentUserId();

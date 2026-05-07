@@ -12,9 +12,7 @@ import com.example.agentx.domain.container.repository.ContainerTemplateRepositor
 
 import java.util.List;
 
-/**
- * 容器模板仓储实现
- */
+/** 容器模板仓储实现 */
 @Mapper
 @Repository
 public interface ContainerTemplateRepositoryImpl extends ContainerTemplateRepository {
@@ -68,7 +66,7 @@ public interface ContainerTemplateRepositoryImpl extends ContainerTemplateReposi
 
     @Override
     default Page<ContainerTemplateEntity> selectPageWithConditions(Page<ContainerTemplateEntity> page, String keyword,
-                                                                   String type, Boolean enabled) {
+            String type, Boolean enabled) {
         LambdaQueryWrapper<ContainerTemplateEntity> wrapper = Wrappers.<ContainerTemplateEntity>lambdaQuery();
 
         // 关键词搜索：模板名称、描述、镜像名称

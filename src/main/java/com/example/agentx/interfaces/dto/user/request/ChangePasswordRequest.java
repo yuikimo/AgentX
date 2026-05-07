@@ -4,9 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-/**
- * 修改密码请求
- */
+/** 修改密码请求 */
 public class ChangePasswordRequest {
 
     @NotBlank(message = "当前密码不能为空")

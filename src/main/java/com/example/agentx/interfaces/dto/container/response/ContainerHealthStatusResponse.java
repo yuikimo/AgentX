@@ -2,24 +2,16 @@ package com.example.agentx.interfaces.dto.container.response;
 
 import com.example.agentx.application.container.dto.ContainerDTO;
 
-/**
- * 容器健康状态响应
- */
+/** 容器健康状态响应 */
 public class ContainerHealthStatusResponse {
 
-    /**
-     * 是否健康
-     */
+    /** 是否健康 */
     private boolean healthy;
 
-    /**
-     * 状态消息
-     */
+    /** 状态消息 */
     private String message;
 
-    /**
-     * 容器信息
-     */
+    /** 容器信息 */
     private ContainerDTO container;
 
     public boolean isHealthy() {

@@ -5,31 +5,21 @@ import com.example.agentx.domain.rag.model.enums.SegmentType;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * 处理后的Markdown段落
- * <p>
- * 用于表示文档分段处理后的结果
- */
+/** 处理后的Markdown段落
+ * 
+ * 用于表示文档分段处理后的结果 */
 public class ProcessedSegment {
 
-    /**
-     * 处理后的可搜索文本内容（可能包含占位符）
-     */
+    /** 处理后的可搜索文本内容（可能包含占位符） */
     private String content;
 
-    /**
-     * 段落类型
-     */
+    /** 段落类型 */
     private SegmentType type;
 
-    /**
-     * 元数据信息
-     */
+    /** 元数据信息 */
     private Map<String, Object> metadata;
 
-    /**
-     * 在文档中的顺序
-     */
+    /** 在文档中的顺序 */
     private int order;
 
     public ProcessedSegment() {

@@ -18,100 +18,69 @@ import com.example.agentx.infrastructure.entity.BaseEntity;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-/**
- * 工具实体类
- */
+/** 工具实体类 */
 @TableName(value = "tools", autoResultMap = true)
 public class ToolEntity extends BaseEntity {
 
-    /**
-     * 工具唯一ID
-     */
+    /** 工具唯一ID */
     @TableId(value = "id", type = IdType.ASSIGN_UUID)
     private String id;
 
-    /**
-     * 工具描述名称
-     */
+    /** 工具描述名称 */
     @TableField("name")
     private String name;
 
-    /**
-     * 工具图标
-     */
+    /** 工具图标 */
     @TableField("icon")
     private String icon;
 
-    /**
-     * 副标题
-     */
+    /** 副标题 */
     @TableField("subtitle")
     private String subtitle;
 
-    /**
-     * 工具描述
-     */
+    /** 工具描述 */
     @TableField("description")
     private String description;
 
-    /**
-     * 用户ID
-     */
+    /** 用户ID */
     @TableField("user_id")
     private String userId;
 
-    /**
-     * 标签列表
-     */
+    /** 标签列表 */
     @TableField(value = "labels", typeHandler = ListStringConverter.class)
     private List<String> labels;
 
-    /**
-     * 工具类型：mcp
-     */
+    /** 工具类型：mcp */
     @TableField(value = "tool_type", typeHandler = ToolTypeConverter.class)
     private ToolType toolType = ToolType.MCP;
 
-    /**
-     * 上传方式：github, zip
-     */
+    /** 上传方式：github, zip */
     @TableField(value = "upload_type", typeHandler = UploadTypeConverter.class)
     private UploadType uploadType = UploadType.GITHUB;
 
-    /**
-     * 上传URL
-     */
+    /** 上传URL */
     @TableField("upload_url")
     private String uploadUrl;
 
-    /**
-     * 安装命令
-     */
+    /** 安装命令 */
     @TableField(value = "install_command", typeHandler = MapConverter.class)
     private Map<String, Object> installCommand;
 
-    /**
-     * 工具列表
-     */
+    /** 工具列表 */
     @TableField(value = "tool_list", typeHandler = ToolDefinitionListConverter.class)
     private List<ToolDefinition> toolList;
 
-    /**
-     * 审核状态
-     */
+    /** 审核状态 */
     @TableField(value = "status", typeHandler = ToolStatusConverter.class)
     private ToolStatus status;
 
-    /**
-     * 是否官方工具
-     */
+    /** 是否官方工具 */
     @TableField("is_office")
     private Boolean isOffice;
 
-    /**
-     * 拒绝原因
-     */
+    /** 拒绝原因 */
     @TableField("reject_reason")
     private String rejectReason;
 
@@ -121,9 +90,7 @@ public class ToolEntity extends BaseEntity {
     @TableField("mcp_server_name")
     private String mcpServerName;
 
-    /**
-     * 是否为全局工具
-     */
+    /** 是否为全局工具 */
     @TableField("is_global")
     private Boolean isGlobal;
 
@@ -279,16 +246,12 @@ public class ToolEntity extends BaseEntity {
         this.isGlobal = isGlobal;
     }
 
-    /**
-     * 是否为全局工具
-     */
+    /** 是否为全局工具 */
     public boolean isGlobal() {
         return Boolean.TRUE.equals(this.isGlobal);
     }
 
-    /**
-     * 是否需要用户容器
-     */
+    /** 是否需要用户容器 */
     public boolean requiresUserContainer() {
         return !isGlobal();
     }

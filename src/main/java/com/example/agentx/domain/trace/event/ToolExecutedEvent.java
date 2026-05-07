@@ -6,9 +6,7 @@ import com.example.agentx.domain.trace.model.TraceContext;
 
 import java.time.LocalDateTime;
 
-/**
- * 工具执行事件
- */
+/** 工具执行事件 */
 public class ToolExecutedEvent extends ApplicationEvent {
 
     private final TraceContext traceContext;
@@ -23,7 +21,7 @@ public class ToolExecutedEvent extends ApplicationEvent {
     }
 
     public ToolExecutedEvent(Object source, TraceContext traceContext, ToolCallInfo toolCallInfo,
-                             LocalDateTime toolExecutionStartTime) {
+            LocalDateTime toolExecutionStartTime) {
         super(source);
         this.traceContext = traceContext;
         this.toolCallInfo = toolCallInfo;

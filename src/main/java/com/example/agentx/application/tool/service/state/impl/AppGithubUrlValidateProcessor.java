@@ -12,22 +12,18 @@ import com.example.agentx.infrastructure.github.GitHubUrlParser;
 
 import java.io.IOException;
 
-/**
- * 应用层GitHub URL验证处理器
- * <p>
- * 职责： 1. 验证上传的GitHub URL是否合法 2. 调用基础设施层GitHubService进行API验证 3. 转换到下一个状态（部署）
- */
+/** 应用层GitHub URL验证处理器
+ * 
+ * 职责： 1. 验证上传的GitHub URL是否合法 2. 调用基础设施层GitHubService进行API验证 3. 转换到下一个状态（部署） */
 public class AppGithubUrlValidateProcessor implements AppToolStateProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(AppGithubUrlValidateProcessor.class);
 
     private final GitHubService gitHubService;
 
-    /**
-     * 构造函数，注入GitHubService
-     *
-     * @param gitHubService GitHub服务
-     */
+    /** 构造函数，注入GitHubService
+     * 
+     * @param gitHubService GitHub服务 */
     public AppGithubUrlValidateProcessor(GitHubService gitHubService) {
         this.gitHubService = gitHubService;
     }

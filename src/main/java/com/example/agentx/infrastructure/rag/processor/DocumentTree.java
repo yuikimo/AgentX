@@ -5,22 +5,17 @@ import com.example.agentx.infrastructure.rag.config.MarkdownProcessorProperties;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
-/**
- * 文档树 - 表示整个Markdown文档的层次结构
- * <p>
- * 负责构建标题层次树和执行递归分割算法
- */
+/** 文档树 - 表示整个Markdown文档的层次结构
+ * 
+ * 负责构建标题层次树和执行递归分割算法 */
 public class DocumentTree {
 
-    /**
-     * 根节点列表（顶级标题）
-     */
+    /** 根节点列表（顶级标题） */
     private List<HeadingNode> rootNodes;
 
-    /**
-     * 分割配置
-     */
+    /** 分割配置 */
     private MarkdownProcessorProperties.SegmentSplit config;
 
     public DocumentTree(MarkdownProcessorProperties.SegmentSplit config) {
@@ -28,25 +23,19 @@ public class DocumentTree {
         this.config = config;
     }
 
-    /**
-     * 添加根节点
-     */
+    /** 添加根节点 */
     public void addRootNode(HeadingNode node) {
         if (node != null) {
             rootNodes.add(node);
         }
     }
 
-    /**
-     * 获取所有根节点
-     */
+    /** 获取所有根节点 */
     public List<HeadingNode> getRootNodes() {
         return new ArrayList<>(rootNodes);
     }
 
-    /**
-     * 执行递归分层分割算法
-     */
+    /** 执行递归分层分割算法 */
     public List<ProcessedSegment> performHierarchicalSplit() {
         List<ProcessedSegment> results = new ArrayList<>();
 
@@ -58,9 +47,7 @@ public class DocumentTree {
         return results;
     }
 
-    /**
-     * 递归分割单个标题节点
-     */
+    /** 递归分割单个标题节点 */
     private List<ProcessedSegment> splitNodeRecursively(HeadingNode node) {
         List<ProcessedSegment> results = new ArrayList<>();
 
@@ -84,9 +71,7 @@ public class DocumentTree {
         return results;
     }
 
-    /**
-     * 按子节点分割
-     */
+    /** 按子节点分割 */
     private List<ProcessedSegment> splitByChildren(HeadingNode node) {
         List<ProcessedSegment> results = new ArrayList<>();
 
@@ -110,9 +95,7 @@ public class DocumentTree {
         return results;
     }
 
-    /**
-     * 按段落分割叶子节点
-     */
+    /** 按段落分割叶子节点 */
     private List<ProcessedSegment> splitByParagraphs(HeadingNode node) {
         ProcessedSegment nodeSegment = createSegmentFromNode(node);
         String titlePath = node.getFullTitlePath();
@@ -120,9 +103,7 @@ public class DocumentTree {
         return splitSegmentByParagraphs(nodeSegment, titlePath);
     }
 
-    /**
-     * 按段落分割单个段落对象
-     */
+    /** 按段落分割单个段落对象 */
     private List<ProcessedSegment> splitSegmentByParagraphs(ProcessedSegment segment, String titlePath) {
         List<ProcessedSegment> results = new ArrayList<>();
 
@@ -204,9 +185,7 @@ public class DocumentTree {
         return results;
     }
 
-    /**
-     * 从标题节点创建ProcessedSegment
-     */
+    /** 从标题节点创建ProcessedSegment */
     private ProcessedSegment createSegmentFromNode(HeadingNode node) {
         String fullContent = node.generateFullContent();
         ProcessedSegment segment = new ProcessedSegment(fullContent, com.example.agentx.domain.rag.model.enums.SegmentType.SECTION,
@@ -215,9 +194,7 @@ public class DocumentTree {
         return segment;
     }
 
-    /**
-     * 提取不包含标题的内容部分
-     */
+    /** 提取不包含标题的内容部分 */
     private String extractContentWithoutTitle(String fullContent, String titlePath) {
         if (titlePath == null || titlePath.trim().isEmpty()) {
             return fullContent;
@@ -235,11 +212,9 @@ public class DocumentTree {
         return fullContent;
     }
 
-    /**
-     * 创建带标题前缀的段落
-     */
+    /** 创建带标题前缀的段落 */
     private ProcessedSegment createSegmentWithTitle(String titlePrefix, String content,
-                                                    ProcessedSegment originalSegment) {
+            ProcessedSegment originalSegment) {
         StringBuilder fullContent = new StringBuilder();
 
         if (titlePrefix != null && !titlePrefix.trim().isEmpty()) {
@@ -253,9 +228,7 @@ public class DocumentTree {
         return newSegment;
     }
 
-    /**
-     * 获取文档树的统计信息
-     */
+    /** 获取文档树的统计信息 */
     public String getTreeStatistics() {
         int totalNodes = 0;
         int maxDepth = 0;
@@ -269,9 +242,7 @@ public class DocumentTree {
                 maxDepth);
     }
 
-    /**
-     * 递归计算节点数量
-     */
+    /** 递归计算节点数量 */
     private int countNodes(HeadingNode node) {
         int count = 1; // 当前节点
         for (HeadingNode child : node.getChildren()) {
@@ -280,9 +251,7 @@ public class DocumentTree {
         return count;
     }
 
-    /**
-     * 计算树的最大深度
-     */
+    /** 计算树的最大深度 */
     private int getDepth(HeadingNode node, int currentDepth) {
         int maxChildDepth = currentDepth;
         for (HeadingNode child : node.getChildren()) {

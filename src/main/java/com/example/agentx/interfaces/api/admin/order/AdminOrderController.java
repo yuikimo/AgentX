@@ -9,9 +9,7 @@ import com.example.agentx.application.order.dto.QueryAllOrderRequest;
 import com.example.agentx.application.order.service.OrderAppService;
 import com.example.agentx.interfaces.api.common.Result;
 
-/**
- * 管理员订单管理接口
- */
+/** 管理员订单管理接口 */
 @RestController
 @RequestMapping("/admin/orders")
 public class AdminOrderController {
@@ -24,12 +22,10 @@ public class AdminOrderController {
         this.orderAppService = orderAppService;
     }
 
-    /**
-     * 分页获取所有订单列表
-     *
+    /** 分页获取所有订单列表
+     * 
      * @param queryAllOrderRequest 查询参数
-     * @return 订单分页列表
-     */
+     * @return 订单分页列表 */
     @GetMapping
     public Result<Page<OrderDTO>> getAllOrders(QueryAllOrderRequest queryAllOrderRequest) {
         logger.info("管理员获取订单列表: page={}, pageSize={}, keyword={}", queryAllOrderRequest.getPage(),
@@ -46,12 +42,10 @@ public class AdminOrderController {
         }
     }
 
-    /**
-     * 获取订单详情
-     *
+    /** 获取订单详情
+     * 
      * @param orderId 订单ID
-     * @return 订单详情
-     */
+     * @return 订单详情 */
     @GetMapping("/{orderId}")
     public Result<OrderDTO> getOrderDetail(@PathVariable String orderId) {
         logger.info("管理员获取订单详情: orderId={}", orderId);

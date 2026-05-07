@@ -14,9 +14,7 @@ import com.example.agentx.interfaces.dto.apikey.request.QueryApiKeyRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * API密钥领域服务
- */
+/** API密钥领域服务 */
 @Service
 public class ApiKeyDomainService {
 
@@ -26,12 +24,10 @@ public class ApiKeyDomainService {
         this.apiKeyRepository = apiKeyRepository;
     }
 
-    /**
-     * 创建API密钥
+    /** 创建API密钥
      *
      * @param apiKeyEntity API密钥实体
-     * @return 创建后的API密钥实体
-     */
+     * @return 创建后的API密钥实体 */
     public ApiKeyEntity createApiKey(ApiKeyEntity apiKeyEntity) {
         // 生成API Key
         apiKeyEntity.generateApiKey();
@@ -42,23 +38,19 @@ public class ApiKeyDomainService {
         return apiKeyEntity;
     }
 
-    /**
-     * 根据API Key查找
+    /** 根据API Key查找
      *
      * @param apiKey API密钥
-     * @return API密钥实体
-     */
+     * @return API密钥实体 */
     public ApiKeyEntity findByApiKey(String apiKey) {
         Wrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery().eq(ApiKeyEntity::getApiKey, apiKey);
         return apiKeyRepository.selectOne(wrapper);
     }
 
-    /**
-     * 验证API Key
+    /** 验证API Key
      *
      * @param apiKey API密钥
-     * @return API密钥实体，如果无效则抛出异常
-     */
+     * @return API密钥实体，如果无效则抛出异常 */
     public ApiKeyEntity validateApiKey(String apiKey) {
         ApiKeyEntity apiKeyEntity = findByApiKey(apiKey);
 
@@ -73,30 +65,25 @@ public class ApiKeyDomainService {
         return apiKeyEntity;
     }
 
-    /**
-     * 更新API Key使用记录
+    /** 更新API Key使用记录
      *
-     * @param apiKey API密钥
-     */
+     * @param apiKey API密钥 */
     public void updateUsage(String apiKey) {
         LambdaUpdateWrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaUpdate()
-                .eq(ApiKeyEntity::getApiKey, apiKey)
-                .setSql("usage_count = usage_count + 1")
+                .eq(ApiKeyEntity::getApiKey, apiKey).setSql("usage_count = usage_count + 1")
                 .set(ApiKeyEntity::getLastUsedAt, LocalDateTime.now());
 
         apiKeyRepository.checkedUpdate(wrapper);
     }
 
-    /**
-     * 获取用户的API密钥列表
+    /** 获取用户的API密钥列表
      *
-     * @param userId       用户ID
+     * @param userId 用户ID
      * @param queryRequest 查询条件
-     * @return API密钥列表
-     */
+     * @return API密钥列表 */
     public List<ApiKeyEntity> getUserApiKeys(String userId, QueryApiKeyRequest queryRequest) {
-        LambdaQueryWrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery()
-                .eq(ApiKeyEntity::getUserId, userId);
+        LambdaQueryWrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery().eq(ApiKeyEntity::getUserId,
+                userId);
 
         // 添加查询条件
         if (queryRequest != null) {
@@ -120,41 +107,33 @@ public class ApiKeyDomainService {
         return apiKeyRepository.selectList(wrapper);
     }
 
-    /**
-     * 获取用户的API密钥列表（无查询条件，保持向后兼容）
+    /** 获取用户的API密钥列表（无查询条件，保持向后兼容）
      *
      * @param userId 用户ID
-     * @return API密钥列表
-     */
+     * @return API密钥列表 */
     public List<ApiKeyEntity> getUserApiKeys(String userId) {
         return getUserApiKeys(userId, null);
     }
 
-    /**
-     * 获取Agent的API密钥列表
+    /** 获取Agent的API密钥列表
      *
      * @param agentId Agent ID
-     * @param userId  用户ID
-     * @return API密钥列表
-     */
+     * @param userId 用户ID
+     * @return API密钥列表 */
     public List<ApiKeyEntity> getAgentApiKeys(String agentId, String userId) {
         LambdaQueryWrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery()
-                .eq(ApiKeyEntity::getAgentId, agentId)
-                .eq(ApiKeyEntity::getUserId, userId)
+                .eq(ApiKeyEntity::getAgentId, agentId).eq(ApiKeyEntity::getUserId, userId)
                 .orderByDesc(ApiKeyEntity::getCreatedAt);
         return apiKeyRepository.selectList(wrapper);
     }
 
-    /**
-     * 获取API密钥详情
+    /** 获取API密钥详情
      *
      * @param apiKeyId API密钥ID
-     * @param userId   用户ID
-     * @return API密钥实体
-     */
+     * @param userId 用户ID
+     * @return API密钥实体 */
     public ApiKeyEntity getApiKey(String apiKeyId, String userId) {
-        Wrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery()
-                .eq(ApiKeyEntity::getId, apiKeyId)
+        Wrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery().eq(ApiKeyEntity::getId, apiKeyId)
                 .eq(ApiKeyEntity::getUserId, userId);
 
         ApiKeyEntity apiKeyEntity = apiKeyRepository.selectOne(wrapper);
@@ -165,43 +144,35 @@ public class ApiKeyDomainService {
         return apiKeyEntity;
     }
 
-    /**
-     * 更新API密钥状态
+    /** 更新API密钥状态
      *
      * @param apiKeyId API密钥ID
-     * @param userId   用户ID
-     * @param status   状态
-     */
+     * @param userId 用户ID
+     * @param status 状态 */
     public void updateStatus(String apiKeyId, String userId, Boolean status) {
         LambdaUpdateWrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaUpdate()
-                .eq(ApiKeyEntity::getId, apiKeyId)
-                .eq(ApiKeyEntity::getUserId, userId)
+                .eq(ApiKeyEntity::getId, apiKeyId).eq(ApiKeyEntity::getUserId, userId)
                 .set(ApiKeyEntity::getStatus, status);
 
         apiKeyRepository.checkedUpdate(wrapper);
     }
 
-    /**
-     * 删除API密钥
+    /** 删除API密钥
      *
      * @param apiKeyId API密钥ID
-     * @param userId   用户ID
-     */
+     * @param userId 用户ID */
     public void deleteApiKey(String apiKeyId, String userId) {
-        Wrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery()
-                .eq(ApiKeyEntity::getId, apiKeyId)
+        Wrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaQuery().eq(ApiKeyEntity::getId, apiKeyId)
                 .eq(ApiKeyEntity::getUserId, userId);
 
         apiKeyRepository.checkedDelete(wrapper);
     }
 
-    /**
-     * 重置API密钥
+    /** 重置API密钥
      *
      * @param apiKeyId API密钥ID
-     * @param userId   用户ID
-     * @return 新的API密钥实体
-     */
+     * @param userId 用户ID
+     * @return 新的API密钥实体 */
     public ApiKeyEntity resetApiKey(String apiKeyId, String userId) {
         ApiKeyEntity apiKeyEntity = getApiKey(apiKeyId, userId);
 
@@ -211,8 +182,7 @@ public class ApiKeyDomainService {
         apiKeyEntity.setLastUsedAt(null);
 
         LambdaUpdateWrapper<ApiKeyEntity> wrapper = Wrappers.<ApiKeyEntity>lambdaUpdate()
-                .eq(ApiKeyEntity::getId, apiKeyId)
-                .eq(ApiKeyEntity::getUserId, userId);
+                .eq(ApiKeyEntity::getId, apiKeyId).eq(ApiKeyEntity::getUserId, userId);
 
         apiKeyRepository.update(apiKeyEntity, wrapper);
 

@@ -1,18 +1,12 @@
 package com.example.agentx.interfaces.dto.container.response;
 
-/**
- * 容器统计响应
- */
+/** 容器统计响应 */
 public class ContainerStatisticsResponse {
 
-    /**
-     * 总容器数
-     */
+    /** 总容器数 */
     private long totalContainers;
 
-    /**
-     * 运行中容器数
-     */
+    /** 运行中容器数 */
     private long runningContainers;
 
     public long getTotalContainers() {

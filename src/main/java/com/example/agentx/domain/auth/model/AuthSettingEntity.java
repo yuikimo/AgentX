@@ -9,10 +9,8 @@ import com.example.agentx.infrastructure.entity.BaseEntity;
 
 import java.util.Map;
 
-/**
- * 认证配置实体类
- */
-@TableName("auth_settings")
+/** 认证配置实体类 */
+@TableName(value = "auth_settings", autoResultMap = true)
 public class AuthSettingEntity extends BaseEntity {
 
     @TableId(type = IdType.ASSIGN_UUID)

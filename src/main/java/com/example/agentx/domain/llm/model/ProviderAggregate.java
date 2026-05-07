@@ -7,9 +7,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 服务提供商聚合根 注意：这是领域模型中的聚合根，包含领域逻辑，与ProviderEntity（持久化实体）区分
- */
+/** 服务提供商聚合根 注意：这是领域模型中的聚合根，包含领域逻辑，与ProviderEntity（持久化实体）区分 */
 public class ProviderAggregate {
 
     private ProviderEntity entity;
@@ -22,39 +20,29 @@ public class ProviderAggregate {
         }
     }
 
-    /**
-     * 添加模型
-     */
+    /** 添加模型 */
     public void addModel(ModelEntity model) {
         if (model != null && model.getProviderId().equals(entity.getId())) {
             models.add(model);
         }
     }
 
-    /**
-     * 设置模型列表
-     */
+    /** 设置模型列表 */
     public void setModels(List<ModelEntity> models) {
         this.models = models != null ? models : new ArrayList<>();
     }
 
-    /**
-     * 获取模型列表
-     */
+    /** 获取模型列表 */
     public List<ModelEntity> getModels() {
         return models;
     }
 
-    /**
-     * 获取服务商配置（解密版本）
-     */
+    /** 获取服务商配置（解密版本） */
     public ProviderConfig getConfig() {
         return entity.getConfig(); // 已解密
     }
 
-    /**
-     * 设置服务商配置（会自动加密）
-     */
+    /** 设置服务商配置（会自动加密） */
     public void setConfig(ProviderConfig config) {
         entity.setConfig(config); // 会自动加密
     }
@@ -121,9 +109,7 @@ public class ProviderAggregate {
         return entity.getDeletedAt();
     }
 
-    /**
-     * 获取原始实体
-     */
+    /** 获取原始实体 */
     public ProviderEntity getEntity() {
         return entity;
     }

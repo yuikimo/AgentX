@@ -5,30 +5,30 @@ import org.springframework.stereotype.Service;
 import com.example.agentx.domain.container.constant.ContainerType;
 import com.example.agentx.domain.container.model.ContainerTemplateEntity;
 import com.example.agentx.domain.container.repository.ContainerTemplateRepository;
+import com.example.agentx.infrastructure.config.ContainerProperties;
 import com.example.agentx.infrastructure.entity.Operator;
 import com.example.agentx.infrastructure.exception.BusinessException;
 
 import java.util.List;
 
-/**
- * 容器模板领域服务
- */
+/** 容器模板领域服务 */
 @Service
 public class ContainerTemplateDomainService {
 
     private final ContainerTemplateRepository templateRepository;
+    private final ContainerProperties containerProperties;
 
-    public ContainerTemplateDomainService(ContainerTemplateRepository templateRepository) {
+    public ContainerTemplateDomainService(ContainerTemplateRepository templateRepository,
+            ContainerProperties containerProperties) {
         this.templateRepository = templateRepository;
+        this.containerProperties = containerProperties;
     }
 
-    /**
-     * 创建容器模板
-     *
+    /** 创建容器模板
+     * 
      * @param template 模板实体
      * @param operator 操作者
-     * @return 创建的模板
-     */
+     * @return 创建的模板 */
     public ContainerTemplateEntity createTemplate(ContainerTemplateEntity template, Operator operator) {
         // 验证模板有效性
         if (!template.isValid()) {
@@ -57,16 +57,14 @@ public class ContainerTemplateDomainService {
         return template;
     }
 
-    /**
-     * 更新容器模板
-     *
+    /** 更新容器模板
+     * 
      * @param templateId 模板ID
-     * @param updates    更新内容
-     * @param operator   操作者
-     * @return 更新后的模板
-     */
+     * @param updates 更新内容
+     * @param operator 操作者
+     * @return 更新后的模板 */
     public ContainerTemplateEntity updateTemplate(String templateId, ContainerTemplateEntity updates,
-                                                  Operator operator) {
+            Operator operator) {
         ContainerTemplateEntity existingTemplate = templateRepository.selectById(templateId);
         if (existingTemplate == null) {
             throw new BusinessException("模板不存在");
@@ -95,12 +93,10 @@ public class ContainerTemplateDomainService {
         return existingTemplate;
     }
 
-    /**
-     * 删除容器模板
-     *
+    /** 删除容器模板
+     * 
      * @param templateId 模板ID
-     * @param operator   操作者
-     */
+     * @param operator 操作者 */
     public void deleteTemplate(String templateId, Operator operator) {
         ContainerTemplateEntity template = templateRepository.selectById(templateId);
         if (template == null) {
@@ -113,13 +109,11 @@ public class ContainerTemplateDomainService {
         templateRepository.deleteById(templateId);
     }
 
-    /**
-     * 启用/禁用模板
-     *
+    /** 启用/禁用模板
+     * 
      * @param templateId 模板ID
-     * @param enabled    是否启用
-     * @param operator   操作者
-     */
+     * @param enabled 是否启用
+     * @param operator 操作者 */
     public void toggleTemplateStatus(String templateId, boolean enabled, Operator operator) {
         ContainerTemplateEntity template = templateRepository.selectById(templateId);
         if (template == null) {
@@ -136,12 +130,10 @@ public class ContainerTemplateDomainService {
         templateRepository.updateById(template);
     }
 
-    /**
-     * 设置默认模板
-     *
+    /** 设置默认模板
+     * 
      * @param templateId 模板ID
-     * @param operator   操作者
-     */
+     * @param operator 操作者 */
     public void setDefaultTemplate(String templateId, Operator operator) {
         ContainerTemplateEntity template = templateRepository.selectById(templateId);
         if (template == null) {
@@ -160,19 +152,15 @@ public class ContainerTemplateDomainService {
         templateRepository.updateById(template);
     }
 
-    /**
-     * 根据类型获取默认模板
-     *
+    /** 根据类型获取默认模板
+     * 
      * @param type 模板类型枚举
-     * @return 默认模板，可能为null
-     */
+     * @return 默认模板，可能为null */
     public ContainerTemplateEntity getDefaultTemplate(ContainerType type) {
         return templateRepository.findDefaultByType(type);
     }
 
-    /**
-     * 获取用户容器默认模板（MCP网关镜像）
-     */
+    /** 获取用户容器默认模板（MCP网关镜像） */
     public ContainerTemplateEntity getMcpGatewayTemplate() {
         ContainerTemplateEntity template = getDefaultTemplate(ContainerType.USER);
         if (template == null) {
@@ -182,9 +170,7 @@ public class ContainerTemplateDomainService {
         return template;
     }
 
-    /**
-     * 获取审核容器默认模板
-     */
+    /** 获取审核容器默认模板 */
     public ContainerTemplateEntity getReviewContainerTemplate() {
         ContainerTemplateEntity template = getDefaultTemplate(ContainerType.REVIEW);
         if (template == null) {
@@ -194,31 +180,25 @@ public class ContainerTemplateDomainService {
         return template;
     }
 
-    /**
-     * 根据类型获取所有模板
-     *
+    /** 根据类型获取所有模板
+     * 
      * @param type 模板类型
-     * @return 模板列表
-     */
+     * @return 模板列表 */
     public List<ContainerTemplateEntity> getTemplatesByType(String type) {
         return templateRepository.findByType(type);
     }
 
-    /**
-     * 获取所有启用的模板
-     *
-     * @return 模板列表
-     */
+    /** 获取所有启用的模板
+     * 
+     * @return 模板列表 */
     public List<ContainerTemplateEntity> getEnabledTemplates() {
         return templateRepository.findEnabledTemplates();
     }
 
-    /**
-     * 根据ID获取模板
-     *
+    /** 根据ID获取模板
+     * 
      * @param templateId 模板ID
-     * @return 模板实体
-     */
+     * @return 模板实体 */
     public ContainerTemplateEntity getTemplateById(String templateId) {
         ContainerTemplateEntity template = templateRepository.selectById(templateId);
         if (template == null) {
@@ -227,23 +207,19 @@ public class ContainerTemplateDomainService {
         return template;
     }
 
-    /**
-     * 分页查询模板
-     *
-     * @param page    分页参数
+    /** 分页查询模板
+     * 
+     * @param page 分页参数
      * @param keyword 搜索关键词
-     * @param type    模板类型
+     * @param type 模板类型
      * @param enabled 是否启用
-     * @return 分页结果
-     */
+     * @return 分页结果 */
     public Page<ContainerTemplateEntity> getTemplatesPage(Page<ContainerTemplateEntity> page, String keyword,
-                                                          String type, Boolean enabled) {
+            String type, Boolean enabled) {
         return templateRepository.selectPageWithConditions(page, keyword, type, enabled);
     }
 
-    /**
-     * 获取模板统计信息
-     */
+    /** 获取模板统计信息 */
     public TemplateStatistics getStatistics() {
         long totalTemplates = templateRepository.countTemplates();
         long enabledTemplates = templateRepository.countEnabledTemplates();
@@ -251,9 +227,7 @@ public class ContainerTemplateDomainService {
         return new TemplateStatistics(totalTemplates, enabledTemplates);
     }
 
-    /**
-     * 取消指定类型的默认模板设置
-     */
+    /** 取消指定类型的默认模板设置 */
     private void clearDefaultTemplate(ContainerType type) {
         ContainerTemplateEntity currentDefault = templateRepository.findDefaultByType(type);
         if (currentDefault != null) {
@@ -262,9 +236,7 @@ public class ContainerTemplateDomainService {
         }
     }
 
-    /**
-     * 更新模板字段
-     */
+    /** 更新模板字段 */
     private void updateTemplateFields(ContainerTemplateEntity existing, ContainerTemplateEntity updates) {
         if (updates.getName() != null) {
             existing.setName(updates.getName());
@@ -322,16 +294,15 @@ public class ContainerTemplateDomainService {
         }
     }
 
-    /**
-     * 创建内置MCP网关模板
-     */
+    /** 创建内置MCP网关模板 */
     private ContainerTemplateEntity createBuiltinMcpGatewayTemplate() {
+        String[] imageInfo = splitImageAndTag(containerProperties.getDefaultMcpGatewayImage());
         ContainerTemplateEntity template = new ContainerTemplateEntity();
         template.setName("MCP网关默认模板");
         template.setDescription("内置的MCP网关容器模板，用于用户容器创建");
         template.setType(ContainerType.USER);
-        template.setImage("ghcr.io/lucky-aeon/mcp-gateway");
-        template.setImageTag("latest");
+        template.setImage(imageInfo[0]);
+        template.setImageTag(imageInfo[1]);
         template.setInternalPort(8080);
         template.setCpuLimit(1.0);
         template.setMemoryLimit(512);
@@ -345,16 +316,15 @@ public class ContainerTemplateDomainService {
         return template;
     }
 
-    /**
-     * 创建内置审核容器模板
-     */
+    /** 创建内置审核容器模板 */
     private ContainerTemplateEntity createBuiltinReviewContainerTemplate() {
+        String[] imageInfo = splitImageAndTag(containerProperties.getDefaultMcpGatewayImage());
         ContainerTemplateEntity template = new ContainerTemplateEntity();
         template.setName("审核容器默认模板");
         template.setDescription("内置的审核容器模板，用于工具审核环境");
         template.setType(ContainerType.REVIEW);
-        template.setImage("ghcr.io/lucky-aeon/mcp-gateway");
-        template.setImageTag("latest");
+        template.setImage(imageInfo[0]);
+        template.setImageTag(imageInfo[1]);
         template.setInternalPort(8080);
         template.setCpuLimit(1.0);
         template.setMemoryLimit(512);
@@ -368,9 +338,28 @@ public class ContainerTemplateDomainService {
         return template;
     }
 
-    /**
-     * 模板统计信息内部类
-     */
+    private String[] splitImageAndTag(String fullImageName) {
+        String fallbackImage = "ghcr.io/lucky-aeon/mcp-gateway";
+        String fallbackTag = "latest";
+        if (fullImageName == null || fullImageName.trim().isEmpty()) {
+            return new String[] { fallbackImage, fallbackTag };
+        }
+
+        String normalizedImage = fullImageName.trim();
+        int lastSlash = normalizedImage.lastIndexOf('/');
+        int lastColon = normalizedImage.lastIndexOf(':');
+
+        if (lastColon > lastSlash) {
+            return new String[] {
+                    normalizedImage.substring(0, lastColon),
+                    normalizedImage.substring(lastColon + 1)
+            };
+        }
+
+        return new String[] { normalizedImage, null };
+    }
+
+    /** 模板统计信息内部类 */
     public static class TemplateStatistics {
         private final long totalTemplates;
         private final long enabledTemplates;

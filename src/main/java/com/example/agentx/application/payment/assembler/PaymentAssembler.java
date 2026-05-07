@@ -4,18 +4,14 @@ import com.example.agentx.domain.order.model.OrderEntity;
 import com.example.agentx.infrastructure.payment.model.PaymentResult;
 import com.example.agentx.interfaces.dto.account.response.PaymentResponseDTO;
 
-/**
- * 支付相关对象转换器
- */
+/** 支付相关对象转换器 */
 public class PaymentAssembler {
 
-    /**
-     * 转换为支付响应DTO
-     *
-     * @param order         订单实体
+    /** 转换为支付响应DTO
+     * 
+     * @param order 订单实体
      * @param paymentResult 支付结果
-     * @return 支付响应DTO
-     */
+     * @return 支付响应DTO */
     public static PaymentResponseDTO toPaymentResponseDTO(OrderEntity order, PaymentResult paymentResult) {
         if (order == null || paymentResult == null) {
             return null;

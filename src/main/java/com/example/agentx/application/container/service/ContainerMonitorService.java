@@ -2,6 +2,9 @@ package com.example.agentx.application.container.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import com.example.agentx.domain.container.constant.ContainerStatus;
@@ -11,10 +14,9 @@ import com.example.agentx.infrastructure.docker.DockerService;
 import com.example.agentx.infrastructure.entity.Operator;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
-/**
- * 容器监控服务
- */
+/** 容器监控服务 */
 @Service
 public class ContainerMonitorService {
 
@@ -28,9 +30,7 @@ public class ContainerMonitorService {
         this.dockerService = dockerService;
     }
 
-    /**
-     * 定期检查容器状态 每5分钟执行一次
-     */
+    /** 定期检查容器状态 每5分钟执行一次 */
     @Scheduled(fixedRate = 300000) // 5分钟
     public void checkContainerStatus() {
         try {
@@ -47,9 +47,7 @@ public class ContainerMonitorService {
         }
     }
 
-    /**
-     * 更新容器资源使用率 每2分钟执行一次
-     */
+    /** 更新容器资源使用率 每2分钟执行一次 */
     @Scheduled(fixedRate = 120000) // 2分钟
     public void updateContainerStats() {
         try {
@@ -66,9 +64,7 @@ public class ContainerMonitorService {
         }
     }
 
-    /**
-     * 检查单个容器状态（增强版）
-     */
+    /** 检查单个容器状态（增强版） */
     private void checkSingleContainer(ContainerEntity container) {
         try {
             if (container.getDockerContainerId() == null) {
@@ -135,9 +131,7 @@ public class ContainerMonitorService {
         }
     }
 
-    /**
-     * 更新容器资源使用率
-     */
+    /** 更新容器资源使用率 */
     private void updateContainerResourceUsage(ContainerEntity container) {
         try {
             if (container.getDockerContainerId() == null || !container.isRunning()) {
@@ -155,9 +149,7 @@ public class ContainerMonitorService {
         }
     }
 
-    /**
-     * 同步单个容器状态（用于启动时同步）
-     */
+    /** 同步单个容器状态（用于启动时同步） */
     private void syncSingleContainerStatus(ContainerEntity container) {
         try {
             if (container.getDockerContainerId() == null) {
@@ -202,22 +194,20 @@ public class ContainerMonitorService {
         }
     }
 
-    /**
-     * 将Docker状态映射到容器状态
-     */
+    /** 将Docker状态映射到容器状态 */
     private ContainerStatus mapDockerStatusToContainerStatus(String dockerStatus) {
         switch (dockerStatus.toLowerCase()) {
-            case "running":
+            case "running" :
                 return ContainerStatus.RUNNING;
-            case "exited":
-            case "stopped":
+            case "exited" :
+            case "stopped" :
                 return ContainerStatus.STOPPED;
-            case "created":
+            case "created" :
                 return ContainerStatus.CREATING;
-            case "dead":
-            case "removing":
+            case "dead" :
+            case "removing" :
                 return ContainerStatus.ERROR;
-            default:
+            default :
                 return ContainerStatus.ERROR;
         }
     }

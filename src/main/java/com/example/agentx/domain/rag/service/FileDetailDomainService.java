@@ -5,9 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-
 import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.x.file.storage.core.FileInfo;
 import org.dromara.x.file.storage.core.FileStorageService;
@@ -20,8 +18,10 @@ import com.example.agentx.infrastructure.exception.BusinessException;
 
 import java.util.List;
 
-/**
- * 文件详情领域服务
+/** 文件详情领域服务
+ * 
+ * @author shilong.zang
+ * @date 23:38 <br/>
  */
 @Service
 public class FileDetailDomainService {
@@ -31,18 +31,15 @@ public class FileDetailDomainService {
     private final FileProcessingStateMachineService stateMachineService;
 
     public FileDetailDomainService(FileStorageService fileStorageService, FileDetailRepository fileDetailRepository,
-                                   FileProcessingStateMachineService stateMachineService) {
+            FileProcessingStateMachineService stateMachineService) {
         this.fileStorageService = fileStorageService;
         this.fileDetailRepository = fileDetailRepository;
         this.stateMachineService = stateMachineService;
     }
 
-    /**
-     * 上传文件到指定数据集
-     *
+    /** 上传文件到指定数据集
      * @param fileDetailEntity 文件详情实体
-     * @return 上传后的文件信息
-     */
+     * @return 上传后的文件信息 */
     public FileDetailEntity uploadFileToDataset(FileDetailEntity fileDetailEntity) {
         if (fileDetailEntity.getMultipartFile() == null) {
             throw new BusinessException("上传文件不能为空");
@@ -52,7 +49,6 @@ public class FileDetailDomainService {
             throw new BusinessException("数据集ID不能为空");
         }
 
-        // 文件上传
         final FileInfo upload = fileStorageService.of(fileDetailEntity.getMultipartFile())
                 .setMetadata(Map.of("dataset", fileDetailEntity.getDataSetId(), "userid", fileDetailEntity.getUserId()))
                 .upload();
@@ -79,17 +75,13 @@ public class FileDetailDomainService {
         return fileDetailEntity;
     }
 
-    /**
-     * 根据ID获取文件详情
-     *
+    /** 根据ID获取文件详情
      * @param fileId 文件ID
      * @param userId 用户ID
-     * @return 文件详情实体
-     */
+     * @return 文件详情实体 */
     public FileDetailEntity getFile(String fileId, String userId) {
         LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
-                .eq(FileDetailEntity::getId, fileId)
-                .eq(FileDetailEntity::getUserId, userId);
+                .eq(FileDetailEntity::getId, fileId).eq(FileDetailEntity::getUserId, userId);
         FileDetailEntity file = fileDetailRepository.selectOne(wrapper);
         if (file == null) {
             throw new BusinessException("文件不存在");
@@ -97,52 +89,38 @@ public class FileDetailDomainService {
         return file;
     }
 
-    /**
-     * 查找文件详情（可返回null）
-     *
+    /** 查找文件详情（可返回null）
      * @param fileId 文件ID
      * @param userId 用户ID
-     * @return 文件详情实体或null
-     */
+     * @return 文件详情实体或null */
     public FileDetailEntity findFile(String fileId, String userId) {
         LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
-                .eq(FileDetailEntity::getId, fileId)
-                .eq(FileDetailEntity::getUserId, userId);
+                .eq(FileDetailEntity::getId, fileId).eq(FileDetailEntity::getUserId, userId);
         return fileDetailRepository.selectOne(wrapper);
     }
 
-    /**
-     * 检查文件是否存在
-     *
+    /** 检查文件是否存在
      * @param fileId 文件ID
      * @param userId 用户ID
-     * @return 是否存在
-     */
+     * @return 是否存在 */
     public boolean existsFile(String fileId, String userId) {
         LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
-                .eq(FileDetailEntity::getId, fileId)
-                .eq(FileDetailEntity::getUserId, userId);
+                .eq(FileDetailEntity::getId, fileId).eq(FileDetailEntity::getUserId, userId);
         return fileDetailRepository.exists(wrapper);
     }
 
-    /**
-     * 检查文件存在性，不存在则抛出异常
-     *
+    /** 检查文件存在性，不存在则抛出异常
      * @param fileId 文件ID
-     * @param userId 用户ID
-     */
+     * @param userId 用户ID */
     public void checkFileExists(String fileId, String userId) {
         if (!existsFile(fileId, userId)) {
             throw new BusinessException("文件不存在");
         }
     }
 
-    /**
-     * 删除文件
-     *
+    /** 删除文件
      * @param fileId 文件ID
-     * @param userId 用户ID
-     */
+     * @param userId 用户ID */
     public void deleteFile(String fileId, String userId) {
         // 获取文件信息
         FileDetailEntity file = getFile(fileId, userId);
@@ -154,13 +132,11 @@ public class FileDetailDomainService {
             // 记录日志但不影响数据库删除
             // log.warn("删除存储文件失败: {}", file.getUrl(), e);
         }
+
     }
 
-    /**
-     * 更新文件信息
-     *
-     * @param fileDetail 文件详情实体
-     */
+    /** 更新文件信息
+     * @param fileDetail 文件详情实体 */
     public void updateFile(FileDetailEntity fileDetail) {
         LambdaUpdateWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaUpdate()
                 .eq(FileDetailEntity::getId, fileDetail.getId())
@@ -168,21 +144,17 @@ public class FileDetailDomainService {
         fileDetailRepository.checkedUpdate(fileDetail, wrapper);
     }
 
-    /**
-     * 分页查询数据集下的文件
-     *
+    /** 分页查询数据集下的文件
      * @param datasetId 数据集ID
-     * @param userId    用户ID
-     * @param page      页码
-     * @param pageSize  每页大小
-     * @param keyword   搜索关键词
-     * @return 分页结果
-     */
+     * @param userId 用户ID
+     * @param page 页码
+     * @param pageSize 每页大小
+     * @param keyword 搜索关键词
+     * @return 分页结果 */
     public IPage<FileDetailEntity> listFilesByDataset(String datasetId, String userId, Integer page, Integer pageSize,
-                                                      String keyword) {
+            String keyword) {
         LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
-                .eq(FileDetailEntity::getDataSetId, datasetId)
-                .eq(FileDetailEntity::getUserId, userId);
+                .eq(FileDetailEntity::getDataSetId, datasetId).eq(FileDetailEntity::getUserId, userId);
 
         // 关键词搜索
         if (StringUtils.isNotBlank(keyword)) {
@@ -196,53 +168,39 @@ public class FileDetailDomainService {
         return fileDetailRepository.selectPage(pageObj, wrapper);
     }
 
-    /**
-     * 获取数据集下的所有文件
-     *
+    /** 获取数据集下的所有文件
      * @param datasetId 数据集ID
-     * @param userId    用户ID
-     * @return 文件列表
-     */
+     * @param userId 用户ID
+     * @return 文件列表 */
     public List<FileDetailEntity> listAllFilesByDataset(String datasetId, String userId) {
         LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
-                .eq(FileDetailEntity::getDataSetId, datasetId)
-                .eq(FileDetailEntity::getUserId, userId)
+                .eq(FileDetailEntity::getDataSetId, datasetId).eq(FileDetailEntity::getUserId, userId)
                 .orderByDesc(FileDetailEntity::getCreatedAt);
         return fileDetailRepository.selectList(wrapper);
     }
 
-    /**
-     * 统计数据集下的文件数量
-     *
+    /** 统计数据集下的文件数量
      * @param datasetId 数据集ID
-     * @param userId    用户ID
-     * @return 文件数量
-     */
+     * @param userId 用户ID
+     * @return 文件数量 */
     public long countFilesByDataset(String datasetId, String userId) {
         LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
-                .eq(FileDetailEntity::getDataSetId, datasetId)
-                .eq(FileDetailEntity::getUserId, userId);
+                .eq(FileDetailEntity::getDataSetId, datasetId).eq(FileDetailEntity::getUserId, userId);
         return fileDetailRepository.selectCount(wrapper);
     }
 
-    /**
-     * 统计数据集下的文件数量（不进行用户权限检查） 用于已安装RAG的文件统计，因为已安装表示用户有权限访问
-     *
+    /** 统计数据集下的文件数量（不进行用户权限检查） 用于已安装RAG的文件统计，因为已安装表示用户有权限访问
      * @param datasetId 数据集ID
-     * @return 文件数量
-     */
+     * @return 文件数量 */
     public Long countFilesByDatasetWithoutUserCheck(String datasetId) {
         LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
                 .eq(FileDetailEntity::getDataSetId, datasetId);
         return fileDetailRepository.selectCount(wrapper);
     }
 
-    /**
-     * 批量删除数据集下的所有文件
-     *
+    /** 批量删除数据集下的所有文件
      * @param datasetId 数据集ID
-     * @param userId    用户ID
-     */
+     * @param userId 用户ID */
     public void deleteAllFilesByDataset(String datasetId, String userId) {
         // 获取所有文件
         List<FileDetailEntity> files = listAllFilesByDataset(datasetId, userId);
@@ -259,13 +217,10 @@ public class FileDetailDomainService {
 
     }
 
-    /**
-     * 开始文件OCR处理
-     *
+    /** 开始文件OCR处理
      * @param fileId 文件ID
      * @param userId 用户ID
-     * @return 是否成功开始处理
-     */
+     * @return 是否成功开始处理 */
     public boolean startFileOcrProcessing(String fileId, String userId) {
         FileDetailEntity fileEntity = getFile(fileId, userId);
         boolean success = stateMachineService.handleEvent(fileEntity, FileProcessingEventEnum.START_OCR_PROCESSING);
@@ -275,13 +230,10 @@ public class FileDetailDomainService {
         return success;
     }
 
-    /**
-     * 完成文件OCR处理
-     *
+    /** 完成文件OCR处理
      * @param fileId 文件ID
      * @param userId 用户ID
-     * @return 是否成功完成处理
-     */
+     * @return 是否成功完成处理 */
     public boolean completeFileOcrProcessing(String fileId, String userId) {
         FileDetailEntity fileEntity = getFile(fileId, userId);
         boolean success = stateMachineService.handleEvent(fileEntity, FileProcessingEventEnum.COMPLETE_OCR_PROCESSING);
@@ -291,13 +243,10 @@ public class FileDetailDomainService {
         return success;
     }
 
-    /**
-     * OCR处理失败
-     *
+    /** OCR处理失败
      * @param fileId 文件ID
      * @param userId 用户ID
-     * @return 是否成功设置失败状态
-     */
+     * @return 是否成功设置失败状态 */
     public boolean failFileOcrProcessing(String fileId, String userId) {
         FileDetailEntity fileEntity = getFile(fileId, userId);
         boolean success = stateMachineService.handleEvent(fileEntity, FileProcessingEventEnum.FAIL_OCR_PROCESSING);
@@ -307,64 +256,52 @@ public class FileDetailDomainService {
         return success;
     }
 
-    /**
-     * 开始文件向量化处理
-     *
+    /** 开始文件向量化处理
      * @param fileId 文件ID
      * @param userId 用户ID
-     * @return 是否成功开始处理
-     */
+     * @return 是否成功开始处理 */
     public boolean startFileEmbeddingProcessing(String fileId, String userId) {
         FileDetailEntity fileEntity = getFile(fileId, userId);
-        boolean success =
-                stateMachineService.handleEvent(fileEntity, FileProcessingEventEnum.START_EMBEDDING_PROCESSING);
+        boolean success = stateMachineService.handleEvent(fileEntity,
+                FileProcessingEventEnum.START_EMBEDDING_PROCESSING);
         if (success) {
             updateFile(fileEntity);
         }
         return success;
     }
 
-    /**
-     * 完成文件向量化处理
-     *
+    /** 完成文件向量化处理
      * @param fileId 文件ID
      * @param userId 用户ID
-     * @return 是否成功完成处理
-     */
+     * @return 是否成功完成处理 */
     public boolean completeFileEmbeddingProcessing(String fileId, String userId) {
         FileDetailEntity fileEntity = getFile(fileId, userId);
-        boolean success =
-                stateMachineService.handleEvent(fileEntity, FileProcessingEventEnum.COMPLETE_EMBEDDING_PROCESSING);
+        boolean success = stateMachineService.handleEvent(fileEntity,
+                FileProcessingEventEnum.COMPLETE_EMBEDDING_PROCESSING);
         if (success) {
             updateFile(fileEntity);
         }
         return success;
     }
 
-    /**
-     * 向量化处理失败
-     *
+    /** 向量化处理失败
      * @param fileId 文件ID
      * @param userId 用户ID
-     * @return 是否成功设置失败状态
-     */
+     * @return 是否成功设置失败状态 */
     public boolean failFileEmbeddingProcessing(String fileId, String userId) {
         FileDetailEntity fileEntity = getFile(fileId, userId);
-        boolean success =
-                stateMachineService.handleEvent(fileEntity, FileProcessingEventEnum.FAIL_EMBEDDING_PROCESSING);
+        boolean success = stateMachineService.handleEvent(fileEntity,
+                FileProcessingEventEnum.FAIL_EMBEDDING_PROCESSING);
         if (success) {
             updateFile(fileEntity);
         }
         return success;
     }
 
-    /**
-     * 重置文件处理状态
-     *
+    /** 重置文件处理状态
      * @param fileId 文件ID
      * @param userId 用户ID
-     * @return 是否成功重置
-     */
+     * @return 是否成功重置 */
     public boolean resetFileProcessing(String fileId, String userId) {
         FileDetailEntity fileEntity = getFile(fileId, userId);
         boolean success = stateMachineService.handleEvent(fileEntity, FileProcessingEventEnum.RESET_PROCESSING);
@@ -374,17 +311,13 @@ public class FileDetailDomainService {
         return success;
     }
 
-    /**
-     * 根据文件ID获取文件详情
-     *
+    /** 根据文件ID获取文件详情
      * @param fileId 文件ID
      * @param userId 用户ID
-     * @return 文件实体
-     */
+     * @return 文件实体 */
     public FileDetailEntity getFileById(String fileId, String userId) {
         LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
-                .eq(FileDetailEntity::getId, fileId)
-                .eq(FileDetailEntity::getUserId, userId);
+                .eq(FileDetailEntity::getId, fileId).eq(FileDetailEntity::getUserId, userId);
         FileDetailEntity fileEntity = fileDetailRepository.selectOne(wrapper);
         if (fileEntity == null) {
             throw new BusinessException("文件不存在或无权限访问");
@@ -392,32 +325,25 @@ public class FileDetailDomainService {
         return fileEntity;
     }
 
-    /**
-     * 更新文件处理进度（已弃用，使用分离的OCR/向量化进度方法）
-     *
-     * @param fileId      文件ID
+    /** 更新文件处理进度（已弃用，使用分离的OCR/向量化进度方法）
+     * @param fileId 文件ID
      * @param currentPage 当前处理页数
-     * @param progress    进度百分比
-     * @deprecated 请使用 updateFileOcrProgress 或 updateFileEmbeddingProgress
-     */
+     * @param progress 进度百分比
+     * @deprecated 请使用 updateFileOcrProgress 或 updateFileEmbeddingProgress */
     @Deprecated
     public void updateFileProgress(String fileId, Integer currentPage, Double progress) {
         LambdaUpdateWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaUpdate()
-                .eq(FileDetailEntity::getId, fileId)
-                .set(FileDetailEntity::getCurrentOcrPageNumber, currentPage)
+                .eq(FileDetailEntity::getId, fileId).set(FileDetailEntity::getCurrentOcrPageNumber, currentPage)
                 .set(FileDetailEntity::getOcrProcessProgress, progress);
         fileDetailRepository.update(wrapper);
     }
 
-    /**
-     * 更新文件OCR处理进度
-     *
-     * @param fileId         文件ID
+    /** 更新文件OCR处理进度
+     * @param fileId 文件ID
      * @param currentOcrPage 当前OCR处理页数
-     * @param totalPages     总页数
-     * @param userId         用户ID
-     * @return 是否更新成功
-     */
+     * @param totalPages 总页数
+     * @param userId 用户ID
+     * @return 是否更新成功 */
     public boolean updateFileOcrProgress(String fileId, Integer currentOcrPage, Integer totalPages, String userId) {
         FileDetailEntity fileEntity = getFile(fileId, userId);
         boolean success = stateMachineService.updateOcrProgress(fileEntity, currentOcrPage, totalPages);
@@ -427,17 +353,14 @@ public class FileDetailDomainService {
         return success;
     }
 
-    /**
-     * 更新文件向量化处理进度
-     *
-     * @param fileId               文件ID
+    /** 更新文件向量化处理进度
+     * @param fileId 文件ID
      * @param currentEmbeddingPage 当前向量化处理页数
-     * @param totalPages           总页数
-     * @param userId               用户ID
-     * @return 是否更新成功
-     */
+     * @param totalPages 总页数
+     * @param userId 用户ID
+     * @return 是否更新成功 */
     public boolean updateFileEmbeddingProgress(String fileId, Integer currentEmbeddingPage, Integer totalPages,
-                                               String userId) {
+            String userId) {
         FileDetailEntity fileEntity = getFile(fileId, userId);
         boolean success = stateMachineService.updateEmbeddingProgress(fileEntity, currentEmbeddingPage, totalPages);
         if (success) {
@@ -446,31 +369,24 @@ public class FileDetailDomainService {
         return success;
     }
 
-    /**
-     * 更新文件OCR处理进度（简化版本，兼容旧接口）
-     *
-     * @param fileId         文件ID
+    /** 更新文件OCR处理进度（简化版本，兼容旧接口）
+     * @param fileId 文件ID
      * @param currentOcrPage 当前OCR处理页数
-     * @param ocrProgress    OCR进度百分比
-     * @deprecated 建议使用 updateFileOcrProgress(fileId, currentOcrPage, totalPages, userId)
-     */
+     * @param ocrProgress OCR进度百分比
+     * @deprecated 建议使用 updateFileOcrProgress(fileId, currentOcrPage, totalPages, userId) */
     @Deprecated
     public void updateFileOcrProgress(String fileId, Integer currentOcrPage, Double ocrProgress) {
         LambdaUpdateWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaUpdate()
-                .eq(FileDetailEntity::getId, fileId)
-                .set(FileDetailEntity::getCurrentOcrPageNumber, currentOcrPage)
+                .eq(FileDetailEntity::getId, fileId).set(FileDetailEntity::getCurrentOcrPageNumber, currentOcrPage)
                 .set(FileDetailEntity::getOcrProcessProgress, ocrProgress);
         fileDetailRepository.update(wrapper);
     }
 
-    /**
-     * 更新文件向量化处理进度（简化版本，兼容旧接口）
-     *
-     * @param fileId               文件ID
+    /** 更新文件向量化处理进度（简化版本，兼容旧接口）
+     * @param fileId 文件ID
      * @param currentEmbeddingPage 当前向量化处理页数
-     * @param embeddingProgress    向量化进度百分比
-     * @deprecated 建议使用 updateFileEmbeddingProgress(fileId, currentEmbeddingPage, totalPages, userId)
-     */
+     * @param embeddingProgress 向量化进度百分比
+     * @deprecated 建议使用 updateFileEmbeddingProgress(fileId, currentEmbeddingPage, totalPages, userId) */
     @Deprecated
     public void updateFileEmbeddingProgress(String fileId, Integer currentEmbeddingPage, Double embeddingProgress) {
         LambdaUpdateWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaUpdate()
@@ -480,29 +396,21 @@ public class FileDetailDomainService {
         fileDetailRepository.update(wrapper);
     }
 
-    /**
-     * 更新文件总页数
-     *
-     * @param fileId     文件ID
-     * @param totalPages 总页数
-     */
+    /** 更新文件总页数
+     * @param fileId 文件ID
+     * @param totalPages 总页数 */
     public void updateFilePageSize(String fileId, Integer totalPages) {
         LambdaUpdateWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaUpdate()
-                .eq(FileDetailEntity::getId, fileId)
-                .set(FileDetailEntity::getFilePageSize, totalPages);
+                .eq(FileDetailEntity::getId, fileId).set(FileDetailEntity::getFilePageSize, totalPages);
         fileDetailRepository.update(wrapper);
     }
 
-    /**
-     * 获取文件扩展名
-     *
+    /** 获取文件扩展名
      * @param fileId 文件ID
-     * @return 文件扩展名
-     */
+     * @return 文件扩展名 */
     public String getFileExtension(String fileId) {
         LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
-                .eq(FileDetailEntity::getId, fileId)
-                .select(FileDetailEntity::getExt);
+                .eq(FileDetailEntity::getId, fileId).select(FileDetailEntity::getExt);
         FileDetailEntity fileEntity = fileDetailRepository.selectOne(wrapper);
         if (fileEntity == null) {
             throw new BusinessException("文件不存在");
@@ -510,12 +418,9 @@ public class FileDetailDomainService {
         return fileEntity.getExt();
     }
 
-    /**
-     * 根据文件ID获取文件详情（无用户权限检查，用于MQ消费和状态机处理）
-     *
+    /** 根据文件ID获取文件详情（无用户权限检查，用于MQ消费和状态机处理）
      * @param fileId 文件ID
-     * @return 文件实体
-     */
+     * @return 文件实体 */
     public FileDetailEntity getFileByIdWithoutUserCheck(String fileId) {
         FileDetailEntity fileEntity = fileDetailRepository.selectById(fileId);
         if (fileEntity == null) {
@@ -542,6 +447,33 @@ public class FileDetailDomainService {
             throw new BusinessException("文件不存在");
         }
         return fileEntity;
+    }
+
+    public List<FileDetailEntity> listFilesByIdsWithoutUserCheck(List<String> fileIds) {
+        if (fileIds == null || fileIds.isEmpty()) {
+            return List.of();
+        }
+        return fileDetailRepository.selectByIds(fileIds);
+    }
+
+    public List<FileDetailEntity> listFileFingerprintsByDatasetIdsWithoutUserCheck(List<String> datasetIds) {
+        if (datasetIds == null || datasetIds.isEmpty()) {
+            return List.of();
+        }
+        List<String> normalizedDatasetIds = datasetIds.stream()
+                .filter(StringUtils::isNotBlank)
+                .distinct()
+                .toList();
+        if (normalizedDatasetIds.isEmpty()) {
+            return List.of();
+        }
+        LambdaQueryWrapper<FileDetailEntity> wrapper = Wrappers.<FileDetailEntity>lambdaQuery()
+                .select(FileDetailEntity::getId, FileDetailEntity::getDataSetId, FileDetailEntity::getUpdatedAt,
+                        FileDetailEntity::getProcessingStatus, FileDetailEntity::getCurrentEmbeddingPageNumber)
+                .in(FileDetailEntity::getDataSetId, normalizedDatasetIds)
+                .orderByAsc(FileDetailEntity::getDataSetId)
+                .orderByAsc(FileDetailEntity::getId);
+        return fileDetailRepository.selectList(wrapper);
     }
 
 }

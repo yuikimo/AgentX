@@ -1,8 +1,6 @@
 package com.example.agentx.application.apikey.dto;
 
-/**
- * API Key验证结果
- */
+/** API Key验证结果 */
 public class ApiKeyValidationResult {
 
     private final boolean valid;
@@ -17,16 +15,12 @@ public class ApiKeyValidationResult {
         this.message = message;
     }
 
-    /**
-     * 创建验证成功结果
-     */
+    /** 创建验证成功结果 */
     public static ApiKeyValidationResult success(String userId, String agentId) {
         return new ApiKeyValidationResult(true, userId, agentId, "验证成功");
     }
 
-    /**
-     * 创建验证失败结果
-     */
+    /** 创建验证失败结果 */
     public static ApiKeyValidationResult failure(String message) {
         return new ApiKeyValidationResult(false, null, null, message);
     }

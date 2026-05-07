@@ -7,31 +7,30 @@ import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
-import dev.langchain4j.model.output.TokenUsage;
 import org.springframework.stereotype.Component;
 import com.example.agentx.application.conversation.service.message.agent.event.AgentWorkflowEvent;
 import com.example.agentx.application.conversation.service.message.agent.manager.TaskManager;
-import com.example.agentx.application.conversation.service.message.agent.template.AgentPromptTemplates;
 import com.example.agentx.application.conversation.service.message.agent.workflow.AgentWorkflowContext;
 import com.example.agentx.application.conversation.service.message.agent.workflow.AgentWorkflowState;
 import com.example.agentx.domain.conversation.constant.MessageType;
 import com.example.agentx.domain.conversation.model.MessageEntity;
 import com.example.agentx.domain.conversation.service.ContextDomainService;
 import com.example.agentx.domain.conversation.service.MessageDomainService;
+import com.example.agentx.domain.prompt.AgentWorkflowPromptTemplates;
+import com.example.agentx.domain.prompt.PromptSpec;
+import com.example.agentx.infrastructure.llm.ChatResponseTokenUsageUtils;
 import com.example.agentx.infrastructure.llm.LLMServiceFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * 任务汇总处理器 负责将所有子任务结果汇总为最终结果
- */
+/** 任务汇总处理器 负责将所有子任务结果汇总为最终结果 */
 @Component
 public class SummarizeHandler extends AbstractAgentHandler {
 
     public SummarizeHandler(LLMServiceFactory llmServiceFactory, TaskManager taskManager,
-                            ContextDomainService contextDomainService, MessageDomainService messageDomainService) {
+            ContextDomainService contextDomainService, MessageDomainService messageDomainService) {
         super(llmServiceFactory, taskManager, contextDomainService, messageDomainService);
     }
 
@@ -79,8 +78,7 @@ public class SummarizeHandler extends AbstractAgentHandler {
                 public void onCompleteResponse(ChatResponse completeResponse) {
                     try {
                         // 设置LLM消息内容和token数
-                        TokenUsage tokenUsage = completeResponse.metadata().tokenUsage();
-                        Integer outputTokenCount = tokenUsage.outputTokenCount();
+                        Integer outputTokenCount = ChatResponseTokenUsageUtils.outputTokenCount(completeResponse);
 
                         String summary = completeResponse.aiMessage().text();
                         summaryMessageEntity.setContent(summary);
@@ -114,17 +112,16 @@ public class SummarizeHandler extends AbstractAgentHandler {
         }
     }
 
-    /**
-     * 构建汇总请求
-     */
+    /** 构建汇总请求 */
     private ChatRequest buildSummaryRequest(AgentWorkflowContext<?> context, String taskResults) {
+        PromptSpec promptSpec = AgentWorkflowPromptTemplates.buildSummaryPromptSpec(taskResults);
         List<ChatMessage> messages = new ArrayList<>();
 
         // 添加系统提示词
-        messages.add(new SystemMessage(AgentPromptTemplates.getSummaryPrompt(taskResults)));
+        messages.add(new SystemMessage(promptSpec.getSystemPrompt()));
 
         // 添加用户消息
-        messages.add(new UserMessage("请基于上述子任务结果提供总结"));
+        messages.add(new UserMessage(promptSpec.getUserPrompt()));
 
         return buildChatRequest(context, messages);
     }

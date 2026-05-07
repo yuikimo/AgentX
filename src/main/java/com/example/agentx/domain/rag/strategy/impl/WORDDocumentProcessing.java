@@ -31,6 +31,8 @@ import jakarta.annotation.Resource;
 public class WORDDocumentProcessing extends AbstractDocumentProcessingStrategy {
 
     private static final Logger log = LoggerFactory.getLogger(WORDDocumentProcessing.class);
+    private static final int CHUNK_SIZE = 800;
+    private static final int CHUNK_OVERLAP = 100;
 
     private final DocumentUnitRepository documentUnitRepository;
 
@@ -43,17 +45,14 @@ public class WORDDocumentProcessing extends AbstractDocumentProcessingStrategy {
     private String currentProcessingFileId;
 
     public WORDDocumentProcessing(DocumentUnitRepository documentUnitRepository,
-                                  FileDetailRepository fileDetailRepository) {
+            FileDetailRepository fileDetailRepository) {
         this.documentUnitRepository = documentUnitRepository;
         this.fileDetailRepository = fileDetailRepository;
     }
 
-    /**
-     * 处理消息，设置当前处理的文件ID
-     *
+    /** 处理消息，设置当前处理的文件ID
      * @param ragDocMessage 消息数据
-     * @param strategy      当前策略
-     */
+     * @param strategy 当前策略 */
     @Override
     public void handle(RagDocMessage ragDocMessage, String strategy) throws Exception {
         // 设置当前处理的文件ID，用于更新页数
@@ -63,12 +62,10 @@ public class WORDDocumentProcessing extends AbstractDocumentProcessingStrategy {
         super.handle(ragDocMessage, strategy);
     }
 
-    /**
-     * 获取文件页数
+    /** 获取文件页数
      *
-     * @param bytes         Word文档字节数组
-     * @param ragDocMessage 消息数据
-     */
+     * @param bytes Word文档字节数组
+     * @param ragDocMessage 消息数据 */
     @Override
     public void pushPageSize(byte[] bytes, RagDocMessage ragDocMessage) {
         try {
@@ -76,7 +73,8 @@ public class WORDDocumentProcessing extends AbstractDocumentProcessingStrategy {
             InputStream inputStream = new ByteArrayInputStream(bytes);
             Document document = parser.parse(inputStream);
 
-            final DocumentBySentenceSplitter documentByCharacterSplitter = new DocumentBySentenceSplitter(500, 0);
+            final DocumentBySentenceSplitter documentByCharacterSplitter = new DocumentBySentenceSplitter(CHUNK_SIZE,
+                    CHUNK_OVERLAP);
             final List<TextSegment> split = documentByCharacterSplitter.split(document);
 
             int segmentCount = split.size();
@@ -100,13 +98,11 @@ public class WORDDocumentProcessing extends AbstractDocumentProcessingStrategy {
         }
     }
 
-    /**
-     * 获取文件数据
+    /** 获取文件数据
      *
      * @param ragDocSyncOcrMessage 消息数据
-     * @param strategy             当前策略
-     * @return Word文档字节数组
-     */
+     * @param strategy 当前策略
+     * @return Word文档字节数组 */
     @Override
     public byte[] getFileData(RagDocMessage ragDocSyncOcrMessage, String strategy) {
         // 从数据库中获取文件详情
@@ -120,18 +116,15 @@ public class WORDDocumentProcessing extends AbstractDocumentProcessingStrategy {
         return fileStorageService.download(fileDetailEntity.getUrl()).bytes();
     }
 
-    /**
-     * 处理Word文件 - 提取文本内容
+    /** 处理Word文件 - 提取文本内容
      *
-     * @param fileBytes  Word文档字节数组
+     * @param fileBytes Word文档字节数组
      * @param totalPages 总页数
-     * @return 按页索引分组的内容Map
-     */
+     * @return 按页索引分组的内容Map */
     @Override
-    public Map<Integer, String> processFile(byte[] fileBytes, int totalPages) {
+    public Map<Integer, String> processFile(byte[] fileBytes, int totalPages, RagDocMessage ragDocSyncOcrMessage) {
         log.info(
-                "Current file type is non-PDF, text is extracted directly ——————> Does not contain page numbers; the " +
-                        "concept of page numbers serves as an index.");
+                "Current file type is non-PDF, text is extracted directly ——————> Does not contain page numbers; the concept of page numbers serves as an index.");
 
         DocumentParser parser = new ApachePoiDocumentParser();
         // 使用ByteArrayInputStream将字节数组转换为输入流
@@ -144,7 +137,8 @@ public class WORDDocumentProcessing extends AbstractDocumentProcessingStrategy {
         try {
             document = parser.parse(inputStream);
 
-            final DocumentBySentenceSplitter documentByCharacterSplitter = new DocumentBySentenceSplitter(500, 0);
+            final DocumentBySentenceSplitter documentByCharacterSplitter = new DocumentBySentenceSplitter(CHUNK_SIZE,
+                    CHUNK_OVERLAP);
             final List<TextSegment> split = documentByCharacterSplitter.split(document);
 
             Steam.of(split).forEachIdx((textSegment, index) -> {
@@ -169,12 +163,10 @@ public class WORDDocumentProcessing extends AbstractDocumentProcessingStrategy {
         return ocrData;
     }
 
-    /**
-     * 保存数据
+    /** 保存数据
      *
      * @param ragDocSyncOcrMessage 消息数据
-     * @param ocrData              按页索引分组的内容Map
-     */
+     * @param ocrData 按页索引分组的内容Map */
     @Override
     public void insertData(RagDocMessage ragDocSyncOcrMessage, Map<Integer, String> ocrData) throws Exception {
         log.info("开始保存文档内容，共拆分{}段", ocrData.size());
@@ -186,6 +178,7 @@ public class WORDDocumentProcessing extends AbstractDocumentProcessingStrategy {
             DocumentUnitEntity documentUnitEntity = new DocumentUnitEntity();
             documentUnitEntity.setContent(content);
             documentUnitEntity.setPage(pageIndex);
+            documentUnitEntity.setChunkIndex(pageIndex);
             documentUnitEntity.setFileId(ragDocSyncOcrMessage.getFileId());
             documentUnitEntity.setIsVector(false);
             documentUnitEntity.setIsOcr(true);

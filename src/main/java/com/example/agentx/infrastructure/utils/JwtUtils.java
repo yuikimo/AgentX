@@ -14,31 +14,37 @@ import org.springframework.util.StringUtils;
 import javax.crypto.SecretKey;
 import java.util.Date;
 
+@Component
 public class JwtUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
+    private final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
-    private static String jwtSecret = "5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437";
+    private final String jwtSecret;
 
-    // token过期时间 - 24小时
-    private static final long EXPIRATION_TIME = 24 * 60 * 60 * 1000;
+    // token过期时间 - 默认24小时
+    private final long expirationTimeMs;
 
-    private static SecretKey getSigningKey() {
+    public JwtUtils(
+            @Value("${security.jwt.secret:5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437}") String jwtSecret,
+            @Value("${security.jwt.expiration-ms:86400000}") long expirationTimeMs) {
+        this.jwtSecret = jwtSecret;
+        this.expirationTimeMs = expirationTimeMs;
+    }
+
+    private SecretKey getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    /**
-     * 生成JWT Token
-     */
-    public static String generateToken(String userId) {
+    /** 生成JWT Token */
+    public String generateToken(String userId) {
         if (!StringUtils.hasText(userId)) {
             logger.error("生成JWT Token失败: 用户ID为空");
             throw new IllegalArgumentException("用户ID不能为空");
         }
 
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + EXPIRATION_TIME);
+        Date expiryDate = new Date(now.getTime() + expirationTimeMs);
 
         String token = Jwts.builder().subject(userId).issuedAt(now).expiration(expiryDate).signWith(getSigningKey())
                 .compact();
@@ -47,10 +53,8 @@ public class JwtUtils {
         return token;
     }
 
-    /**
-     * 从token中获取用户ID
-     */
-    public static String getUserIdFromToken(String token) {
+    /** 从token中获取用户ID */
+    public String getUserIdFromToken(String token) {
         if (!StringUtils.hasText(token)) {
             logger.warn("获取用户ID失败: Token为空");
             return null;
@@ -75,10 +79,8 @@ public class JwtUtils {
         }
     }
 
-    /**
-     * 验证token是否有效
-     */
-    public static boolean validateToken(String token) {
+    /** 验证token是否有效 */
+    public boolean validateToken(String token) {
         if (!StringUtils.hasText(token)) {
             logger.debug("Token验证失败: Token为空");
             return false;
@@ -111,10 +113,8 @@ public class JwtUtils {
         }
     }
 
-    /**
-     * 检查Token是否即将过期（1小时内）
-     */
-    public static boolean isTokenExpiringSoon(String token) {
+    /** 检查Token是否即将过期（1小时内） */
+    public boolean isTokenExpiringSoon(String token) {
         if (!StringUtils.hasText(token)) {
             return true;
         }

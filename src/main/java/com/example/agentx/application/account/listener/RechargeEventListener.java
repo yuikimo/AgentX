@@ -5,14 +5,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import com.example.agentx.application.account.service.AccountAppService;
 import com.example.agentx.domain.order.constant.OrderType;
 import com.example.agentx.domain.order.event.PurchaseSuccessEvent;
 import com.example.agentx.interfaces.dto.account.request.RechargeRequest;
 
-/**
- * 余额充值事件监听器 监听购买成功事件，处理余额充值类型的订单
- */
+/** 余额充值事件监听器 监听购买成功事件，处理余额充值类型的订单 */
 @Component
 public class RechargeEventListener {
 
@@ -24,11 +23,9 @@ public class RechargeEventListener {
         this.accountAppService = accountAppService;
     }
 
-    /**
-     * 处理购买成功事件，执行余额充值
-     *
-     * @param event 购买成功事件
-     */
+    /** 处理购买成功事件，执行余额充值
+     * 
+     * @param event 购买成功事件 */
     @EventListener
     @Async
     public void handlePurchaseSuccess(PurchaseSuccessEvent event) {

@@ -22,9 +22,7 @@ import com.example.agentx.interfaces.dto.agent.request.UpdateWidgetRequest;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Agent小组件配置应用服务
- */
+/** Agent小组件配置应用服务 */
 @Service
 public class AgentWidgetAppService {
 
@@ -34,21 +32,19 @@ public class AgentWidgetAppService {
     private final AgentWidgetAssembler agentWidgetAssembler;
 
     public AgentWidgetAppService(AgentWidgetDomainService agentWidgetDomainService, AgentRepository agentRepository,
-                                 LLMDomainService llmDomainService, AgentWidgetAssembler agentWidgetAssembler) {
+            LLMDomainService llmDomainService, AgentWidgetAssembler agentWidgetAssembler) {
         this.agentWidgetDomainService = agentWidgetDomainService;
         this.agentRepository = agentRepository;
         this.llmDomainService = llmDomainService;
         this.agentWidgetAssembler = agentWidgetAssembler;
     }
 
-    /**
-     * 创建小组件配置
+    /** 创建小组件配置
      *
      * @param agentId Agent ID
      * @param request 创建请求
-     * @param userId  用户ID
-     * @return 创建的小组件配置DTO
-     */
+     * @param userId 用户ID
+     * @return 创建的小组件配置DTO */
     @Transactional
     public AgentWidgetDTO createWidget(String agentId, CreateWidgetRequest request, String userId) {
         // 1. 验证Agent权限
@@ -74,13 +70,11 @@ public class AgentWidgetAppService {
                 ProviderAssembler.toDTO(provider));
     }
 
-    /**
-     * 获取Agent的所有小组件配置
+    /** 获取Agent的所有小组件配置
      *
      * @param agentId Agent ID
-     * @param userId  用户ID
-     * @return 小组件配置列表
-     */
+     * @param userId 用户ID
+     * @return 小组件配置列表 */
     public List<AgentWidgetDTO> getWidgetsByAgent(String agentId, String userId) {
         // 1. 验证Agent权限
         validateAgentOwnership(agentId, userId);
@@ -116,12 +110,10 @@ public class AgentWidgetAppService {
                 agentWidgetAssembler.frontendBaseUrl);
     }
 
-    /**
-     * 获取用户的所有小组件配置
+    /** 获取用户的所有小组件配置
      *
      * @param userId 用户ID
-     * @return 小组件配置列表
-     */
+     * @return 小组件配置列表 */
     public List<AgentWidgetDTO> getWidgetsByUser(String userId) {
         List<AgentWidgetEntity> widgets = agentWidgetDomainService.getWidgetsByUser(userId);
 
@@ -151,14 +143,12 @@ public class AgentWidgetAppService {
                 agentWidgetAssembler.frontendBaseUrl);
     }
 
-    /**
-     * 更新小组件配置
+    /** 更新小组件配置
      *
      * @param widgetId 小组件配置ID
-     * @param request  更新请求
-     * @param userId   用户ID
-     * @return 更新后的小组件配置DTO
-     */
+     * @param request 更新请求
+     * @param userId 用户ID
+     * @return 更新后的小组件配置DTO */
     @Transactional
     public AgentWidgetDTO updateWidget(String widgetId, UpdateWidgetRequest request, String userId) {
         AgentWidgetEntity widget = agentWidgetDomainService.getWidgetById(widgetId, userId);
@@ -174,13 +164,11 @@ public class AgentWidgetAppService {
                 ProviderAssembler.toDTO(provider));
     }
 
-    /**
-     * 切换小组件配置启用状态
+    /** 切换小组件配置启用状态
      *
      * @param widgetId 小组件配置ID
-     * @param userId   用户ID
-     * @return 更新后的小组件配置DTO
-     */
+     * @param userId 用户ID
+     * @return 更新后的小组件配置DTO */
     @Transactional
     public AgentWidgetDTO toggleWidgetStatus(String widgetId, String userId) {
         AgentWidgetEntity widget = agentWidgetDomainService.toggleWidgetStatus(widgetId, userId);
@@ -191,24 +179,20 @@ public class AgentWidgetAppService {
                 ProviderAssembler.toDTO(provider));
     }
 
-    /**
-     * 删除小组件配置
+    /** 删除小组件配置
      *
      * @param widgetId 小组件配置ID
-     * @param userId   用户ID
-     */
+     * @param userId 用户ID */
     @Transactional
     public void deleteWidget(String widgetId, String userId) {
         agentWidgetDomainService.deleteWidget(widgetId, userId);
     }
 
-    /**
-     * 获取小组件配置详情
+    /** 获取小组件配置详情
      *
      * @param widgetId 小组件配置ID
-     * @param userId   用户ID
-     * @return 小组件配置DTO
-     */
+     * @param userId 用户ID
+     * @return 小组件配置DTO */
     public AgentWidgetDTO getWidgetDetail(String widgetId, String userId) {
         AgentWidgetEntity widget = agentWidgetDomainService.getWidgetById(widgetId, userId);
 
@@ -219,33 +203,27 @@ public class AgentWidgetAppService {
                 ProviderAssembler.toDTO(provider));
     }
 
-    /**
-     * 根据公开ID获取小组件配置（用于公开访问）
+    /** 根据公开ID获取小组件配置（用于公开访问）
      *
      * @param publicId 公开访问ID
-     * @return 小组件配置实体
-     */
+     * @return 小组件配置实体 */
     public AgentWidgetEntity getWidgetForPublicAccess(String publicId) {
         return agentWidgetDomainService.getEnabledWidgetByPublicId(publicId);
     }
 
-    /**
-     * 验证域名访问权限
+    /** 验证域名访问权限
      *
      * @param publicId 公开访问ID
-     * @param domain   访问域名
-     * @return 是否允许访问
-     */
+     * @param domain 访问域名
+     * @return 是否允许访问 */
     public boolean validateDomainAccess(String publicId, String domain) {
         return agentWidgetDomainService.validateDomainAccess(publicId, domain);
     }
 
-    /**
-     * 获取完整的小组件信息（包含Agent配置信息，用于公开访问）
+    /** 获取完整的小组件信息（包含Agent配置信息，用于公开访问）
      *
      * @param publicId 公开访问ID
-     * @return 包含Agent配置信息的WidgetInfo
-     */
+     * @return 包含Agent配置信息的WidgetInfo */
     public WidgetInfoForPublicAccess getWidgetInfoForPublicAccess(String publicId) {
         // 1. 获取小组件配置
         AgentWidgetEntity widget = agentWidgetDomainService.getEnabledWidgetByPublicId(publicId);
@@ -285,9 +263,7 @@ public class AgentWidgetAppService {
         return info;
     }
 
-    /**
-     * 完整的小组件信息类（用于公开访问）
-     */
+    /** 完整的小组件信息类（用于公开访问） */
     public static class WidgetInfoForPublicAccess {
         private String publicId;
         private String name;
@@ -404,9 +380,7 @@ public class AgentWidgetAppService {
 
     // 私有辅助方法
 
-    /**
-     * 验证Agent所有权
-     */
+    /** 验证Agent所有权 */
     private void validateAgentOwnership(String agentId, String userId) {
         AgentEntity agent = agentRepository.selectById(agentId);
         if (agent == null || agent.getDeletedAt() != null) {

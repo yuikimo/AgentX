@@ -10,14 +10,15 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import com.example.agentx.application.conversation.service.handler.content.ChatContext;
+import com.example.agentx.application.conversation.service.handler.context.ChatContext;
 import com.example.agentx.application.conversation.service.message.agent.analysis.dto.InfoRequirementDTO;
-import com.example.agentx.application.conversation.service.message.agent.template.AgentPromptTemplates;
 import com.example.agentx.application.conversation.service.message.agent.workflow.AgentWorkflowContext;
 import com.example.agentx.domain.conversation.constant.MessageType;
 import com.example.agentx.domain.conversation.constant.Role;
 import com.example.agentx.domain.conversation.model.MessageEntity;
 import com.example.agentx.domain.conversation.service.MessageDomainService;
+import com.example.agentx.domain.prompt.AgentWorkflowPromptTemplates;
+import com.example.agentx.domain.prompt.PromptSpec;
 import com.example.agentx.infrastructure.llm.LLMServiceFactory;
 import com.example.agentx.infrastructure.utils.ModelResponseToJsonUtils;
 
@@ -45,12 +46,9 @@ public class InfoRequirementService {
         this.messageDomainService = messageDomainService;
     }
 
-    /**
-     * 处理用户提供的补充信息
-     *
+    /** 处理用户提供的补充信息
      * @param sessionId 会话ID
-     * @param userInput 用户输入
-     */
+     * @param userInput 用户输入 */
     public void handleUserInput(String sessionId, String userInput) {
         // 获取被阻塞的上下文
         AgentWorkflowContext agentWorkflowContext = BLOCKING_INFO.get(sessionId);
@@ -67,44 +65,34 @@ public class InfoRequirementService {
         }
     }
 
-    /**
-     * 获取被阻塞的工作流上下文
-     *
+    /** 获取被阻塞的工作流上下文
      * @param sessionId 会话ID
-     * @return 工作流上下文
-     */
+     * @return 工作流上下文 */
     public AgentWorkflowContext getBlockingInfo(String sessionId) {
         return BLOCKING_INFO.get(sessionId);
     }
 
-    /**
-     * 检查会话是否在等待用户输入
-     *
+    /** 检查会话是否在等待用户输入
      * @param sessionId 会话ID
-     * @return 是否在等待
-     */
+     * @return 是否在等待 */
     public boolean isWaitingForInput(String sessionId) {
         return WAITING_FUTURES.containsKey(sessionId);
     }
 
-    /**
-     * 检查信息完整性并等待用户输入（如需要） 此方法结合了初始检查和后续检查，增加了尝试次数限制
-     *
+    /** 检查信息完整性并等待用户输入（如需要） 此方法结合了初始检查和后续检查，增加了尝试次数限制
+     * 
      * @param context 工作流上下文
-     * @return 带有信息完整性状态的CompletableFuture
-     */
+     * @return 带有信息完整性状态的CompletableFuture */
     public CompletableFuture<Boolean> checkInfoAndWaitIfNeeded(AgentWorkflowContext<?> context) {
         // 调用实际实现，设置初始尝试次数为0
         return checkInfoCompleteness(context, 0);
     }
 
-    /**
-     * 检查信息完整性的实际实现，带有尝试次数控制
-     *
-     * @param context      工作流上下文
+    /** 检查信息完整性的实际实现，带有尝试次数控制
+     * 
+     * @param context 工作流上下文
      * @param attemptCount 当前尝试次数
-     * @return 带有信息完整性状态的CompletableFuture
-     */
+     * @return 带有信息完整性状态的CompletableFuture */
     private CompletableFuture<Boolean> checkInfoCompleteness(AgentWorkflowContext<?> context, int attemptCount) {
 
         String sessionId = context.getChatContext().getSessionId();
@@ -129,6 +117,7 @@ public class InfoRequirementService {
         try {
             // 获取模型客户端
             ChatModel strandClient = getStrandClient(context);
+            PromptSpec promptSpec = AgentWorkflowPromptTemplates.buildInfoAnalysisPromptSpec();
 
             // 构建请求
             ChatRequest request = buildRequest(context);
@@ -138,7 +127,7 @@ public class InfoRequirementService {
                 request.messages().add(new UserMessage(userMessage));
             }
 
-            request.messages().add(new SystemMessage(AgentPromptTemplates.getInfoAnalysisPrompt()));
+            request.messages().add(new SystemMessage(promptSpec.getSystemPrompt()));
             ChatResponse chat = strandClient.chat(request);
             String text = chat.aiMessage().text();
 
@@ -147,7 +136,7 @@ public class InfoRequirementService {
             InfoRequirementDTO infoRequirementDTO = ModelResponseToJsonUtils.toJson(text, InfoRequirementDTO.class);
 
             if (infoRequirementDTO == null) {
-                context.sendEndMessage("出现了点错误，请重试", MessageType.TEXT);
+                context.sendEndMessage("出现了点错误，请重试", MessageType.ERROR);
                 return CompletableFuture.completedFuture(false);
             }
 
@@ -221,9 +210,7 @@ public class InfoRequirementService {
         }
     }
 
-    /**
-     * 构建请求
-     */
+    /** 构建请求 */
     private <T> ChatRequest buildRequest(AgentWorkflowContext<T> context) {
         List<ChatMessage> chatMessages = new ArrayList<>();
         ChatRequest.Builder chatRequestBuilder = new ChatRequest.Builder();
@@ -232,8 +219,6 @@ public class InfoRequirementService {
             String content = messageEntity.getContent();
             if (role == Role.USER) {
                 chatMessages.add(new UserMessage(content));
-            } else if (role == Role.SYSTEM) {
-                chatMessages.add(new SystemMessage(content));
             } else {
                 chatMessages.add(new AiMessage(content));
             }
@@ -242,17 +227,13 @@ public class InfoRequirementService {
         return chatRequestBuilder.build();
     }
 
-    /**
-     * 获取Strand客户端
-     */
+    /** 获取Strand客户端 */
     protected <T> ChatModel getStrandClient(AgentWorkflowContext<T> context) {
         return llmServiceFactory.getStrandClient(context.getChatContext().getProvider(),
                 context.getChatContext().getModel());
     }
 
-    /**
-     * 创建用户消息实体
-     */
+    /** 创建用户消息实体 */
     protected MessageEntity createUserMessage(ChatContext environment) {
         MessageEntity messageEntity = new MessageEntity();
         messageEntity.setRole(Role.USER);
@@ -261,9 +242,7 @@ public class InfoRequirementService {
         return messageEntity;
     }
 
-    /**
-     * 创建LLM消息实体
-     */
+    /** 创建LLM消息实体 */
     protected MessageEntity createLlmMessage(ChatContext environment) {
         MessageEntity messageEntity = new MessageEntity();
         messageEntity.setRole(Role.ASSISTANT);

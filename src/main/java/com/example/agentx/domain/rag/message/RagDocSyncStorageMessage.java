@@ -2,54 +2,49 @@ package com.example.agentx.domain.rag.message;
 
 import java.io.Serial;
 import java.io.Serializable;
-
 import com.example.agentx.domain.rag.model.ModelConfig;
 
+/** @author shilong.zang
+ * @date 20:54 <br/>
+ */
 public class RagDocSyncStorageMessage implements Serializable {
 
     @Serial
     private static final long serialVersionUID = -5764144581856293209L;
-    /**
-     * 主键
-     */
+    /** 主键 */
     private String id;
 
-    /**
-     * 文件ID
-     */
+    /** 文件ID */
     private String fileId;
 
-    /**
-     * 页码
-     */
+    /** 页码 */
     private Integer page;
 
-    /**
-     * 当前页内容
-     */
+    /** 当前页内容 */
     private String content;
 
-    /**
-     * 是否进行向量化
-     */
+    /** 是否进行向量化 */
     private Boolean isVector;
 
     private String fileName;
 
-    /**
-     * 数据集ID
-     */
+    /** 数据集ID */
     private String datasetId;
 
-    /**
-     * 用户ID
-     */
+    /** 用户ID */
     private String userId;
 
-    /**
-     * 嵌入模型配置
-     */
+    /** 嵌入模型配置 */
     private ModelConfig embeddingModelConfig;
+
+    /** 嵌入Profile ID */
+    private String embeddingProfileId;
+
+    /** 当前重试次数 */
+    private Integer retryCount;
+
+    /** 最近一次失败原因 */
+    private String lastError;
 
     public String getId() {
         return id;
@@ -121,5 +116,29 @@ public class RagDocSyncStorageMessage implements Serializable {
 
     public void setEmbeddingModelConfig(ModelConfig embeddingModelConfig) {
         this.embeddingModelConfig = embeddingModelConfig;
+    }
+
+    public String getEmbeddingProfileId() {
+        return embeddingProfileId;
+    }
+
+    public void setEmbeddingProfileId(String embeddingProfileId) {
+        this.embeddingProfileId = embeddingProfileId;
+    }
+
+    public Integer getRetryCount() {
+        return retryCount;
+    }
+
+    public void setRetryCount(Integer retryCount) {
+        this.retryCount = retryCount;
+    }
+
+    public String getLastError() {
+        return lastError;
+    }
+
+    public void setLastError(String lastError) {
+        this.lastError = lastError;
     }
 }

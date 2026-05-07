@@ -1,8 +1,6 @@
 package com.example.agentx.domain.tool.model;
 
-/**
- * 工具操作结果 用于Domain层向Application层传递操作结果和状态转换需求
- */
+/** 工具操作结果 用于Domain层向Application层传递操作结果和状态转换需求 */
 public class ToolOperationResult {
 
     private final ToolEntity tool;

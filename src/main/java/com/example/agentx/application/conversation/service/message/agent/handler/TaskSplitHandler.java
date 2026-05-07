@@ -8,22 +8,23 @@ import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
-import dev.langchain4j.model.output.TokenUsage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import com.example.agentx.application.conversation.service.message.agent.event.AgentWorkflowEvent;
 import com.example.agentx.application.conversation.service.message.agent.manager.TaskManager;
 import com.example.agentx.application.conversation.service.message.agent.service.InfoRequirementService;
-import com.example.agentx.application.conversation.service.message.agent.template.AgentPromptTemplates;
 import com.example.agentx.application.conversation.service.message.agent.workflow.AgentWorkflowContext;
 import com.example.agentx.application.conversation.service.message.agent.workflow.AgentWorkflowState;
 import com.example.agentx.domain.conversation.constant.MessageType;
 import com.example.agentx.domain.conversation.constant.Role;
 import com.example.agentx.domain.conversation.model.MessageEntity;
 import com.example.agentx.domain.conversation.service.MessageDomainService;
+import com.example.agentx.domain.prompt.AgentWorkflowPromptTemplates;
+import com.example.agentx.domain.prompt.PromptSpec;
 import com.example.agentx.domain.task.model.TaskEntity;
 import com.example.agentx.domain.conversation.service.ContextDomainService;
+import com.example.agentx.infrastructure.llm.ChatResponseTokenUsageUtils;
 import com.example.agentx.infrastructure.llm.LLMServiceFactory;
 
 import java.util.ArrayList;
@@ -31,9 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * 任务拆分处理器 负责将复杂任务拆分为可管理的子任务
- */
+/** 任务拆分处理器 负责将复杂任务拆分为可管理的子任务 */
 @Component
 public class TaskSplitHandler extends AbstractAgentHandler {
 
@@ -41,8 +40,8 @@ public class TaskSplitHandler extends AbstractAgentHandler {
     private final InfoRequirementService infoRequirementService;
 
     public TaskSplitHandler(LLMServiceFactory llmServiceFactory, TaskManager taskManager,
-                            ContextDomainService contextDomainService, InfoRequirementService infoRequirementService,
-                            MessageDomainService messageDomainService) {
+            ContextDomainService contextDomainService, InfoRequirementService infoRequirementService,
+            MessageDomainService messageDomainService) {
         super(llmServiceFactory, taskManager, contextDomainService, messageDomainService);
         this.infoRequirementService = infoRequirementService;
     }
@@ -77,9 +76,7 @@ public class TaskSplitHandler extends AbstractAgentHandler {
         this.setBreak(true);
     }
 
-    /**
-     * 执行实际的任务拆分逻辑
-     */
+    /** 执行实际的任务拆分逻辑 */
     private <T> void doTaskSplitting(AgentWorkflowContext<T> context) {
         try {
 
@@ -109,8 +106,7 @@ public class TaskSplitHandler extends AbstractAgentHandler {
                 public void onCompleteResponse(ChatResponse completeResponse) {
                     try {
                         // 设置LLM消息内容和token数
-                        TokenUsage tokenUsage = completeResponse.metadata().tokenUsage();
-                        Integer outputTokenCount = tokenUsage.outputTokenCount();
+                        Integer outputTokenCount = ChatResponseTokenUsageUtils.outputTokenCount(completeResponse);
 
                         String fullResponse = completeResponse.aiMessage().text();
                         context.getLlmMessageEntity().setContent(fullResponse);
@@ -165,33 +161,29 @@ public class TaskSplitHandler extends AbstractAgentHandler {
         }
     }
 
-    /**
-     * 构建任务拆分请求
-     */
+    /** 构建任务拆分请求 */
     private <T> ChatRequest buildSplitTaskRequest(AgentWorkflowContext<T> context) {
+        PromptSpec promptSpec = AgentWorkflowPromptTemplates
+                .buildDecompositionPromptSpec(context.getChatContext().getUserMessage());
         List<ChatMessage> messages = new ArrayList<>();
         for (MessageEntity messageEntity : context.getChatContext().getMessageHistory()) {
             String content = messageEntity.getContent();
-            if (messageEntity.getRole() == Role.SYSTEM) {
-                messages.add(new SystemMessage(content));
-            } else if (messageEntity.getRole() == Role.USER) {
+            if (messageEntity.getRole() == Role.USER) {
                 messages.add(new UserMessage(content));
             } else {
                 messages.add(new AiMessage(content));
             }
         }
         // 添加系统提示词
-        messages.add(new SystemMessage(AgentPromptTemplates.getDecompositionPrompt()));
+        messages.add(new SystemMessage(promptSpec.getSystemPrompt()));
 
         // 添加用户消息
-        messages.add(new UserMessage(context.getChatContext().getUserMessage()));
+        messages.add(new UserMessage(promptSpec.getUserPrompt()));
 
         return buildChatRequest(context, messages);
     }
 
-    /**
-     * 将大模型返回的文本分割为子任务列表
-     */
+    /** 将大模型返回的文本分割为子任务列表 */
     private List<String> splitTaskDescriptions(String text) {
         List<String> tasks = new ArrayList<>();
 

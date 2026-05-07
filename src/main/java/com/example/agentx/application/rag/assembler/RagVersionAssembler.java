@@ -1,6 +1,6 @@
 package com.example.agentx.application.rag.assembler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import com.example.agentx.application.rag.dto.RagMarketDTO;
 import com.example.agentx.application.rag.dto.RagVersionDTO;
@@ -12,16 +12,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * RAG版本Assembler
+/** RAG版本Assembler
+ * @author xhy
+ * @date 2025-07-16 <br/>
  */
 public class RagVersionAssembler {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
-    /**
-     * Convert Entity to DTO using BeanUtils
-     */
+    /** Convert Entity to DTO using BeanUtils */
     public static RagVersionDTO toDTO(RagVersionEntity entity) {
         if (entity == null) {
             return null;
@@ -39,9 +36,7 @@ public class RagVersionAssembler {
         return dto;
     }
 
-    /**
-     * Convert Entity list to DTO list
-     */
+    /** Convert Entity list to DTO list */
     public static List<RagVersionDTO> toDTOs(List<RagVersionEntity> entities) {
         if (entities == null || entities.isEmpty()) {
             return Collections.emptyList();
@@ -49,9 +44,7 @@ public class RagVersionAssembler {
         return entities.stream().map(RagVersionAssembler::toDTO).collect(Collectors.toList());
     }
 
-    /**
-     * Convert Entity to MarketDTO for market display
-     */
+    /** Convert Entity to MarketDTO for market display */
     public static RagMarketDTO toMarketDTO(RagVersionEntity entity) {
         if (entity == null) {
             return null;
@@ -66,9 +59,7 @@ public class RagVersionAssembler {
         return dto;
     }
 
-    /**
-     * Convert Entity list to MarketDTO list
-     */
+    /** Convert Entity list to MarketDTO list */
     public static List<RagMarketDTO> toMarketDTOs(List<RagVersionEntity> entities) {
         if (entities == null || entities.isEmpty()) {
             return Collections.emptyList();
@@ -76,9 +67,7 @@ public class RagVersionAssembler {
         return entities.stream().map(RagVersionAssembler::toMarketDTO).collect(Collectors.toList());
     }
 
-    /**
-     * 格式化文件大小
-     */
+    /** 格式化文件大小 */
     private static String formatFileSize(Long size) {
         if (size == null || size == 0) {
             return "0 B";

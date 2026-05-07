@@ -1,5 +1,6 @@
 package com.example.agentx.application.conversation.assembler;
 
+import com.example.agentx.domain.conversation.constant.MessageType;
 import org.springframework.beans.BeanUtils;
 import com.example.agentx.domain.conversation.model.MessageEntity;
 import com.example.agentx.application.conversation.dto.MessageDTO;
@@ -8,17 +9,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * 消息对象转换器
- */
+/** 消息对象转换器 */
 public class MessageAssembler {
 
-    /**
-     * 将Message实体转换为MessageDTO
+    /** 将Message实体转换为MessageDTO
      *
      * @param message 消息实体
-     * @return 消息DTO
-     */
+     * @return 消息DTO */
     public static MessageDTO toDTO(MessageEntity message) {
         if (message == null) {
             return null;
@@ -27,15 +24,16 @@ public class MessageAssembler {
         MessageDTO dto = new MessageDTO();
 
         BeanUtils.copyProperties(message, dto);
+        if (message.getMessageType() == MessageType.TOOL_CALL) {
+            dto.setPayload(message.getMetadata());
+        }
         return dto;
     }
 
-    /**
-     * 将消息实体列表转换为DTO列表
+    /** 将消息实体列表转换为DTO列表
      *
      * @param messages 消息实体列表
-     * @return 消息DTO列表
-     */
+     * @return 消息DTO列表 */
     public static List<MessageDTO> toDTOs(List<MessageEntity> messages) {
         if (messages == null) {
             return Collections.emptyList();

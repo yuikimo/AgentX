@@ -16,14 +16,13 @@ import com.example.agentx.infrastructure.docker.DockerService;
 import com.example.agentx.infrastructure.entity.Operator;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Web终端服务
- */
+/** Web终端服务 */
 @Service
 public class WebTerminalService {
 
@@ -38,14 +37,12 @@ public class WebTerminalService {
         this.containerDomainService = containerDomainService;
     }
 
-    /**
-     * 创建终端会话
-     *
-     * @param sessionId        会话ID
-     * @param containerId      数据库容器ID
+    /** 创建终端会话
+     * 
+     * @param sessionId 会话ID
+     * @param containerId 数据库容器ID
      * @param webSocketSession WebSocket会话
-     * @return 是否创建成功
-     */
+     * @return 是否创建成功 */
     public boolean createTerminalSession(String sessionId, String containerId, WebSocketSession webSocketSession) {
         try {
             // 根据数据库容器ID查找容器实体
@@ -120,12 +117,10 @@ public class WebTerminalService {
         }
     }
 
-    /**
-     * 发送命令到终端
-     *
+    /** 发送命令到终端
+     * 
      * @param sessionId 会话ID
-     * @param command   命令
-     */
+     * @param command 命令 */
     public void sendCommand(String sessionId, String command) {
         TerminalSession session = activeSessions.get(sessionId);
         if (session != null) {
@@ -133,11 +128,9 @@ public class WebTerminalService {
         }
     }
 
-    /**
-     * 关闭终端会话
-     *
-     * @param sessionId 会话ID
-     */
+    /** 关闭终端会话
+     * 
+     * @param sessionId 会话ID */
     public void closeTerminalSession(String sessionId) {
         TerminalSession session = activeSessions.remove(sessionId);
         if (session != null) {
@@ -146,9 +139,7 @@ public class WebTerminalService {
         }
     }
 
-    /**
-     * 发送消息到WebSocket
-     */
+    /** 发送消息到WebSocket */
     private void sendMessage(WebSocketSession session, String message) {
         try {
             if (session.isOpen()) {
@@ -159,9 +150,7 @@ public class WebTerminalService {
         }
     }
 
-    /**
-     * 测试shell是否在容器中可用
-     */
+    /** 测试shell是否在容器中可用 */
     private boolean testShellAvailable(DockerClient dockerClient, String containerId, String shell) {
         try {
             logger.debug("测试shell: {} 通过创建exec会话", shell);
@@ -197,9 +186,7 @@ public class WebTerminalService {
         }
     }
 
-    /**
-     * 终端会话类
-     */
+    /** 终端会话类 */
     private class TerminalSession {
         private final String sessionId;
         private final String containerId;
@@ -243,8 +230,7 @@ public class WebTerminalService {
                 // 创建真正的exec会话
                 logger.debug("创建exec会话使用shell: {}", selectedShell);
                 ExecCreateCmdResponse execCreateCmd = dockerClient.execCreateCmd(containerId).withAttachStdout(true)
-                        .withAttachStderr(true).withAttachStdin(true).withTty(true).withWorkingDir("/") // 
-                        // 设置工作目录为根目录，避免特定应用目录的干扰
+                        .withAttachStderr(true).withAttachStdin(true).withTty(true).withWorkingDir("/") // 设置工作目录为根目录，避免特定应用目录的干扰
                         .withCmd(selectedShell).exec();
 
                 execId = execCreateCmd.getId();

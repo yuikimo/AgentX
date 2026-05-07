@@ -19,13 +19,17 @@ import com.example.agentx.infrastructure.exception.BusinessException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * 用户RAG领域服务
+/** 用户RAG领域服务
+ * @author xhy
+ * @date 2025-07-16 <br/>
  */
 @Service
 public class UserRagDomainService {
@@ -36,21 +40,18 @@ public class UserRagDomainService {
     private final UserRagSnapshotDomainService userRagSnapshotService;
 
     public UserRagDomainService(UserRagRepository userRagRepository, RagVersionDomainService ragVersionDomainService,
-                                RagQaDatasetDomainService ragQaDatasetDomainService,
-                                UserRagSnapshotDomainService userRagSnapshotService) {
+            RagQaDatasetDomainService ragQaDatasetDomainService, UserRagSnapshotDomainService userRagSnapshotService) {
         this.userRagRepository = userRagRepository;
         this.ragVersionDomainService = ragVersionDomainService;
         this.ragQaDatasetDomainService = ragQaDatasetDomainService;
         this.userRagSnapshotService = userRagSnapshotService;
     }
 
-    /**
-     * 安装RAG（新版本 - 安装RAG本身而不是特定版本）
-     *
-     * @param userId       用户ID
+    /** 安装RAG（新版本 - 安装RAG本身而不是特定版本）
+     * 
+     * @param userId 用户ID
      * @param ragVersionId RAG版本ID
-     * @return 安装记录
-     */
+     * @return 安装记录 */
     public UserRagEntity installRag(String userId, String ragVersionId) {
         // 验证版本存在
         RagVersionEntity ragVersion = ragVersionDomainService.getRagVersion(ragVersionId);
@@ -99,14 +100,12 @@ public class UserRagDomainService {
         return userRag;
     }
 
-    /**
-     * 自动安装RAG（用于创建数据集时）
-     *
-     * @param userId        用户ID
+    /** 自动安装RAG（用于创建数据集时）
+     * 
+     * @param userId 用户ID
      * @param originalRagId 原始RAG数据集ID
-     * @param ragVersionId  RAG版本ID
-     * @return 安装记录
-     */
+     * @param ragVersionId RAG版本ID
+     * @return 安装记录 */
     public UserRagEntity autoInstallRag(String userId, String originalRagId, String ragVersionId) {
         // 检查是否已安装
         UserRagEntity existingRag = findInstalledRagByOriginalId(userId, originalRagId);
@@ -134,14 +133,12 @@ public class UserRagDomainService {
         return userRag;
     }
 
-    /**
-     * 切换RAG版本
-     *
-     * @param userId          用户ID
-     * @param userRagId       用户RAG安装记录ID
+    /** 切换RAG版本
+     * 
+     * @param userId 用户ID
+     * @param userRagId 用户RAG安装记录ID
      * @param targetVersionId 目标版本ID
-     * @return 更新后的安装记录
-     */
+     * @return 更新后的安装记录 */
     public UserRagEntity switchRagVersion(String userId, String userRagId, String targetVersionId) {
         // 获取当前安装记录
         UserRagEntity userRag = getUserRag(userId, userRagId);
@@ -176,8 +173,7 @@ public class UserRagDomainService {
         // 更新安装记录（更新快照数据）
         LambdaUpdateWrapper<UserRagEntity> updateWrapper = Wrappers.<UserRagEntity>lambdaUpdate()
                 .eq(UserRagEntity::getId, userRagId).eq(UserRagEntity::getUserId, userId)
-                .set(UserRagEntity::getRagVersionId, targetVersionId)
-                .set(UserRagEntity::getInstallType, newInstallType)
+                .set(UserRagEntity::getRagVersionId, targetVersionId).set(UserRagEntity::getInstallType, newInstallType)
                 .set(UserRagEntity::getVersion, targetVersion.getVersion())
                 .set(UserRagEntity::getName, targetVersion.getName())
                 .set(UserRagEntity::getDescription, targetVersion.getDescription())
@@ -194,12 +190,10 @@ public class UserRagDomainService {
         return getUserRag(userId, userRagId);
     }
 
-    /**
-     * 卸载RAG版本
-     *
-     * @param userId       用户ID
-     * @param ragVersionId RAG版本ID
-     */
+    /** 卸载RAG版本
+     * 
+     * @param userId 用户ID
+     * @param ragVersionId RAG版本ID */
     public void uninstallRag(String userId, String ragVersionId) {
         // 获取安装记录
         UserRagEntity userRag = getInstalledRag(userId, ragVersionId);
@@ -218,65 +212,80 @@ public class UserRagDomainService {
         }
 
         LambdaUpdateWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaUpdate()
-                .eq(UserRagEntity::getUserId, userId)
-                .eq(UserRagEntity::getRagVersionId, ragVersionId);
+                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getRagVersionId, ragVersionId);
 
         userRagRepository.delete(wrapper);
     }
 
-    /**
-     * 检查RAG版本是否已安装（兼容性方法）
-     *
-     * @param userId       用户ID
+    /** 检查RAG版本是否已安装（兼容性方法）
+     * 
+     * @param userId 用户ID
      * @param ragVersionId RAG版本ID
-     * @return 是否已安装
-     */
+     * @return 是否已安装 */
     public boolean isRagInstalled(String userId, String ragVersionId) {
         LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery()
-                .eq(UserRagEntity::getUserId, userId)
-                .eq(UserRagEntity::getRagVersionId, ragVersionId);
+                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getRagVersionId, ragVersionId);
 
         return userRagRepository.exists(wrapper);
     }
 
-    /**
-     * 检查RAG是否已安装（按原始RAG ID检查）
-     *
-     * @param userId        用户ID
+    /** 检查RAG是否已安装（按原始RAG ID检查）
+     * 
+     * @param userId 用户ID
      * @param originalRagId 原始RAG数据集ID
-     * @return 是否已安装
-     */
+     * @return 是否已安装 */
     public boolean isRagInstalledByOriginalId(String userId, String originalRagId) {
         return findInstalledRagByOriginalId(userId, originalRagId) != null;
     }
 
-    /**
-     * 查找用户安装的RAG（按原始RAG ID）
-     *
-     * @param userId        用户ID
+    /** 查找用户安装的RAG（按原始RAG ID）
+     * 
+     * @param userId 用户ID
      * @param originalRagId 原始RAG数据集ID
-     * @return 安装记录，如果未安装则返回null
-     */
+     * @return 安装记录，如果未安装则返回null */
     public UserRagEntity findInstalledRagByOriginalId(String userId, String originalRagId) {
         LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery()
-                .eq(UserRagEntity::getUserId, userId)
-                .eq(UserRagEntity::getOriginalRagId, originalRagId);
+                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getOriginalRagId, originalRagId);
 
         return userRagRepository.selectOne(wrapper);
     }
 
-    /**
-     * 获取用户安装的RAG列表
+    /** 批量查询用户已安装的原始RAG ID
      *
-     * @param userId   用户ID
-     * @param page     页码
-     * @param pageSize 每页大小
-     * @param keyword  搜索关键词
-     * @return 分页结果
-     */
-    public IPage<UserRagEntity> listInstalledRags(String userId, Integer page, Integer pageSize, String keyword) {
+     * @param userId 用户ID
+     * @param originalRagIds 原始RAG数据集ID列表
+     * @return 已安装的原始RAG ID集合 */
+    public Set<String> findInstalledOriginalRagIds(String userId, List<String> originalRagIds) {
+        if (StringUtils.isBlank(userId) || originalRagIds == null || originalRagIds.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        LinkedHashSet<String> distinctIds = originalRagIds.stream().filter(StringUtils::isNotBlank)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (distinctIds.isEmpty()) {
+            return Collections.emptySet();
+        }
+
         LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery()
-                .eq(UserRagEntity::getUserId, userId);
+                .select(UserRagEntity::getOriginalRagId)
+                .eq(UserRagEntity::getUserId, userId)
+                .in(UserRagEntity::getOriginalRagId, distinctIds);
+
+        return userRagRepository.selectList(wrapper).stream().map(UserRagEntity::getOriginalRagId)
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    /** 获取用户安装的RAG列表
+     * 
+     * @param userId 用户ID
+     * @param page 页码
+     * @param pageSize 每页大小
+     * @param keyword 搜索关键词
+     * @return 分页结果 */
+    public IPage<UserRagEntity> listInstalledRags(String userId, Integer page, Integer pageSize, String keyword) {
+        LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery().eq(UserRagEntity::getUserId,
+                userId);
 
         if (StringUtils.isNotBlank(keyword)) {
             wrapper.and(w -> w.like(UserRagEntity::getName, keyword).or().like(UserRagEntity::getDescription, keyword));
@@ -288,31 +297,25 @@ public class UserRagDomainService {
         return userRagRepository.selectPage(pageObj, wrapper);
     }
 
-    /**
-     * 获取用户安装的所有RAG
-     *
+    /** 获取用户安装的所有RAG
+     * 
      * @param userId 用户ID
-     * @return RAG列表
-     */
+     * @return RAG列表 */
     public List<UserRagEntity> listAllInstalledRags(String userId) {
         LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery()
-                .eq(UserRagEntity::getUserId, userId)
-                .orderByDesc(UserRagEntity::getInstalledAt);
+                .eq(UserRagEntity::getUserId, userId).orderByDesc(UserRagEntity::getInstalledAt);
 
         return userRagRepository.selectList(wrapper);
     }
 
-    /**
-     * 获取用户安装的RAG详情（兼容性方法）
-     *
-     * @param userId       用户ID
+    /** 获取用户安装的RAG详情（兼容性方法）
+     * 
+     * @param userId 用户ID
      * @param ragVersionId RAG版本ID
-     * @return 安装的RAG
-     */
+     * @return 安装的RAG */
     public UserRagEntity getInstalledRag(String userId, String ragVersionId) {
         LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery()
-                .eq(UserRagEntity::getUserId, userId)
-                .eq(UserRagEntity::getRagVersionId, ragVersionId);
+                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getRagVersionId, ragVersionId);
 
         UserRagEntity userRag = userRagRepository.selectOne(wrapper);
         if (userRag == null) {
@@ -322,17 +325,14 @@ public class UserRagDomainService {
         return userRag;
     }
 
-    /**
-     * 获取用户RAG详情（按安装记录ID）
-     *
-     * @param userId    用户ID
+    /** 获取用户RAG详情（按安装记录ID）
+     * 
+     * @param userId 用户ID
      * @param userRagId 用户RAG安装记录ID
-     * @return 安装的RAG
-     */
+     * @return 安装的RAG */
     public UserRagEntity getUserRag(String userId, String userRagId) {
         LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery()
-                .eq(UserRagEntity::getUserId, userId)
-                .eq(UserRagEntity::getId, userRagId);
+                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getId, userRagId);
 
         UserRagEntity userRag = userRagRepository.selectOne(wrapper);
         if (userRag == null) {
@@ -342,14 +342,12 @@ public class UserRagDomainService {
         return userRag;
     }
 
-    /**
-     * 检查用户是否有权限使用RAG
-     *
-     * @param userId       用户ID
-     * @param ragId        原始RAG数据集ID（可选）
+    /** 检查用户是否有权限使用RAG
+     * 
+     * @param userId 用户ID
+     * @param ragId 原始RAG数据集ID（可选）
      * @param ragVersionId RAG版本ID（可选）
-     * @return 是否有权限
-     */
+     * @return 是否有权限 */
     public boolean canUseRag(String userId, String ragId, String ragVersionId) {
         if (StringUtils.isNotBlank(ragVersionId)) {
             // 检查是否已安装该版本
@@ -363,12 +361,10 @@ public class UserRagDomainService {
         return false;
     }
 
-    /**
-     * 获取RAG版本的安装次数
-     *
+    /** 获取RAG版本的安装次数
+     * 
      * @param ragVersionId RAG版本ID
-     * @return 安装次数
-     */
+     * @return 安装次数 */
     public long getInstallCount(String ragVersionId) {
         LambdaQueryWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaQuery()
                 .eq(UserRagEntity::getRagVersionId, ragVersionId);
@@ -376,49 +372,40 @@ public class UserRagDomainService {
         return userRagRepository.selectCount(wrapper);
     }
 
-    /**
-     * 更新用户安装记录的基本信息
-     *
-     * @param userId        用户ID
+    /** 更新用户安装记录的基本信息
+     * 
+     * @param userId 用户ID
      * @param originalRagId 原始RAG数据集ID
-     * @param name          新名称
-     * @param description   新描述
-     * @param icon          新图标
-     */
+     * @param name 新名称
+     * @param description 新描述
+     * @param icon 新图标 */
     public void updateUserRagBasicInfo(String userId, String originalRagId, String name, String description,
-                                       String icon) {
+            String icon) {
         LambdaUpdateWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaUpdate()
-                .eq(UserRagEntity::getUserId, userId)
-                .eq(UserRagEntity::getOriginalRagId, originalRagId)
+                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getOriginalRagId, originalRagId)
                 .eq(UserRagEntity::getInstallType, InstallType.REFERENCE) // 只更新REFERENCE类型的安装
-                .set(UserRagEntity::getName, name)
-                .set(UserRagEntity::getDescription, description)
+                .set(UserRagEntity::getName, name).set(UserRagEntity::getDescription, description)
                 .set(UserRagEntity::getIcon, icon);
 
         userRagRepository.update(null, wrapper);
     }
 
-    /**
-     * 强制卸载RAG（按原始RAG ID，用于数据集删除时清理）
-     *
-     * @param userId        用户ID
-     * @param originalRagId 原始RAG数据集ID
-     */
+    /** 强制卸载RAG（按原始RAG ID，用于数据集删除时清理）
+     * 
+     * @param userId 用户ID
+     * @param originalRagId 原始RAG数据集ID */
     public void forceUninstallRagByOriginalId(String userId, String originalRagId) {
         LambdaUpdateWrapper<UserRagEntity> wrapper = Wrappers.<UserRagEntity>lambdaUpdate()
-                .eq(UserRagEntity::getUserId, userId)
-                .eq(UserRagEntity::getOriginalRagId, originalRagId);
+                .eq(UserRagEntity::getUserId, userId).eq(UserRagEntity::getOriginalRagId, originalRagId);
 
         userRagRepository.checkedDelete(wrapper);
     }
 
-    /**
-     * 获取用户安装的同一RAG的所有版本
-     *
-     * @param userId    用户ID
+    /** 获取用户安装的同一RAG的所有版本
+     * 
+     * @param userId 用户ID
      * @param userRagId 当前用户RAG安装记录ID
-     * @return 同一原始RAG的所有已安装版本列表
-     */
+     * @return 同一原始RAG的所有已安装版本列表 */
     public List<UserRagEntity> getInstalledVersionsByUserRagId(String userId, String userRagId) {
         // 先获取当前用户RAG记录，获取其原始RAG ID
         UserRagEntity currentUserRag = userRagRepository.selectById(userRagId);
@@ -435,13 +422,11 @@ public class UserRagDomainService {
         return userRagRepository.selectList(wrapper);
     }
 
-    /**
-     * 获取RAG的所有可切换版本（包括未安装的已发布版本）
-     *
-     * @param userId    用户ID
+    /** 获取RAG的所有可切换版本（包括未安装的已发布版本）
+     * 
+     * @param userId 用户ID
      * @param userRagId 当前用户RAG安装记录ID
-     * @return 该RAG的所有可切换版本信息
-     */
+     * @return 该RAG的所有可切换版本信息 */
     public List<UserRagEntity> getAvailableVersionsByUserRagId(String userId, String userRagId) {
         // 先获取当前用户RAG记录，获取其原始RAG ID
         UserRagEntity currentUserRag = userRagRepository.selectById(userRagId);
@@ -472,18 +457,17 @@ public class UserRagDomainService {
             currentUserRagEntity.setInstallType(
                     !Objects.equals(ragVersion.getVersion(), "0.0.1") ? InstallType.SNAPSHOT : InstallType.REFERENCE);
             result.add(currentUserRagEntity);
+
         }
 
         return result;
     }
 
-    /**
-     * 创建虚拟的UserRagEntity用于显示未安装的版本
-     *
+    /** 创建虚拟的UserRagEntity用于显示未安装的版本
+     * 
      * @param currentUserRag 当前用户RAG
-     * @param ragVersion     RAG版本信息
-     * @return 虚拟的UserRagEntity
-     */
+     * @param ragVersion RAG版本信息
+     * @return 虚拟的UserRagEntity */
     private UserRagEntity createVirtualUserRag(UserRagEntity currentUserRag, RagVersionEntity ragVersion) {
         UserRagEntity virtualUserRag = new UserRagEntity();
 
@@ -506,12 +490,10 @@ public class UserRagDomainService {
         return virtualUserRag;
     }
 
-    /**
-     * 确定安装类型
-     *
+    /** 确定安装类型
+     * 
      * @param ragVersion RAG版本
-     * @return 安装类型
-     */
+     * @return 安装类型 */
     private InstallType determineInstallType(RagVersionEntity ragVersion) {
         if (ragVersion.getVersion().equals("0.0.1")) {
             return InstallType.REFERENCE;

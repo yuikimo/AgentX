@@ -8,23 +8,19 @@ import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 import java.io.Serial;
 import java.io.Serializable;
 
-/**
- * RAG模型配置
- */
+/** RAG模型配置
+ * 
+ * @author shilong.zang */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ModelConfig implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /**
-     * API密钥
-     */
+    /** API密钥 */
     private String apiKey;
 
-    /**
-     * API基础URL
-     */
+    /** API基础URL */
     private String baseUrl;
 
     private ModelType modelType;
@@ -37,7 +33,7 @@ public class ModelConfig implements Serializable {
     }
 
     public ModelConfig(String apiKey, String baseUrl, ModelType modelType, ProviderProtocol protocol,
-                       String modelEndpoint) {
+            String modelEndpoint) {
         this.apiKey = apiKey;
         this.baseUrl = baseUrl;
         this.modelType = modelType;

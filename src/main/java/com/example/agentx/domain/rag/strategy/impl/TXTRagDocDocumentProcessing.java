@@ -31,6 +31,8 @@ import jakarta.annotation.Resource;
 public class TXTRagDocDocumentProcessing extends AbstractDocumentProcessingStrategy {
 
     private static final Logger log = LoggerFactory.getLogger(TXTRagDocDocumentProcessing.class);
+    private static final int CHUNK_SIZE = 800;
+    private static final int CHUNK_OVERLAP = 100;
 
     private final DocumentUnitRepository documentUnitRepository;
 
@@ -43,17 +45,14 @@ public class TXTRagDocDocumentProcessing extends AbstractDocumentProcessingStrat
     private String currentProcessingFileId;
 
     public TXTRagDocDocumentProcessing(DocumentUnitRepository documentUnitRepository,
-                                       FileDetailRepository fileDetailRepository) {
+            FileDetailRepository fileDetailRepository) {
         this.documentUnitRepository = documentUnitRepository;
         this.fileDetailRepository = fileDetailRepository;
     }
 
-    /**
-     * 处理消息，设置当前处理的文件ID
-     *
+    /** 处理消息，设置当前处理的文件ID
      * @param ragDocMessage 消息数据
-     * @param strategy      当前策略
-     */
+     * @param strategy 当前策略 */
     @Override
     public void handle(RagDocMessage ragDocMessage, String strategy) throws Exception {
         // 设置当前处理的文件ID，用于更新页数
@@ -63,12 +62,10 @@ public class TXTRagDocDocumentProcessing extends AbstractDocumentProcessingStrat
         super.handle(ragDocMessage, strategy);
     }
 
-    /**
-     * 获取文件页数
+    /** 获取文件页数
      *
      * @param bytes
-     * @param ragDocSyncOcrMessage
-     */
+     * @param ragDocSyncOcrMessage */
     @Override
     public void pushPageSize(byte[] bytes, RagDocMessage ragDocSyncOcrMessage) {
         try {
@@ -76,7 +73,8 @@ public class TXTRagDocDocumentProcessing extends AbstractDocumentProcessingStrat
             InputStream inputStream = new ByteArrayInputStream(bytes);
             Document document = parser.parse(inputStream);
 
-            final DocumentBySentenceSplitter documentByCharacterSplitter = new DocumentBySentenceSplitter(500, 0);
+            final DocumentBySentenceSplitter documentByCharacterSplitter = new DocumentBySentenceSplitter(CHUNK_SIZE,
+                    CHUNK_OVERLAP);
             final List<TextSegment> split = documentByCharacterSplitter.split(document);
 
             int segmentCount = split.size();
@@ -100,12 +98,10 @@ public class TXTRagDocDocumentProcessing extends AbstractDocumentProcessingStrat
         }
     }
 
-    /**
-     * 获取文件
+    /** 获取文件
      *
      * @param ragDocSyncOcrMessage 消息数据
-     * @param strategy             当前策略
-     */
+     * @param strategy 当前策略 */
     @Override
     public byte[] getFileData(RagDocMessage ragDocSyncOcrMessage, String strategy) {
         // 从数据库中获取文件详情
@@ -120,14 +116,12 @@ public class TXTRagDocDocumentProcessing extends AbstractDocumentProcessingStrat
         return fileStorageService.download(fileDetailEntity.getUrl()).bytes();
     }
 
-    /**
-     * ocr数据
+    /** ocr数据
      *
      * @param fileBytes
-     * @param totalPages
-     */
+     * @param totalPages */
     @Override
-    public Map<Integer, String> processFile(byte[] fileBytes, int totalPages) {
+    public Map<Integer, String> processFile(byte[] fileBytes, int totalPages, RagDocMessage ragDocSyncOcrMessage) {
         log.info("当前类型为非PDF文件，直接提取文本 ——————> 不包含页码，页码概念为索引");
 
         DocumentParser parser = new TextDocumentParser();
@@ -141,7 +135,8 @@ public class TXTRagDocDocumentProcessing extends AbstractDocumentProcessingStrat
         try {
             document = parser.parse(inputStream);
 
-            final DocumentBySentenceSplitter documentByCharacterSplitter = new DocumentBySentenceSplitter(500, 0);
+            final DocumentBySentenceSplitter documentByCharacterSplitter = new DocumentBySentenceSplitter(CHUNK_SIZE,
+                    CHUNK_OVERLAP);
             final List<TextSegment> split = documentByCharacterSplitter.split(document);
 
             Steam.of(split).forEachIdx((textSegment, index) -> {
@@ -163,15 +158,13 @@ public class TXTRagDocDocumentProcessing extends AbstractDocumentProcessingStrat
             }
         }
 
-        return null;
+        return new HashMap<>();
     }
 
-    /**
-     * 保存数据
+    /** 保存数据
      *
      * @param ragDocSyncOcrMessage
-     * @param ocrData
-     */
+     * @param ocrData */
     @Override
     public void insertData(RagDocMessage ragDocSyncOcrMessage, Map<Integer, String> ocrData) throws Exception {
 
@@ -184,6 +177,7 @@ public class TXTRagDocDocumentProcessing extends AbstractDocumentProcessingStrat
             DocumentUnitEntity documentUnitEntity = new DocumentUnitEntity();
             documentUnitEntity.setContent(content);
             documentUnitEntity.setPage(pageIndex);
+            documentUnitEntity.setChunkIndex(pageIndex);
             documentUnitEntity.setFileId(ragDocSyncOcrMessage.getFileId());
             documentUnitEntity.setIsVector(false);
             documentUnitEntity.setIsOcr(true);

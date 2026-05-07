@@ -1,5 +1,8 @@
 package com.example.agentx.infrastructure.mq.enums;
 
+/** @author zang
+ * @date 13:39 <br/>
+ */
 public enum EventType {
 
     DOC_SYNC_RAG(4000, "文件入库"), DOC_REFRESH_ORG(4001, "文件ocr");
@@ -12,9 +15,7 @@ public enum EventType {
         this.desc = desc;
     }
 
-    /**
-     * 按key获取枚举
-     */
+    /** 按key获取枚举 */
     public static EventType getEnum(Integer code) {
         for (EventType e : values()) {
             if (e.getCode().equals(code)) {

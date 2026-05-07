@@ -8,15 +8,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 
-/**
- * 工具规范转换器，用于将ToolSpecification对象转换为可序列化的DTO对象
- */
+/** 工具规范转换器，用于将ToolSpecification对象转换为可序列化的DTO对象 */
 public class ToolSpecificationConverter {
     private static final Logger log = LoggerFactory.getLogger(ToolSpecificationConverter.class);
 
-    /**
-     * 将ToolSpecification列表转换为ToolDefinition列表
-     */
+    /** 将ToolSpecification列表转换为ToolDefinition列表 */
     public static List<ToolDefinition> convert(List<ToolSpecification> specifications) {
         if (specifications == null) {
             return new ArrayList<>();
@@ -33,9 +29,7 @@ public class ToolSpecificationConverter {
         return result;
     }
 
-    /**
-     * 转换单个ToolSpecification对象
-     */
+    /** 转换单个ToolSpecification对象 */
     public static ToolDefinition convertSingle(ToolSpecification spec) {
         if (spec == null) {
             throw new IllegalArgumentException("工具规范不能为空");
@@ -58,9 +52,7 @@ public class ToolSpecificationConverter {
         return dto;
     }
 
-    /**
-     * 使用反射机制提取参数信息，更加健壮
-     */
+    /** 使用反射机制提取参数信息，更加健壮 */
     private static ToolParameter extractParametersReflectively(ToolSpecification spec) {
         ToolParameter toolParameter = new ToolParameter();
         Map<String, ParameterProperty> properties = new HashMap<>();
@@ -113,9 +105,7 @@ public class ToolSpecificationConverter {
         return toolParameter;
     }
 
-    /**
-     * 安全地获取对象字段值，处理可能的异常
-     */
+    /** 安全地获取对象字段值，处理可能的异常 */
     @SuppressWarnings("unchecked")
     private static <T> T getFieldValueSafely(Object object, String fieldName, Class<T> expectedType) {
         if (object == null || fieldName == null) {
@@ -159,9 +149,7 @@ public class ToolSpecificationConverter {
         return null;
     }
 
-    /**
-     * 在类的层次结构中查找字段，包括父类和接口
-     */
+    /** 在类的层次结构中查找字段，包括父类和接口 */
     private static Field findField(Class<?> clazz, String fieldName) {
         Class<?> searchType = clazz;
         while (searchType != null && !Object.class.equals(searchType)) {

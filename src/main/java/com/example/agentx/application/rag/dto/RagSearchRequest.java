@@ -7,71 +7,62 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.Size;
-
 import java.util.List;
 
-/**
- * RAG搜索请求DTO
- */
+/** RAG搜索请求DTO
+ * 
+ * @author shilong.zang */
 public class RagSearchRequest {
 
-    /**
-     * 数据集ID列表
-     */
+    /** 数据集ID列表 */
     @NotEmpty(message = "数据集ID列表不能为空")
     @Size(max = 20, message = "数据集ID列表不能超过20个")
     private List<String> datasetIds;
 
-    /**
-     * 搜索问题
-     */
+    /** 搜索问题 */
     @NotBlank(message = "搜索问题不能为空")
     @Size(min = 1, max = 1000, message = "搜索问题长度必须在1-1000字符之间")
     private String question;
 
-    /**
-     * 最大返回结果数量，默认15
-     */
+    /** 最大返回结果数量，默认15 */
     @Min(value = 1, message = "最大返回结果数量不能小于1")
     @Max(value = 100, message = "最大返回结果数量不能超过100")
     private Integer maxResults = 15;
 
-    /**
-     * 最小相似度阈值，默认0.7
-     */
+    /** 最小相似度阈值，默认0.7 */
     @DecimalMin(value = "0.0", message = "相似度阈值不能小于0")
     @DecimalMax(value = "1.0", message = "相似度阈值不能大于1")
     private Double minScore = 0.7;
 
-    /**
-     * 是否启用重排序，默认true
-     */
+    /** 低置信度兜底阈值，null表示关闭fallback */
+    @DecimalMin(value = "0.0", message = "兜底相似度阈值不能小于0")
+    @DecimalMax(value = "1.0", message = "兜底相似度阈值不能大于1")
+    private Double fallbackMinScore = 0.3;
+
+    /** 是否启用重排序，默认true */
     private Boolean enableRerank = true;
 
-    /**
-     * 搜索候选结果倍数，默认2倍用于重排序
-     */
+    /** 搜索候选结果倍数，默认2倍用于重排序 */
     @Min(value = 1, message = "候选结果倍数不能小于1")
     @Max(value = 5, message = "候选结果倍数不能超过5")
     private Integer candidateMultiplier = 2;
 
-    /**
-     * 搜索超时时间（秒），默认30秒
-     */
+    /** 搜索超时时间（秒），默认30秒 */
     @Min(value = 1, message = "搜索超时时间不能小于1秒")
     @Max(value = 300, message = "搜索超时时间不能超过300秒")
     private Integer timeoutSeconds = 30;
 
-    /**
-     * 是否启用查询扩展，默认false
-     */
+    /** 是否启用查询扩展，默认false */
     private Boolean enableQueryExpansion = false;
 
-    /**
-     * 获取智能调整后的相似度阈值 根据查询长度自动调整：短查询提高阈值，长查询降低阈值
-     *
-     * @return 调整后的相似度阈值
-     */
+    /** 是否启用HyDE查询扩展，默认true */
+    private Boolean enableHyde = true;
+
+    /** 预热后的HyDE查询计划（仅服务端内部链路使用，不参与请求序列化） */
+    private transient com.example.agentx.domain.rag.service.HyDEDomainService.HyDEQueryPlan precomputedHydeQueryPlan;
+
+    /** 获取智能调整后的相似度阈值 根据查询长度自动调整：短查询提高阈值，长查询降低阈值
+     * @return 调整后的相似度阈值 */
     public Double getAdjustedMinScore() {
         if (question == null || question.trim().isEmpty()) {
             return minScore;
@@ -92,11 +83,8 @@ public class RagSearchRequest {
         return adjustedScore;
     }
 
-    /**
-     * 获取智能调整后的候选结果倍数 根据重排序和结果数量自动调整
-     *
-     * @return 调整后的候选结果倍数
-     */
+    /** 获取智能调整后的候选结果倍数 根据重排序和结果数量自动调整
+     * @return 调整后的候选结果倍数 */
     public Integer getAdjustedCandidateMultiplier() {
         if (!enableRerank) {
             return 1; // 不重排序时使用1倍
@@ -144,6 +132,14 @@ public class RagSearchRequest {
         this.minScore = minScore;
     }
 
+    public Double getFallbackMinScore() {
+        return fallbackMinScore;
+    }
+
+    public void setFallbackMinScore(Double fallbackMinScore) {
+        this.fallbackMinScore = fallbackMinScore;
+    }
+
     public Boolean getEnableRerank() {
         return enableRerank;
     }
@@ -174,5 +170,22 @@ public class RagSearchRequest {
 
     public void setEnableQueryExpansion(Boolean enableQueryExpansion) {
         this.enableQueryExpansion = enableQueryExpansion;
+    }
+
+    public Boolean getEnableHyde() {
+        return enableHyde;
+    }
+
+    public void setEnableHyde(Boolean enableHyde) {
+        this.enableHyde = enableHyde;
+    }
+
+    public com.example.agentx.domain.rag.service.HyDEDomainService.HyDEQueryPlan getPrecomputedHydeQueryPlan() {
+        return precomputedHydeQueryPlan;
+    }
+
+    public void setPrecomputedHydeQueryPlan(
+            com.example.agentx.domain.rag.service.HyDEDomainService.HyDEQueryPlan precomputedHydeQueryPlan) {
+        this.precomputedHydeQueryPlan = precomputedHydeQueryPlan;
     }
 }

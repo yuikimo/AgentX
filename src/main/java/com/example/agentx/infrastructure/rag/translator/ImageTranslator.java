@@ -15,11 +15,9 @@ import com.example.agentx.infrastructure.llm.protocol.enums.ProviderProtocol;
 
 import java.util.Arrays;
 
-/**
- * 图片翻译器
- * <p>
- * 使用视觉模型分析图片内容，转换为文本描述
- */
+/** 图片翻译器
+ * 
+ * 使用视觉模型分析图片内容，转换为文本描述 */
 @Component
 public class ImageTranslator implements NodeTranslator {
 
@@ -66,9 +64,7 @@ public class ImageTranslator implements NodeTranslator {
         return 20; // 图片处理优先级较低，因为可能涉及网络请求
     }
 
-    /**
-     * 使用视觉模型分析图片
-     */
+    /** 使用视觉模型分析图片 */
     private String analyzeImageWithVisionModel(String imageUrl, ProcessingContext context) {
         try {
             ChatModel chatModel = LLMProviderService.getStrand(ProviderProtocol.OPENAI, context.getVisionModelConfig());

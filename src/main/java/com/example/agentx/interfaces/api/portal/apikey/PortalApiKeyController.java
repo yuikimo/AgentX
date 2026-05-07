@@ -15,9 +15,7 @@ import com.example.agentx.interfaces.dto.apikey.response.ApiKeyResponse;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * API密钥管理控制器
- */
+/** API密钥管理控制器 */
 @RestController
 @RequestMapping("/api-keys")
 public class PortalApiKeyController {
@@ -28,12 +26,10 @@ public class PortalApiKeyController {
         this.apiKeyAppService = apiKeyAppService;
     }
 
-    /**
-     * 创建API密钥
+    /** 创建API密钥
      *
      * @param request 创建请求
-     * @return 创建的API密钥
-     */
+     * @return 创建的API密钥 */
     @PostMapping
     public Result<ApiKeyResponse> createApiKey(@RequestBody @Validated CreateApiKeyRequest request) {
         String userId = UserContext.getCurrentUserId();
@@ -45,12 +41,10 @@ public class PortalApiKeyController {
         return Result.success(response);
     }
 
-    /**
-     * 获取用户的API密钥列表
+    /** 获取用户的API密钥列表
      *
      * @param queryRequest 查询条件
-     * @return API密钥列表
-     */
+     * @return API密钥列表 */
     @GetMapping
     public Result<List<ApiKeyResponse>> getUserApiKeys(QueryApiKeyRequest queryRequest) {
         String userId = UserContext.getCurrentUserId();
@@ -65,12 +59,10 @@ public class PortalApiKeyController {
         return Result.success(responses);
     }
 
-    /**
-     * 获取Agent的API密钥列表
+    /** 获取Agent的API密钥列表
      *
      * @param agentId Agent ID
-     * @return API密钥列表
-     */
+     * @return API密钥列表 */
     @GetMapping("/agent/{agentId}")
     public Result<List<ApiKeyResponse>> getAgentApiKeys(@PathVariable String agentId) {
         String userId = UserContext.getCurrentUserId();
@@ -85,12 +77,10 @@ public class PortalApiKeyController {
         return Result.success(responses);
     }
 
-    /**
-     * 获取API密钥详情
+    /** 获取API密钥详情
      *
      * @param apiKeyId API密钥ID
-     * @return API密钥详情
-     */
+     * @return API密钥详情 */
     @GetMapping("/{apiKeyId}")
     public Result<ApiKeyResponse> getApiKey(@PathVariable String apiKeyId) {
         String userId = UserContext.getCurrentUserId();
@@ -102,28 +92,24 @@ public class PortalApiKeyController {
         return Result.success(response);
     }
 
-    /**
-     * 更新API密钥状态
+    /** 更新API密钥状态
      *
      * @param apiKeyId API密钥ID
-     * @param request  更新请求
-     * @return 操作结果
-     */
+     * @param request 更新请求
+     * @return 操作结果 */
     @PutMapping("/{apiKeyId}/status")
     public Result<Void> updateApiKeyStatus(@PathVariable String apiKeyId,
-                                           @RequestBody @Validated UpdateApiKeyStatusRequest request) {
+            @RequestBody @Validated UpdateApiKeyStatusRequest request) {
         String userId = UserContext.getCurrentUserId();
         apiKeyAppService.updateApiKeyStatus(apiKeyId, request.getStatus(), userId);
 
         return Result.success();
     }
 
-    /**
-     * 删除API密钥
+    /** 删除API密钥
      *
      * @param apiKeyId API密钥ID
-     * @return 操作结果
-     */
+     * @return 操作结果 */
     @DeleteMapping("/{apiKeyId}")
     public Result<Void> deleteApiKey(@PathVariable String apiKeyId) {
         String userId = UserContext.getCurrentUserId();
@@ -132,12 +118,10 @@ public class PortalApiKeyController {
         return Result.success();
     }
 
-    /**
-     * 重置API密钥
+    /** 重置API密钥
      *
      * @param apiKeyId API密钥ID
-     * @return 新的API密钥
-     */
+     * @return 新的API密钥 */
     @PostMapping("/{apiKeyId}/reset")
     public Result<ApiKeyResponse> resetApiKey(@PathVariable String apiKeyId) {
         String userId = UserContext.getCurrentUserId();

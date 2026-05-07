@@ -31,8 +31,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * RAG版本领域服务
+/** RAG版本领域服务
+ * @author xhy
+ * @date 2025-07-16 <br/>
  */
 @Service
 public class RagVersionDomainService {
@@ -45,11 +46,10 @@ public class RagVersionDomainService {
     private final DocumentUnitRepository documentUnitRepository;
 
     public RagVersionDomainService(RagVersionRepository ragVersionRepository,
-                                   RagVersionFileRepository ragVersionFileRepository,
-                                   RagVersionDocumentRepository ragVersionDocumentRepository,
-                                   RagQaDatasetDomainService ragQaDatasetDomainService,
-                                   FileDetailRepository fileDetailRepository,
-                                   DocumentUnitRepository documentUnitRepository) {
+            RagVersionFileRepository ragVersionFileRepository,
+            RagVersionDocumentRepository ragVersionDocumentRepository,
+            RagQaDatasetDomainService ragQaDatasetDomainService, FileDetailRepository fileDetailRepository,
+            DocumentUnitRepository documentUnitRepository) {
         this.ragVersionRepository = ragVersionRepository;
         this.ragVersionFileRepository = ragVersionFileRepository;
         this.ragVersionDocumentRepository = ragVersionDocumentRepository;
@@ -58,15 +58,13 @@ public class RagVersionDomainService {
         this.documentUnitRepository = documentUnitRepository;
     }
 
-    /**
-     * 创建RAG版本快照
-     *
-     * @param ragId     原始RAG数据集ID
-     * @param version   版本号
+    /** 创建RAG版本快照
+     * 
+     * @param ragId 原始RAG数据集ID
+     * @param version 版本号
      * @param changeLog 更新日志
-     * @param userId    用户ID
-     * @return 创建的RAG版本
-     */
+     * @param userId 用户ID
+     * @return 创建的RAG版本 */
     public RagVersionEntity createRagVersionSnapshot(String ragId, String version, String changeLog, String userId) {
         // 验证原始数据集存在
         RagQaDatasetEntity dataset = ragQaDatasetDomainService.getDataset(ragId, userId);
@@ -96,12 +94,10 @@ public class RagVersionDomainService {
         return ragVersion;
     }
 
-    /**
-     * 复制文件和文档数据到版本快照
-     *
-     * @param ragId        原始RAG数据集ID
-     * @param ragVersionId RAG版本ID
-     */
+    /** 复制文件和文档数据到版本快照
+     * 
+     * @param ragId 原始RAG数据集ID
+     * @param ragVersionId RAG版本ID */
     private void copyFilesAndDocuments(String ragId, String ragVersionId) {
         // 获取原始文件列表
         LambdaQueryWrapper<FileDetailEntity> fileWrapper = Wrappers.<FileDetailEntity>lambdaQuery()
@@ -127,17 +123,14 @@ public class RagVersionDomainService {
         }
     }
 
-    /**
-     * 复制文档单元到版本快照
-     *
-     * @param originalFileId   原始文件ID
-     * @param ragVersionId     RAG版本ID
-     * @param ragVersionFileId RAG版本文件ID
-     */
+    /** 复制文档单元到版本快照
+     * 
+     * @param originalFileId 原始文件ID
+     * @param ragVersionId RAG版本ID
+     * @param ragVersionFileId RAG版本文件ID */
     private void copyDocumentUnits(String originalFileId, String ragVersionId, String ragVersionFileId) {
         LambdaQueryWrapper<DocumentUnitEntity> docWrapper = Wrappers.<DocumentUnitEntity>lambdaQuery()
-                .eq(DocumentUnitEntity::getFileId, originalFileId)
-                .orderByAsc(DocumentUnitEntity::getPage)
+                .eq(DocumentUnitEntity::getFileId, originalFileId).orderByAsc(DocumentUnitEntity::getPage)
                 .orderByAsc(DocumentUnitEntity::getCreatedAt);
         List<DocumentUnitEntity> documents = documentUnitRepository.selectList(docWrapper);
 
@@ -153,11 +146,9 @@ public class RagVersionDomainService {
         }
     }
 
-    /**
-     * 更新版本统计信息
-     *
-     * @param ragVersionId RAG版本ID
-     */
+    /** 更新版本统计信息
+     * 
+     * @param ragVersionId RAG版本ID */
     private void updateVersionStatistics(String ragVersionId) {
         // 统计文件数量和大小
         LambdaQueryWrapper<RagVersionFileEntity> fileWrapper = Wrappers.<RagVersionFileEntity>lambdaQuery()
@@ -181,27 +172,22 @@ public class RagVersionDomainService {
         ragVersionRepository.updateById(update);
     }
 
-    /**
-     * 验证版本号唯一性
-     *
-     * @param ragId   原始RAG数据集ID
-     * @param version 版本号
-     */
+    /** 验证版本号唯一性
+     * 
+     * @param ragId 原始RAG数据集ID
+     * @param version 版本号 */
     private void validateVersionUniqueness(String ragId, String version) {
         LambdaQueryWrapper<RagVersionEntity> wrapper = Wrappers.<RagVersionEntity>lambdaQuery()
-                .eq(RagVersionEntity::getOriginalRagId, ragId)
-                .eq(RagVersionEntity::getVersion, version);
+                .eq(RagVersionEntity::getOriginalRagId, ragId).eq(RagVersionEntity::getVersion, version);
         if (ragVersionRepository.exists(wrapper)) {
             throw new BusinessException("版本号已存在");
         }
     }
 
-    /**
-     * 获取RAG版本详情
-     *
+    /** 获取RAG版本详情
+     * 
      * @param versionId 版本ID
-     * @return RAG版本实体
-     */
+     * @return RAG版本实体 */
     public RagVersionEntity getRagVersion(String versionId) {
         RagVersionEntity version = ragVersionRepository.selectById(versionId);
         if (version == null) {
@@ -210,13 +196,11 @@ public class RagVersionDomainService {
         return version;
     }
 
-    /**
-     * 更新审核状态
-     *
-     * @param versionId    版本ID
-     * @param status       审核状态
-     * @param rejectReason 拒绝原因（可选）
-     */
+    /** 更新审核状态
+     * 
+     * @param versionId 版本ID
+     * @param status 审核状态
+     * @param rejectReason 拒绝原因（可选） */
     public void updateReviewStatus(String versionId, RagPublishStatus status, String rejectReason) {
         RagVersionEntity update = new RagVersionEntity();
         update.setId(versionId);
@@ -232,15 +216,13 @@ public class RagVersionDomainService {
         ragVersionRepository.updateById(update);
     }
 
-    /**
-     * 分页查询用户的RAG版本
-     *
-     * @param userId   用户ID
-     * @param page     页码
+    /** 分页查询用户的RAG版本
+     * 
+     * @param userId 用户ID
+     * @param page 页码
      * @param pageSize 每页大小
-     * @param keyword  搜索关键词
-     * @return 分页结果
-     */
+     * @param keyword 搜索关键词
+     * @return 分页结果 */
     public IPage<RagVersionEntity> listUserVersions(String userId, Integer page, Integer pageSize, String keyword) {
         LambdaQueryWrapper<RagVersionEntity> wrapper = Wrappers.<RagVersionEntity>lambdaQuery()
                 .eq(RagVersionEntity::getUserId, userId);
@@ -256,14 +238,12 @@ public class RagVersionDomainService {
         return ragVersionRepository.selectPage(pageObj, wrapper);
     }
 
-    /**
-     * 分页查询已发布的RAG版本（市场）
-     *
-     * @param page     页码
+    /** 分页查询已发布的RAG版本（市场）
+     * 
+     * @param page 页码
      * @param pageSize 每页大小
-     * @param keyword  搜索关键词
-     * @return 分页结果
-     */
+     * @param keyword 搜索关键词
+     * @return 分页结果 */
     public IPage<RagVersionEntity> listPublishedVersions(Integer page, Integer pageSize, String keyword) {
         // 1. 查询所有已发布的版本，支持关键词搜索
         LambdaQueryWrapper<RagVersionEntity> wrapper = Wrappers.<RagVersionEntity>lambdaQuery()
@@ -280,7 +260,7 @@ public class RagVersionDomainService {
 
         // 2. 按originalRagId分组，取每组publishedAt最大的一条（最新发布版本）
         java.util.Map<String, RagVersionEntity> latestMap = allPublishedList.stream()
-                .collect(Collectors.toMap(RagVersionEntity::getOriginalRagId, v -> v, (v1, v2) -> {
+                .collect(java.util.stream.Collectors.toMap(RagVersionEntity::getOriginalRagId, v -> v, (v1, v2) -> {
                     // 比较发布时间，选择最新的版本
                     if (v1.getPublishedAt() == null && v2.getPublishedAt() == null) {
                         return v1.getCreatedAt().isAfter(v2.getCreatedAt()) ? v1 : v2;
@@ -314,13 +294,11 @@ public class RagVersionDomainService {
         return resultPage;
     }
 
-    /**
-     * 获取待审核的RAG版本列表
-     *
-     * @param page     页码
+    /** 获取待审核的RAG版本列表
+     * 
+     * @param page 页码
      * @param pageSize 每页大小
-     * @return 分页结果
-     */
+     * @return 分页结果 */
     public IPage<RagVersionEntity> listPendingReviewVersions(Integer page, Integer pageSize) {
         LambdaQueryWrapper<RagVersionEntity> wrapper = Wrappers.<RagVersionEntity>lambdaQuery()
                 .eq(RagVersionEntity::getPublishStatus, RagPublishStatus.REVIEWING.getCode())
@@ -332,17 +310,15 @@ public class RagVersionDomainService {
     }
 
     /** 获取RAG的版本历史
-     *
+     * 
      * @param ragId 原始RAG数据集ID
      * @param userId 用户ID
      * @return 版本列表 */
-    /**
-     * 获取RAG版本历史 智能权限处理： - 如果是RAG创建者：返回自己发布的所有版本（包括审核中的） - 如果不是创建者：返回该RAG的所有已发布版本（供版本切换使用）
-     *
-     * @param ragId  原始RAG数据集ID
+    /** 获取RAG版本历史 智能权限处理： - 如果是RAG创建者：返回自己发布的所有版本（包括审核中的） - 如果不是创建者：返回该RAG的所有已发布版本（供版本切换使用）
+     * 
+     * @param ragId 原始RAG数据集ID
      * @param userId 当前用户ID
-     * @return 版本历史列表
-     */
+     * @return 版本历史列表 */
     public List<RagVersionEntity> getVersionHistory(String ragId, String userId) {
         // 首先获取原始RAG信息，判断当前用户是否是创建者
         RagQaDatasetEntity originalRag = ragQaDatasetDomainService.findDatasetById(ragId);
@@ -363,48 +339,39 @@ public class RagVersionDomainService {
         return ragVersionRepository.selectList(wrapper);
     }
 
-    /**
-     * 根据原始RAG ID和版本号查找版本
-     *
+    /** 根据原始RAG ID和版本号查找版本
+     * 
      * @param originalRagId 原始RAG数据集ID
-     * @param version       版本号
-     * @param userId        用户ID
-     * @return 版本实体，如果不存在返回null
-     */
+     * @param version 版本号
+     * @param userId 用户ID
+     * @return 版本实体，如果不存在返回null */
     public RagVersionEntity findVersionByOriginalRagIdAndVersion(String originalRagId, String version, String userId) {
         LambdaQueryWrapper<RagVersionEntity> wrapper = Wrappers.<RagVersionEntity>lambdaQuery()
-                .eq(RagVersionEntity::getOriginalRagId, originalRagId)
-                .eq(RagVersionEntity::getVersion, version)
+                .eq(RagVersionEntity::getOriginalRagId, originalRagId).eq(RagVersionEntity::getVersion, version)
                 .eq(RagVersionEntity::getUserId, userId);
 
         return ragVersionRepository.selectOne(wrapper);
     }
 
-    /**
-     * 更新版本基本信息
-     *
-     * @param versionId   版本ID
-     * @param name        新名称
+    /** 更新版本基本信息
+     * 
+     * @param versionId 版本ID
+     * @param name 新名称
      * @param description 新描述
-     * @param icon        新图标
-     * @param userId      用户ID
-     */
+     * @param icon 新图标
+     * @param userId 用户ID */
     public void updateVersionBasicInfo(String versionId, String name, String description, String icon, String userId) {
         LambdaUpdateWrapper<RagVersionEntity> wrapper = Wrappers.<RagVersionEntity>lambdaUpdate()
-                .eq(RagVersionEntity::getId, versionId)
-                .eq(RagVersionEntity::getUserId, userId)
-                .set(RagVersionEntity::getName, name)
-                .set(RagVersionEntity::getDescription, description)
+                .eq(RagVersionEntity::getId, versionId).eq(RagVersionEntity::getUserId, userId)
+                .set(RagVersionEntity::getName, name).set(RagVersionEntity::getDescription, description)
                 .set(RagVersionEntity::getIcon, icon);
 
         ragVersionRepository.update(null, wrapper);
     }
 
-    /**
-     * 获取RAG统计数据
-     *
-     * @return 统计数据
-     */
+    /** 获取RAG统计数据
+     * 
+     * @return 统计数据 */
     public RagStatisticsDTO getRagStatistics() {
         RagStatisticsDTO statistics = new RagStatisticsDTO();
 
@@ -443,15 +410,13 @@ public class RagVersionDomainService {
         return statistics;
     }
 
-    /**
-     * 获取所有RAG版本列表（管理员用）
-     *
-     * @param page     页码
+    /** 获取所有RAG版本列表（管理员用）
+     * 
+     * @param page 页码
      * @param pageSize 每页大小
-     * @param keyword  搜索关键词
-     * @param status   状态筛选
-     * @return 分页结果
-     */
+     * @param keyword 搜索关键词
+     * @param status 状态筛选
+     * @return 分页结果 */
     public IPage<RagVersionEntity> listAllVersions(Integer page, Integer pageSize, String keyword, Integer status) {
         LambdaQueryWrapper<RagVersionEntity> wrapper = Wrappers.<RagVersionEntity>lambdaQuery();
 
@@ -470,12 +435,10 @@ public class RagVersionDomainService {
         return ragVersionRepository.selectPage(pageObj, wrapper);
     }
 
-    /**
-     * 获取RAG内容预览
-     *
+    /** 获取RAG内容预览
+     * 
      * @param versionId 版本ID
-     * @return 内容预览
-     */
+     * @return 内容预览 */
     public RagContentPreviewDTO getRagContentPreview(String versionId) {
         // 获取版本基本信息
         RagVersionEntity version = getRagVersion(versionId);
@@ -523,13 +486,11 @@ public class RagVersionDomainService {
         return preview;
     }
 
-    /**
-     * 获取RAG数据集的最新版本号
-     *
-     * @param ragId  原始RAG数据集ID
+    /** 获取RAG数据集的最新版本号
+     * 
+     * @param ragId 原始RAG数据集ID
      * @param userId 用户ID
-     * @return 最新版本号，如果没有版本则返回null
-     */
+     * @return 最新版本号，如果没有版本则返回null */
     public String getLatestVersionNumber(String ragId, String userId) {
         // 查询该数据集的最新版本
         LambdaQueryWrapper<RagVersionEntity> wrapper = Wrappers.<RagVersionEntity>lambdaQuery()
@@ -541,12 +502,10 @@ public class RagVersionDomainService {
         return latestVersion != null ? latestVersion.getVersion() : null;
     }
 
-    /**
-     * 删除RAG版本
-     *
+    /** 删除RAG版本
+     * 
      * @param versionId 版本ID
-     * @param userId    用户ID
-     */
+     * @param userId 用户ID */
     public void deleteRagVersion(String versionId, String userId) {
         // 验证版本是否存在且属于当前用户
         RagVersionEntity ragVersion = getRagVersion(versionId);
@@ -570,13 +529,11 @@ public class RagVersionDomainService {
         ragVersionRepository.checkedDelete(versionWrapper);
     }
 
-    /**
-     * 获取原始RAG的版本列表（根据用户权限显示不同范围的版本）
-     *
+    /** 获取原始RAG的版本列表（根据用户权限显示不同范围的版本）
+     * 
      * @param originalRagId 原始RAG数据集ID
-     * @param userId        当前用户ID
-     * @return 版本列表（创建者可看到所有版本，非创建者只能看到已发布版本）
-     */
+     * @param userId 当前用户ID
+     * @return 版本列表（创建者可看到所有版本，非创建者只能看到已发布版本） */
     public List<RagVersionEntity> getVersionsByOriginalRagId(String originalRagId, String userId) {
         LambdaQueryWrapper<RagVersionEntity> wrapper = Wrappers.<RagVersionEntity>lambdaQuery()
                 .eq(RagVersionEntity::getOriginalRagId, originalRagId);
@@ -598,12 +555,10 @@ public class RagVersionDomainService {
         return ragVersionRepository.selectList(wrapper);
     }
 
-    /**
-     * 获取原始RAG的所有已发布版本
-     *
+    /** 获取原始RAG的所有已发布版本
+     * 
      * @param originalRagId 原始RAG数据集ID
-     * @return 已发布的版本列表
-     */
+     * @return 已发布的版本列表 */
     @Deprecated
     public List<RagVersionEntity> getPublishedVersionsByOriginalRagId(String originalRagId) {
         LambdaQueryWrapper<RagVersionEntity> wrapper = Wrappers.<RagVersionEntity>lambdaQuery()

@@ -5,9 +5,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import com.example.agentx.infrastructure.auth.ExternalApiKeyInterceptor;
 
-/**
- * 外部API配置 配置外部API相关的拦截器和其他设置
- */
+/** 外部API配置 配置外部API相关的拦截器和其他设置 */
 @Configuration
 public class ExternalApiConfig implements WebMvcConfigurer {
 

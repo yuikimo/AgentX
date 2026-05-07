@@ -5,9 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-/**
- * 认证配置DTO
- */
+/** 认证配置DTO */
 public class AuthSettingDTO {
 
     private String id;

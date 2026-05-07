@@ -1,38 +1,27 @@
 package com.example.agentx.application.rag.dto;
 
-/**
- * RAG版本文件DTO
+/** RAG版本文件DTO
+ * @author xhy
+ * @date 2025-07-18 <br/>
  */
 public class RagVersionFileDTO {
 
-    /**
-     * 文件ID
-     */
+    /** 文件ID */
     private String id;
 
-    /**
-     * 文件名
-     */
+    /** 文件名 */
     private String fileName;
 
-    /**
-     * 文件大小
-     */
+    /** 文件大小 */
     private Long fileSize;
 
-    /**
-     * 文件类型
-     */
+    /** 文件类型 */
     private String fileType;
 
-    /**
-     * 处理状态
-     */
+    /** 处理状态 */
     private Integer processStatus;
 
-    /**
-     * 向量化状态
-     */
+    /** 向量化状态 */
     private Integer embeddingStatus;
 
     public String getId() {

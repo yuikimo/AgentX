@@ -1,19 +1,17 @@
 package com.example.agentx.infrastructure.converter;
 
-import com.example.agentx.domain.order.constant.PaymentType;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
+import com.example.agentx.domain.order.constant.PaymentType;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * 支付类型枚举转换器
- */
+/** 支付类型枚举转换器 */
 @MappedJdbcTypes(JdbcType.VARCHAR)
 @MappedTypes(PaymentType.class)
 public class PaymentTypeConverter extends BaseTypeHandler<PaymentType> {

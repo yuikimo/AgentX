@@ -18,22 +18,18 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 应用层工具发布处理器
- * <p>
- * 职责： 1. 处理已通过审核的工具发布 2. 从源GitHub下载工具内容，并将其发布到目标GitHub仓库 3. 完成工具发布流程
- */
+/** 应用层工具发布处理器
+ * 
+ * 职责： 1. 处理已通过审核的工具发布 2. 从源GitHub下载工具内容，并将其发布到目标GitHub仓库 3. 完成工具发布流程 */
 public class AppPublishingProcessor implements AppToolStateProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(AppPublishingProcessor.class);
 
     private final GitHubService gitHubService;
 
-    /**
-     * 构造函数，注入GitHubService
-     *
-     * @param gitHubService GitHub服务
-     */
+    /** 构造函数，注入GitHubService
+     * 
+     * @param gitHubService GitHub服务 */
     public AppPublishingProcessor(GitHubService gitHubService) {
         this.gitHubService = gitHubService;
     }
@@ -123,9 +119,7 @@ public class AppPublishingProcessor implements AppToolStateProcessor {
         return null;
     }
 
-    /**
-     * 清理临时下载和解压的文件/目录
-     */
+    /** 清理临时下载和解压的文件/目录 */
     private void cleanupTemporaryFiles(Path tempDownloadPath, Path tempUnzipPath) {
         try {
             if (tempDownloadPath != null && Files.exists(tempDownloadPath)) {
@@ -141,14 +135,12 @@ public class AppPublishingProcessor implements AppToolStateProcessor {
         }
     }
 
-    /**
-     * 查找解压后ZIP文件的实际内容根目录 GitHub下载的ZIP通常会有一个顶层目录，例如 repo-name-commitsha/ 或 repo-name-tag/
-     *
-     * @param unzipDir     解压操作的根目录
+    /** 查找解压后ZIP文件的实际内容根目录 GitHub下载的ZIP通常会有一个顶层目录，例如 repo-name-commitsha/ 或 repo-name-tag/
+     * 
+     * @param unzipDir 解压操作的根目录
      * @param repoNameHint 源仓库的名称，用于辅助查找
      * @return 实际内容所在的Path对象，如果无法确定则返回unzipDir本身
-     * @throws IOException 如果列出目录内容时发生IO错误
-     */
+     * @throws IOException 如果列出目录内容时发生IO错误 */
     private Path findActualContentRoot(Path unzipDir, String repoNameHint) throws IOException {
         List<Path> subDirs;
         try (var stream = Files.list(unzipDir)) {
