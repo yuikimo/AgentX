@@ -1,0 +1,190 @@
+server:
+  port: ${SERVER_PORT:8088}
+  servlet:
+    context-path: /api
+  # 添加Tomcat异步请求配置
+  tomcat:
+    threads:
+      max: 200 # 最大工作线程数
+    connection-timeout: ${CHAT_SSE_TIMEOUT_MS:300000} # 连接超时毫秒
+    max-connections: 10000 # 最大连接数
+    accept-count: 100 # 等待队列长度
+
+spring:
+  application:
+    name: AgentX
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    listener:
+      simple: # 添加 simple 下的并发配置
+        concurrency: 19
+        max-concurrency: 19
+        prefetch: 1
+        acknowledge-mode: manual
+        default-requeue-rejected: true
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 3000
+      direct:
+        acknowledge-mode: manual
+        default-requeue-rejected: true
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 3000
+    publisher-returns: true
+    publisher-confirm-type: correlated
+    connection-timeout: 200000
+    cache:
+      channel:
+        size: 25 # 添加通道缓存大小
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:agentx}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+# MyBatis-Plus配置
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.example.agentx.domain
+  type-handlers-package: com.example.agentx.infrastructure.converter
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted_at
+      logic-delete-value: now()
+      logic-not-delete-value: "null"
+    banner: false
+
+logging:
+  level:
+    root: info
+    com.example.agentx: debug
+  file:
+    name: logs/agent-x.log
+mail:
+  smtp:
+    host: ${MAIL_SMTP_HOST:xxx}
+    port: ${MAIL_SMTP_PORT:587}
+    username: ${MAIL_SMTP_USERNAME:xxx}
+    password: ${MAIL_SMTP_PASSWORD:xxx}
+  verification:
+    template: ${MAIL_VERIFICATION_TEMPLATE:您的验证码是:%s，有效期10分钟，请勿泄露给他人。}
+    subject: ${MAIL_VERIFICATION_SUBJECT:AgentX - 邮箱验证码}
+
+oauth:
+  github:
+    client-id: xxx
+    client-secret: xxx
+    redirect-uri: xxx
+
+oss:
+  endpoint: xxx
+  region: xxx
+  access-key: xxx
+  secret-key: xxx
+  bucket-name: xxx
+  custom-domain: ""
+  url-prefix: "xxx"
+
+github:
+  target:
+    repo-name: ${GITHUB_REPO_NAME:xxx}
+    username: ${GITHUB_USERNAME:xxx}
+    token: ${GITHUB_TOKEN:xxx}
+
+# 高可用网关配置
+high-availability:
+  enabled: ${HIGH_AVAILABILITY_ENABLED:false} # 是否启用高可用功能
+  gateway-url: ${HIGH_AVAILABILITY_GATEWAY_URL:http://localhost:8081} # 高可用网关地址
+  api-key: ${HIGH_AVAILABILITY_API_KEY:default-api-key-1234567890} # API密钥
+  connect-timeout: 30000 # 连接超时时间(毫秒)
+  read-timeout: 60000 # 读取超时时间(毫秒)
+
+embedding:
+  name: OpenAI
+  vector-store:
+    host: ${VECTOR_DB_HOST:${DB_HOST:localhost}}
+    port: ${VECTOR_DB_PORT:${DB_PORT:5432}}
+    user: ${VECTOR_DB_USER:${DB_USER:postgres}}
+    password: ${VECTOR_DB_PASSWORD:${DB_PASSWORD:postgres}}
+    database: ${VECTOR_DB_NAME:${DB_NAME:agentx}}
+    table: ${VECTOR_DB_TABLE:public.vector_store}
+    dimension: ${VECTOR_DB_DIMENSION:1024}
+    drop-table-first: ${VECTOR_DB_DROP_TABLE_FIRST:false}
+    create-table: ${VECTOR_DB_CREATE_TABLE:true}
+
+# Memory 向量存储配置（独立于知识库向量库）
+memory:
+  embedding:
+    vector-store:
+      host: ${VECTOR_DB_HOST:${DB_HOST:localhost}}
+      port: ${VECTOR_DB_PORT:${DB_PORT:5432}}
+      user: ${VECTOR_DB_USER:${DB_USER:postgres}}
+      password: ${VECTOR_DB_PASSWORD:${DB_PASSWORD:postgres}}
+      database: ${VECTOR_DB_NAME:${DB_NAME:agentx}}
+      table: ${MEMORY_VECTOR_DB_TABLE:public.memory_vector_store}
+      dimension: ${VECTOR_DB_DIMENSION:1024}
+      drop-table-first: ${MEMORY_VECTOR_DB_DROP_TABLE_FIRST:false}
+      create-table: ${MEMORY_VECTOR_DB_CREATE_TABLE:true}
+
+rerank:
+  name: OpenAI
+  api-key: ${SILICONFLOW_API_KEY:xxx}
+  api-url: ${SILICONFLOW_API_URL_RERANK:xxx}
+  model: ${SILICONFLOW_MODEL_RERANK_MODEL:xxx}
+  timeout: ${SILICONFLOW_TIMEOUT:30000}
+  return-documents: ${SILICONFLOW_RERANK_RETURN_DOCUMENTS:false}
+  max-chunks-per-doc: ${SILICONFLOW_RERANK_MAX_CHUNKS_PER_DOC:10}
+  overlap-tokens: ${SILICONFLOW_RERANK_OVERLAP_TOKENS:80}
+  max-document-chars: ${SILICONFLOW_RERANK_MAX_DOCUMENT_CHARS:512}
+
+dromara:
+  x-file-storage: #文件存储配置
+    default-platform: amazon-s3-1 #默认使用的存储平台
+    thumbnail-suffix: ".min.jpg" #缩略图后缀，例如【.min.jpg】【.png】
+    #对应平台的配置写在这里，注意缩进要对齐
+    amazon-s3: # 0.0.7 及以前的版本，配置名称是：aws-s3
+      - platform: amazon-s3-1 # 存储平台标识
+        enable-storage: true # 启用存储
+        access-key: ${S3_SECRET_ID:xxx}
+        secret-key: ${S3_SECRET_KEY:xxx}
+        region: ${S3_REGION:xxx} # 与 end-point 参数至少填一个
+        end-point: ${S3_ENDPOINT:xxx} # 与 region 参数至少填一个
+        bucket-name: ${S3_BUCKET_NAME:xxx}
+        domain: ${S3_DOMAIN:xxx} # 访问域名，注意“/”结尾，例如：https://abc.hn-bkt.clouddn.com/
+        base-path: s3/ # 基础路径
+
+payment:
+  alipay:
+    app-id: ${ALIPAY_APP_ID:xxx}
+    private-key: ${ALIPAY_PRIVATE_KEY:xxx}
+    public-key: ${xxx}
+  stripe:
+    secret-key: ${STRIPE_SECRET_KEY:xxx}
+    publishable-key: ${STRIPE_PUBLISHABLE_KEY:xxx}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:xxx}
+
+# 容器管理配置
+agentx:
+  container:
+    docker-host: ${AGENTX_CONTAINER_DOCKER_HOST:unix:///var/run/docker.sock}
+    user-volume-base-path: ${AGENTX_CONTAINER_USER_VOLUME_PATH:/docker/users}
+    default-mcp-gateway-image: ${AGENTX_CONTAINER_DEFAULT_MCP_IMAGE:ghcr.io/lucky-aeon/mcp-gateway:latest}
+    host-access-address: ${AGENTX_CONTAINER_HOST_ACCESS_ADDRESS:localhost}
+    monitor-interval: ${AGENTX_CONTAINER_MONITOR_INTERVAL:300000}
+    stats-update-interval: ${AGENTX_CONTAINER_STATS_INTERVAL:120000}
+mcp:
+  gateway:
+    connect-timeout: ${MCP_GATEWAY_CONNECT_TIMEOUT:60000}
+    read-timeout: ${MCP_GATEWAY_READ_TIMEOUT:180000}
